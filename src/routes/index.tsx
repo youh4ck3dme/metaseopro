@@ -6,7 +6,9 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { ArrowDown, Copy, RotateCcw, Square } from "lucide-react";
 import workspaceImg from "@/assets/workspace.jpg";
-import { streamArticle } from "@/lib/stream-article";
+import { streamSSE } from "@/lib/stream-sse";
+import { AppHeader } from "@/components/AppHeader";
+import { SidebarTips } from "@/components/SidebarTips";
 
 export const Route = createFileRoute("/")({
   head: () => ({
