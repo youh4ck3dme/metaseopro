@@ -1,11 +1,15 @@
-export async function streamArticle({
-  topic,
+// Generic SSE streaming helper for endpoints that proxy
+// OpenAI-compatible chat completions streams.
+export async function streamSSE({
+  url,
+  body,
   signal,
   onDelta,
   onDone,
   onError,
 }: {
-  topic: string;
+  url: string;
+  body: unknown;
   signal?: AbortSignal;
   onDelta: (chunk: string) => void;
   onDone: () => void;
@@ -13,10 +17,10 @@ export async function streamArticle({
 }) {
   let resp: Response;
   try {
-    resp = await fetch("/api/generate-article", {
+    resp = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ topic }),
+      body: JSON.stringify(body),
       signal,
     });
   } catch (e) {
@@ -28,9 +32,9 @@ export async function streamArticle({
   if (!resp.ok || !resp.body) {
     try {
       const data = await resp.json();
-      onError(data.error ?? "Chyba pri generovaní článku.");
+      onError(data.error ?? "Chyba pri generovaní.");
     } catch {
-      onError("Chyba pri generovaní článku.");
+      onError("Chyba pri generovaní.");
     }
     return;
   }
