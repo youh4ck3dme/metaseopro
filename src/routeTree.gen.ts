@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -22,30 +23,39 @@ const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
   path: '/api/generate-article',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
+  id: '/api/audit-domains',
+  path: '/api/audit-domains',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/generate-article'
+  fullPaths: '/' | '/api/audit-domains' | '/api/generate-article'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/generate-article'
-  id: '__root__' | '/' | '/api/generate-article'
+  to: '/' | '/api/audit-domains' | '/api/generate-article'
+  id: '__root__' | '/' | '/api/audit-domains' | '/api/generate-article'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
 }
 
@@ -65,11 +75,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateArticleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/audit-domains': {
+      id: '/api/audit-domains'
+      path: '/api/audit-domains'
+      fullPath: '/api/audit-domains'
+      preLoaderRoute: typeof ApiAuditDomainsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
 }
 export const routeTree = rootRouteImport
