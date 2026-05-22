@@ -98,30 +98,7 @@ function Index() {
     <div className="min-h-screen bg-page-bg font-sans text-neutral-900 selection:bg-neutral-200">
       <Toaster />
 
-      <header className="px-6 py-12">
-        <div className="mx-auto flex max-w-screen-xl items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-[6px] bg-neutral-900 text-neutral-50">
-              <span className="text-xs font-semibold">P</span>
-            </div>
-            <span className="text-lg font-medium tracking-tight">Písmo</span>
-          </div>
-          <nav className="flex gap-8">
-            <a
-              href="#"
-              className="text-sm text-neutral-500 transition-colors hover:text-neutral-900"
-            >
-              Moja knižnica
-            </a>
-            <a
-              href="#"
-              className="text-sm text-neutral-500 transition-colors hover:text-neutral-900"
-            >
-              Nastavenia
-            </a>
-          </nav>
-        </div>
-      </header>
+      <AppHeader />
 
       <main className="pb-40">
         <section className="px-6">
@@ -183,38 +160,16 @@ function Index() {
         {showOutput && (
           <section className="mt-20 px-6">
             <div className="mx-auto grid max-w-screen-xl grid-cols-12 gap-12">
-              <aside className="col-span-12 flex flex-col gap-8 lg:col-span-4">
-                <div className="rounded-[12px] bg-neutral-50/50 p-6 ring-1 ring-black/5">
-                  <h3 className="mb-4 text-sm font-medium">
-                    Ako Písmo pracuje
-                  </h3>
-                  <ul className="space-y-4">
-                    {[
-                      "Analyzuje sémantické jadro slovenskej SEO scény pre danú tému.",
-                      "Navrhuje štruktúru H1-H3, ktorá prirodzene vedie čitateľa k akcii.",
-                      "Implementuje FAQ sekciu s relevantnými otázkami pre Google Snippets.",
-                    ].map((t, i) => (
-                      <li key={i} className="flex gap-3">
-                        <div className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-neutral-200 text-[10px]">
-                          {i + 1}
-                        </div>
-                        <p className="text-sm text-neutral-600 text-pretty">
-                          {t}
-                        </p>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <img
-                  src={workspaceImg}
-                  alt="Pracovný stôl so zápisníkom a perami"
-                  width={800}
-                  height={608}
-                  loading="lazy"
-                  className="aspect-[4/3] w-full rounded-[12px] object-cover outline-1 -outline-offset-1 outline-black/5"
-                />
-              </aside>
+              <SidebarTips
+                title="Ako Písmo pracuje"
+                steps={[
+                  "Analyzuje sémantické jadro slovenskej SEO scény pre danú tému.",
+                  "Navrhuje štruktúru H1-H3, ktorá prirodzene vedie čitateľa k akcii.",
+                  "Implementuje FAQ sekciu s relevantnými otázkami pre Google Snippets.",
+                ]}
+                imageSrc={workspaceImg}
+                imageAlt="Pracovný stôl so zápisníkom a perami"
+              />
 
               <div className="col-span-12 lg:col-span-8">
                 <div className="mb-6 flex items-center justify-between">
