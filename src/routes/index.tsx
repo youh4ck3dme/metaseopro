@@ -48,8 +48,9 @@ function Index() {
       setArticle(buffer);
     };
 
-    await streamArticle({
-      topic,
+    await streamSSE({
+      url: "/api/generate-article",
+      body: { topic },
       signal: controller.signal,
       onDelta: (chunk) => {
         buffer += chunk;
