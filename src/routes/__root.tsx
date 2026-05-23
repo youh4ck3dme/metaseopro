@@ -72,14 +72,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Generates long-form, SEO-optimized blog" },
+      { name: "description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Generates long-form, SEO-optimized blog" },
+      { property: "og:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Generates long-form, SEO-optimized blog" },
+      { name: "twitter:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
     ],
     links: [
       {
