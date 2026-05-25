@@ -9,11 +9,23 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlanRouteImport } from './routes/plan'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuditRoute = AuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -38,12 +50,16 @@ const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/login': typeof LoginRoute
+  '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/login': typeof LoginRoute
+  '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
@@ -51,18 +67,34 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/login': typeof LoginRoute
+  '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/audit' | '/api/audit-domains' | '/api/generate-article'
+  fullPaths:
+    | '/'
+    | '/audit'
+    | '/login'
+    | '/plan'
+    | '/api/audit-domains'
+    | '/api/generate-article'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/audit' | '/api/audit-domains' | '/api/generate-article'
+  to:
+    | '/'
+    | '/audit'
+    | '/login'
+    | '/plan'
+    | '/api/audit-domains'
+    | '/api/generate-article'
   id:
     | '__root__'
     | '/'
     | '/audit'
+    | '/login'
+    | '/plan'
     | '/api/audit-domains'
     | '/api/generate-article'
   fileRoutesById: FileRoutesById
@@ -70,12 +102,28 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
+  LoginRoute: typeof LoginRoute
+  PlanRoute: typeof PlanRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/audit': {
       id: '/audit'
       path: '/audit'
@@ -110,6 +158,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
+  LoginRoute: LoginRoute,
+  PlanRoute: PlanRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
 }
