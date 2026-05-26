@@ -133,8 +133,8 @@ export const generateContentPlan = createServerFn({ method: "POST" })
     const content = json.choices?.[0]?.message?.content ?? "";
     if (!content) throw new Error("AI nevrátila žiadny obsah.");
 
-    // Atomic increment of usage counter via RPC-less update.
-    await supabaseAdmin.rpc;
+    // Increment usage counter after successful generation.
+
     const { data: cur } = await supabaseAdmin
       .from("content_plan_usage")
       .select("generations_count")
