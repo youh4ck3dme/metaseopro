@@ -11,8 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
@@ -26,6 +29,16 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BriefRoute = BriefRouteImport.update({
+  id: '/brief',
+  path: '/brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuditRoute = AuditRouteImport.update({
   id: '/audit',
   path: '/audit',
@@ -34,6 +47,11 @@ const AuditRoute = AuditRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
+  id: '/api/generate-brief',
+  path: '/api/generate-brief',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
@@ -50,62 +68,83 @@ const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/brief': typeof BriefRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
+  '/api/generate-brief': typeof ApiGenerateBriefRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/brief': typeof BriefRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
+  '/api/generate-brief': typeof ApiGenerateBriefRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
+  '/brief': typeof BriefRoute
+  '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
+  '/api/generate-brief': typeof ApiGenerateBriefRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/audit'
+    | '/brief'
+    | '/history'
     | '/login'
     | '/plan'
     | '/api/audit-domains'
     | '/api/generate-article'
+    | '/api/generate-brief'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
+    | '/brief'
+    | '/history'
     | '/login'
     | '/plan'
     | '/api/audit-domains'
     | '/api/generate-article'
+    | '/api/generate-brief'
   id:
     | '__root__'
     | '/'
     | '/audit'
+    | '/brief'
+    | '/history'
     | '/login'
     | '/plan'
     | '/api/audit-domains'
     | '/api/generate-article'
+    | '/api/generate-brief'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
+  BriefRoute: typeof BriefRoute
+  HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PlanRoute: typeof PlanRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
+  ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,6 +163,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/brief': {
+      id: '/brief'
+      path: '/brief'
+      fullPath: '/brief'
+      preLoaderRoute: typeof BriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/audit': {
       id: '/audit'
       path: '/audit'
@@ -136,6 +189,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-brief': {
+      id: '/api/generate-brief'
+      path: '/api/generate-brief'
+      fullPath: '/api/generate-brief'
+      preLoaderRoute: typeof ApiGenerateBriefRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/generate-article': {
@@ -158,10 +218,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
+  BriefRoute: BriefRoute,
+  HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PlanRoute: PlanRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
+  ApiGenerateBriefRoute: ApiGenerateBriefRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
