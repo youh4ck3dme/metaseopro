@@ -10,7 +10,18 @@ export const Route = createFileRoute("/api/generate-article")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const auth = await requireUser(request);
+          if (!auth.ok) return auth.response;
+
+          const contentLength = Number(request.headers.get("content-length") ?? "0");
+          if (contentLength > MAX_BODY_BYTES) {
+            return new Response(
+              JSON.stringify({ error: "Vstup je príliš veľký." }),
+              { status: 413, headers: { "Content-Type": "application/json" } },
+            );
+          }
           const { topic } = (await request.json()) as { topic?: string };
+
           if (!topic || typeof topic !== "string" || topic.trim().length < 5) {
             return new Response(
               JSON.stringify({ error: "Zadaj aspoň pár viet o téme." }),
