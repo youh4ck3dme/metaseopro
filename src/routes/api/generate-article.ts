@@ -1,5 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ARTICLE_SYSTEM_PROMPT } from "@/lib/article-prompt";
+import { requireUser } from "@/lib/api-auth.server";
+
+const MAX_BODY_BYTES = 16 * 1024; // 16 KB
+
 
 export const Route = createFileRoute("/api/generate-article")({
   server: {
