@@ -13,6 +13,7 @@ import {
   generateContentPlan,
   checkContentPlanAccess,
 } from "@/lib/content-plan.functions";
+import { saveOutput } from "@/lib/outputs.functions";
 
 export const Route = createFileRoute("/plan")({
   head: () => ({
@@ -40,6 +41,7 @@ function PlanPage() {
   const navigate = useNavigate();
   const checkAccess = useServerFn(checkContentPlanAccess);
   const generate = useServerFn(generateContentPlan);
+  const save = useServerFn(saveOutput);
 
   const [access, setAccess] = useState<Access | null>(null);
   const [niche, setNiche] = useState("");
@@ -69,6 +71,18 @@ function PlanPage() {
       setStatus("done");
       const a = await checkAccess({});
       setAccess(a);
+      try {
+        await save({
+          data: {
+            type: "plan",
+            title: `Plán: ${niche.trim()}`.slice(0, 200),
+            input: { niche, goal, extra },
+            output_markdown: res.plan,
+          },
+        });
+      } catch (err) {
+        console.error(err);
+      }
     } catch (e) {
       const msg = (e as Error).message ?? "Chyba";
       if (msg.includes("PAYMENT_REQUIRED")) {

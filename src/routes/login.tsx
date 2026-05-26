@@ -7,6 +7,9 @@ import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/login")({
+  validateSearch: (search: Record<string, unknown>) => ({
+    redirect: typeof search.redirect === "string" ? search.redirect : "/",
+  }),
   head: () => ({
     meta: [
       { title: "Prihlásenie — Písmo" },
@@ -19,14 +22,15 @@ export const Route = createFileRoute("/login")({
 function LoginPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const { redirect } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/plan" });
-  }, [user, loading, navigate]);
+    if (!loading && user) navigate({ to: redirect });
+  }, [user, loading, navigate, redirect]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,14 +40,14 @@ function LoginPage() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/plan` },
+          options: { emailRedirectTo: `${window.location.origin}${redirect}` },
         });
         if (error) throw error;
         toast.success("Účet vytvorený. Skontroluj email a potvrď registráciu.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate({ to: "/plan" });
+        navigate({ to: redirect });
       }
     } catch (err) {
       toast.error((err as Error).message);
@@ -55,7 +59,7 @@ function LoginPage() {
   const google = async () => {
     setBusy(true);
     const r = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin + "/plan",
+      redirect_uri: window.location.origin + redirect,
     });
     if (r.error) {
       toast.error(r.error.message ?? "Google sign-in zlyhal.");

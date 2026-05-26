@@ -27,11 +27,18 @@ export const Route = createFileRoute("/audit")({
 });
 
 function AuditPage() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const save = useServerFn(saveOutput);
   const [input, setInput] = useState("");
   const [domains, setDomains] = useState<string[]>([]);
   const [report, setReport] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!loading && !user) navigate({ to: "/login", search: { redirect: "/audit" } });
+  }, [user, loading, navigate]);
 
   const parseDomains = (raw: string): string[] => {
     return Array.from(
@@ -90,10 +97,22 @@ function AuditPage() {
         buffer += chunk;
         if (!raf) raf = requestAnimationFrame(flush);
       },
-      onDone: () => {
+      onDone: async () => {
         if (raf) cancelAnimationFrame(raf);
         setReport(buffer);
         setStatus("done");
+        try {
+          await save({
+            data: {
+              type: "audit",
+              title: `Audit: ${all.join(", ")}`.slice(0, 200),
+              input: { domains: all },
+              output_markdown: buffer,
+            },
+          });
+        } catch (e) {
+          console.error(e);
+        }
       },
       onError: (msg) => {
         if (raf) cancelAnimationFrame(raf);
