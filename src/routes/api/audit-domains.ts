@@ -27,7 +27,18 @@ export const Route = createFileRoute("/api/audit-domains")({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const auth = await requireUser(request);
+          if (!auth.ok) return auth.response;
+
+          const contentLength = Number(request.headers.get("content-length") ?? "0");
+          if (contentLength > MAX_BODY_BYTES) {
+            return new Response(
+              JSON.stringify({ error: "Vstup je príliš veľký." }),
+              { status: 413, headers: { "Content-Type": "application/json" } },
+            );
+          }
           const { domains } = (await request.json()) as { domains?: unknown };
+
           if (!Array.isArray(domains) || domains.length === 0) {
             return new Response(
               JSON.stringify({ error: "Zadaj 1 až 5 domén." }),
