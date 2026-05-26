@@ -1,5 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -8,6 +9,8 @@ import { ArrowDown, Copy, RotateCcw, Square, X } from "lucide-react";
 import { streamSSE } from "@/lib/stream-sse";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
+import { useAuth } from "@/hooks/use-auth";
+import { saveOutput } from "@/lib/outputs.functions";
 
 export const Route = createFileRoute("/audit")({
   head: () => ({
