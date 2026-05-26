@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      generated_outputs: {
+        Row: {
+          created_at: string
+          id: string
+          input: Json | null
+          output_markdown: string
+          title: string | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input?: Json | null
+          output_markdown: string
+          title?: string | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input?: Json | null
+          output_markdown?: string
+          title?: string | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
