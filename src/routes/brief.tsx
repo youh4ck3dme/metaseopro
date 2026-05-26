@@ -189,7 +189,7 @@ function BriefPage() {
               <div className="rounded-[12px] bg-white p-6 shadow-sm space-y-5">
                 <Field
                   label="Hlavná téma / keyword *"
-                  hint="Napr. „lokálne SEO pre reštaurácie v Bratislave"."
+                  hint='Napr. "lokálne SEO pre reštaurácie v Bratislave".'
                 >
                   <input
                     value={topic}
@@ -313,7 +313,7 @@ function BriefPage() {
                 title="Ako brief použiť"
                 steps={[
                   "Skontroluj keywordy, štruktúru a meta tagy.",
-                  "Pošli copywriterovi alebo klikni „Vygenerovať článok z briefu".",
+                  'Pošli copywriterovi alebo klikni "Vygenerovať článok z briefu".',
                   "Hotový článok uložíme do tvojej Histórie.",
                 ]}
               />
