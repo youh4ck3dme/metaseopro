@@ -1,5 +1,7 @@
 // Generic SSE streaming helper for endpoints that proxy
 // OpenAI-compatible chat completions streams.
+import { supabase } from "@/integrations/supabase/client";
+
 export async function streamSSE({
   url,
   body,
@@ -17,9 +19,14 @@ export async function streamSSE({
 }) {
   let resp: Response;
   try {
+    const { data: { session } } = await supabase.auth.getSession();
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (session?.access_token) {
+      headers["Authorization"] = `Bearer ${session.access_token}`;
+    }
     resp = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
       signal,
     });
