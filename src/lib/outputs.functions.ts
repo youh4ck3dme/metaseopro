@@ -20,7 +20,7 @@ export const saveOutput = createServerFn({ method: "POST" })
         user_id: userId,
         type: data.type,
         title: data.title.slice(0, 300),
-        input: data.input,
+        input: data.input as never,
         output_markdown: data.output_markdown,
       })
       .select("id")
