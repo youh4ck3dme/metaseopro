@@ -5,6 +5,10 @@ import {
   SemrushError,
   type DomainSnapshot,
 } from "@/lib/semrush.server";
+import { requireUser } from "@/lib/api-auth.server";
+
+const MAX_BODY_BYTES = 8 * 1024; // 8 KB
+
 
 const DOMAIN_RE = /^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/i;
 
