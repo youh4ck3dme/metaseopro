@@ -50,16 +50,40 @@ export const generateContentPlan = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { userId } = context;
 
-    // Gate
-    const { data: usage, error: usageErr } = await supabaseAdmin
+    // Atomic gate: try to claim the free window by inserting the usage row.
+    // The UNIQUE(user_id) constraint serializes concurrent first-time inserts;
+    // only one wins, the rest fall through to the read-and-check branch.
+    const nowIso = new Date().toISOString();
+    const { data: inserted, error: insertErr } = await supabaseAdmin
       .from("content_plan_usage")
-      .select("*")
-      .eq("user_id", userId)
+      .insert({
+        user_id: userId,
+        first_used_at: nowIso,
+        last_used_at: nowIso,
+        generations_count: 0,
+      })
+      .select()
       .maybeSingle();
-    if (usageErr) throw new Error(usageErr.message);
 
-    if (usage) {
-      const elapsedMs = Date.now() - new Date(usage.first_used_at).getTime();
+    let firstUsedAt: string;
+    if (inserted) {
+      firstUsedAt = inserted.first_used_at;
+    } else {
+      // Either the insert conflicted on UNIQUE(user_id) or returned no row;
+      // re-read and enforce the 24h free window before spending AI credits.
+      if (insertErr && insertErr.code !== "23505") {
+        throw new Error(insertErr.message);
+      }
+      const { data: existing, error: readErr } = await supabaseAdmin
+        .from("content_plan_usage")
+        .select("first_used_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (readErr || !existing) {
+        throw new Error(readErr?.message ?? "Nepodarilo sa overiť usage.");
+      }
+      firstUsedAt = existing.first_used_at;
+      const elapsedMs = Date.now() - new Date(firstUsedAt).getTime();
       if (elapsedMs >= MS_PER_DAY) {
         throw new Error(
           "PAYMENT_REQUIRED: Tvoj prvý deň zdarma sa skončil. Pre ďalšie generovanie aktivuj predplatné.",
@@ -109,23 +133,21 @@ export const generateContentPlan = createServerFn({ method: "POST" })
     const content = json.choices?.[0]?.message?.content ?? "";
     if (!content) throw new Error("AI nevrátila žiadny obsah.");
 
-    // Record/update usage
-    if (usage) {
-      await supabaseAdmin
-        .from("content_plan_usage")
-        .update({
-          generations_count: usage.generations_count + 1,
-          last_used_at: new Date().toISOString(),
-        })
-        .eq("user_id", userId);
-    } else {
-      await supabaseAdmin.from("content_plan_usage").insert({
-        user_id: userId,
-        first_used_at: new Date().toISOString(),
+    // Atomic increment of usage counter via RPC-less update.
+    await supabaseAdmin.rpc;
+    const { data: cur } = await supabaseAdmin
+      .from("content_plan_usage")
+      .select("generations_count")
+      .eq("user_id", userId)
+      .maybeSingle();
+    await supabaseAdmin
+      .from("content_plan_usage")
+      .update({
+        generations_count: (cur?.generations_count ?? 0) + 1,
         last_used_at: new Date().toISOString(),
-        generations_count: 1,
-      });
-    }
+      })
+      .eq("user_id", userId);
 
     return { plan: content };
   });
+
