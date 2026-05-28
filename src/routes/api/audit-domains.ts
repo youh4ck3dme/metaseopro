@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { AUDIT_SYSTEM_PROMPT } from "@/lib/audit-prompt";
 import {
   getDomainSnapshot,
@@ -6,11 +7,18 @@ import {
   type DomainSnapshot,
 } from "@/lib/semrush.server";
 import { requireUser } from "@/lib/api-auth.server";
+import { checkRateLimit } from "@/lib/rate-limit.server";
 
-const MAX_BODY_BYTES = 8 * 1024; // 8 KB
-
+const MAX_BODY_BYTES = 8 * 1024;
 
 const DOMAIN_RE = /^([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,24}$/i;
+const ALLOWED_DBS = ["", "sk", "cz", "us", "uk", "de", "pl", "hu", "fr", "es", "it", "at"] as const;
+
+const InputSchema = z.object({
+  domains: z.array(z.string().min(1).max(255)).min(1).max(5),
+  database: z.enum(ALLOWED_DBS).optional().default(""),
+  yourDomain: z.string().trim().max(255).optional().default(""),
+});
 
 function normalizeDomain(input: string): string | null {
   let d = input.trim().toLowerCase();
@@ -22,6 +30,13 @@ function normalizeDomain(input: string): string | null {
   return d;
 }
 
+function err(status: number, message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
 export const Route = createFileRoute("/api/audit-domains")({
   server: {
     handlers: {
@@ -31,92 +46,79 @@ export const Route = createFileRoute("/api/audit-domains")({
           if (!auth.ok) return auth.response;
 
           const contentLength = Number(request.headers.get("content-length") ?? "0");
-          if (contentLength > MAX_BODY_BYTES) {
-            return new Response(
-              JSON.stringify({ error: "Vstup je príliš veľký." }),
-              { status: 413, headers: { "Content-Type": "application/json" } },
-            );
-          }
-          const { domains } = (await request.json()) as { domains?: unknown };
+          if (contentLength > MAX_BODY_BYTES) return err(413, "Vstup je príliš veľký.");
 
-          if (!Array.isArray(domains) || domains.length === 0) {
+          const rl = checkRateLimit(`audit:${auth.userId}`, {
+            limit: 6,
+            windowMs: 60_000,
+          });
+          if (!rl.ok) {
             return new Response(
-              JSON.stringify({ error: "Zadaj 1 až 5 domén." }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
+              JSON.stringify({
+                error: `Príliš veľa požiadaviek. Skús to o ${rl.retryAfterSec}s.`,
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(rl.retryAfterSec),
+                },
+              },
             );
           }
-          if (domains.length > 5) {
-            return new Response(
-              JSON.stringify({ error: "Maximálne 5 domén naraz." }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
-            );
+
+          let raw: unknown;
+          try {
+            raw = await request.json();
+          } catch {
+            return err(400, "Neplatný JSON.");
           }
+          const parsed = InputSchema.safeParse(raw);
+          if (!parsed.success) return err(400, "Zadaj 1 až 5 domén.");
+
           const normalized: string[] = [];
-          for (const raw of domains) {
-            if (typeof raw !== "string") {
-              return new Response(
-                JSON.stringify({ error: "Neplatný formát domény." }),
-                {
-                  status: 400,
-                  headers: { "Content-Type": "application/json" },
-                },
-              );
-            }
-            const n = normalizeDomain(raw);
-            if (!n) {
-              return new Response(
-                JSON.stringify({
-                  error: `Neplatná doména: "${raw}". Použi formát napr. priklad.sk`,
-                }),
-                {
-                  status: 400,
-                  headers: { "Content-Type": "application/json" },
-                },
-              );
-            }
+          for (const d of parsed.data.domains) {
+            const n = normalizeDomain(d);
+            if (!n) return err(400, `Neplatná doména: "${d}". Použi formát napr. priklad.sk`);
             normalized.push(n);
           }
+          const yourDomain = parsed.data.yourDomain
+            ? normalizeDomain(parsed.data.yourDomain)
+            : null;
 
-          const apiKey = process.env.LOVABLE_API_KEY;
-          if (!apiKey) {
-            return new Response(
-              JSON.stringify({
-                error: "LOVABLE_API_KEY nie je nakonfigurovaný.",
-              }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
-          }
           if (!process.env.SEMRUSH_API_KEY) {
-            return new Response(
-              JSON.stringify({
-                error:
-                  "Semrush konektor nie je pripojený. Pripoj ho v nastaveniach projektu.",
-              }),
-              { status: 503, headers: { "Content-Type": "application/json" } },
+            return err(
+              503,
+              "Semrush konektor nie je pripojený. Pripoj ho v nastaveniach projektu.",
             );
           }
 
-          // Fetch Semrush data for all domains in parallel.
           let snapshots: DomainSnapshot[];
           try {
             snapshots = await Promise.all(
-              normalized.map((d) => getDomainSnapshot(d)),
+              normalized.map((d) => getDomainSnapshot(d, parsed.data.database || undefined)),
             );
           } catch (e) {
             if (e instanceof SemrushError) {
-              return new Response(JSON.stringify({ error: e.message }), {
-                status: e.status >= 400 && e.status < 600 ? e.status : 500,
-                headers: { "Content-Type": "application/json" },
-              });
+              return err(
+                e.status >= 400 && e.status < 600 ? e.status : 500,
+                e.message,
+              );
             }
             throw e;
           }
 
+          const apiKey = process.env.LOVABLE_API_KEY;
+          if (!apiKey) return err(500, "LOVABLE_API_KEY nie je nakonfigurovaný.");
+
           const userPrompt =
-            `Analyzuj nasledujúce domény na základe týchto reálnych dát zo Semrush. ` +
-            `Postupuj presne podľa formátu, ktorý máš v systémovom prompte.\n\n` +
-            `Domény: ${normalized.join(", ")}\n\n` +
-            `Dáta (JSON):\n\`\`\`json\n${JSON.stringify(snapshots, null, 2)}\n\`\`\``;
+            `Analyzuj nasledujúce domény podľa systémového promptu. ` +
+            (yourDomain
+              ? `\n\n**TVOJA DOMÉNA:** ${yourDomain} — zameraj odporúčania na to, ako môže predbehnúť ostatné.\n`
+              : "\n") +
+            `\nDomény: ${normalized.join(", ")}\n` +
+            `Semrush database: ${parsed.data.database || "auto-detekcia podľa TLD"}\n\n` +
+            `Reálne dáta (JSON):\n\`\`\`json\n${JSON.stringify(snapshots, null, 2)}\n\`\`\``;
 
           const upstream = await fetch(
             "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -127,7 +129,7 @@ export const Route = createFileRoute("/api/audit-domains")({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
+                model: "google/gemini-2.5-pro",
                 stream: true,
                 messages: [
                   { role: "system", content: AUDIT_SYSTEM_PROMPT },
@@ -138,35 +140,11 @@ export const Route = createFileRoute("/api/audit-domains")({
           );
 
           if (!upstream.ok || !upstream.body) {
-            if (upstream.status === 429) {
-              return new Response(
-                JSON.stringify({
-                  error: "Príliš veľa požiadaviek. Skús to o chvíľu znovu.",
-                }),
-                {
-                  status: 429,
-                  headers: { "Content-Type": "application/json" },
-                },
-              );
-            }
-            if (upstream.status === 402) {
-              return new Response(
-                JSON.stringify({
-                  error:
-                    "Vyčerpané kredity. Pridaj kredity v Lovable workspace nastaveniach.",
-                }),
-                {
-                  status: 402,
-                  headers: { "Content-Type": "application/json" },
-                },
-              );
-            }
+            if (upstream.status === 429) return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
+            if (upstream.status === 402) return err(402, "Vyčerpané AI kredity.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);
-            return new Response(
-              JSON.stringify({ error: "Chyba AI gateway." }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
+            return err(500, "Chyba AI gateway.");
           }
 
           return new Response(upstream.body, {
@@ -177,10 +155,7 @@ export const Route = createFileRoute("/api/audit-domains")({
           });
         } catch (e) {
           console.error("audit-domains error:", e);
-          return new Response(
-            JSON.stringify({ error: "Neočakávaná chyba servera." }),
-            { status: 500, headers: { "Content-Type": "application/json" } },
-          );
+          return err(500, "Neočakávaná chyba servera.");
         }
       },
     },

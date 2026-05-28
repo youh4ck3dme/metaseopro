@@ -42,6 +42,7 @@ async function semrushGet(
     },
   });
   const text = await res.text();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let json: any = null;
   try {
     json = JSON.parse(text);
@@ -63,6 +64,7 @@ async function semrushGet(
 }
 
 // Convert Semrush "columnNames + rows" payload to array of objects.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function rowsToObjects(data: any): Array<Record<string, string>> {
   const cols: string[] | undefined = data?.data?.columnNames;
   const rows: string[][] | undefined = data?.data?.rows;
@@ -96,32 +98,48 @@ export type DomainSnapshot = {
   overview: Record<string, string> | null;
   topKeywords: Array<Record<string, string>>;
   backlinks: Record<string, string> | null;
+  anchors: Array<Record<string, string>>;
+  topRefDomains: Array<Record<string, string>>;
   errors: string[];
 };
 
 export async function getDomainSnapshot(
   domain: string,
+  databaseOverride?: string,
 ): Promise<DomainSnapshot> {
-  const database = pickDatabase(domain);
+  const database = databaseOverride && databaseOverride.length > 0
+    ? databaseOverride
+    : pickDatabase(domain);
   const errors: string[] = [];
 
-  const [overviewRes, keywordsRes, backlinksRes] = await Promise.allSettled([
-    semrushGet("/domains/domain_ranks", {
-      domain,
-      database,
-      export_columns: "Db,Dn,Rk,Or,Ot,Oc,Ad,At,Ac,Sh,Sv",
-    }),
-    semrushGet("/domains/domain_organic", {
-      domain,
-      database,
-      display_limit: 15,
-      export_columns: "Ph,Po,Nq,Cp,Tr,Co,Nr,Td,Kd",
-    }),
-    semrushGet("/backlinks/backlinks_overview", {
-      target: domain,
-      target_type: "root_domain",
-    }),
-  ]);
+  const [overviewRes, keywordsRes, backlinksRes, anchorsRes, refDomainsRes] =
+    await Promise.allSettled([
+      semrushGet("/domains/domain_ranks", {
+        domain,
+        database,
+        export_columns: "Db,Dn,Rk,Or,Ot,Oc,Ad,At,Ac,Sh,Sv",
+      }),
+      semrushGet("/domains/domain_organic", {
+        domain,
+        database,
+        display_limit: 20,
+        export_columns: "Ph,Po,Nq,Cp,Tr,Co,Nr,Td,Kd",
+      }),
+      semrushGet("/backlinks/backlinks_overview", {
+        target: domain,
+        target_type: "root_domain",
+      }),
+      semrushGet("/backlinks/backlinks_anchors", {
+        target: domain,
+        target_type: "root_domain",
+        display_limit: 10,
+      }),
+      semrushGet("/backlinks/backlinks_refdomains", {
+        target: domain,
+        target_type: "root_domain",
+        display_limit: 10,
+      }),
+    ]);
 
   const overviewRows =
     overviewRes.status === "fulfilled" ? rowsToObjects(overviewRes.value) : [];
@@ -149,12 +167,21 @@ export async function getDomainSnapshot(
     );
   }
 
+  const anchors =
+    anchorsRes.status === "fulfilled" ? rowsToObjects(anchorsRes.value) : [];
+  const topRefDomains =
+    refDomainsRes.status === "fulfilled"
+      ? rowsToObjects(refDomainsRes.value)
+      : [];
+
   return {
     domain,
     database,
     overview: overviewRows[0] ?? null,
     topKeywords,
     backlinks: backlinksRows[0] ?? null,
+    anchors,
+    topRefDomains,
     errors,
   };
 }
