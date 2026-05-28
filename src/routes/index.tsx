@@ -318,6 +318,58 @@ function Index() {
                     className="w-full resize-none border-none bg-transparent text-base md:text-lg placeholder:text-neutral-300 focus:ring-0 focus:outline-none disabled:opacity-60"
                     placeholder="Napríklad: Prečo je dôležitá lokálna SEO optimalizácia pre malé firmy v Bratislave a aké nástroje použiť…"
                   />
+
+                  <div className="border-t border-neutral-100 pt-3">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced((v) => !v)}
+                      className="text-xs font-medium tracking-wider text-neutral-500 uppercase hover:text-neutral-900"
+                    >
+                      {showAdvanced ? "− Skryť pokročilé" : "+ Pokročilé (KW, publikum, tón, dĺžka)"}
+                    </button>
+                    {showAdvanced && (
+                      <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                        <input
+                          value={primaryKeyword}
+                          onChange={(e) => setPrimaryKeyword(e.target.value)}
+                          disabled={status === "streaming"}
+                          maxLength={150}
+                          placeholder="Primárne keyword"
+                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        />
+                        <input
+                          value={audience}
+                          onChange={(e) => setAudience(e.target.value)}
+                          disabled={status === "streaming"}
+                          maxLength={300}
+                          placeholder="Cieľové publikum"
+                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        />
+                        <select
+                          value={tone}
+                          onChange={(e) => setTone(e.target.value as typeof tone)}
+                          disabled={status === "streaming"}
+                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        >
+                          <option value="">Tón (auto)</option>
+                          <option value="friendly">Priateľský</option>
+                          <option value="expert">Expertný</option>
+                          <option value="sales">Predajný</option>
+                        </select>
+                        <select
+                          value={targetLength}
+                          onChange={(e) => setTargetLength(e.target.value as typeof targetLength)}
+                          disabled={status === "streaming"}
+                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        >
+                          <option value="">Dĺžka (auto)</option>
+                          <option value="1500">~1500 slov</option>
+                          <option value="2000">~2000 slov</option>
+                          <option value="2800">~2800 slov</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-4">
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
