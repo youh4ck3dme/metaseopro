@@ -93,7 +93,7 @@ function AuditPage() {
 
     await streamSSE({
       url: "/api/audit-domains",
-      body: { domains: all },
+      body: { domains: all, database, yourDomain: yourDomain.trim() },
       signal: controller.signal,
       onDelta: (chunk) => {
         buffer += chunk;
