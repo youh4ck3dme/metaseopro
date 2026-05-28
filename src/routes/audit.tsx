@@ -222,13 +222,51 @@ function AuditPage() {
                     }
                   />
 
+                  <div className="grid grid-cols-1 gap-3 border-t border-neutral-100 pt-4 sm:grid-cols-2">
+                    <div>
+                      <label className="block text-[10px] font-medium tracking-wider text-neutral-400 uppercase">
+                        Tvoja doména (voliteľné)
+                      </label>
+                      <input
+                        type="text"
+                        value={yourDomain}
+                        onChange={(e) => setYourDomain(e.target.value)}
+                        disabled={status === "streaming"}
+                        maxLength={255}
+                        placeholder="napr. mojweb.sk"
+                        className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium tracking-wider text-neutral-400 uppercase">
+                        Trh (Semrush database)
+                      </label>
+                      <select
+                        value={database}
+                        onChange={(e) => setDatabase(e.target.value)}
+                        disabled={status === "streaming"}
+                        className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                      >
+                        <option value="">Auto-detekcia podľa TLD</option>
+                        <option value="sk">Slovensko (sk)</option>
+                        <option value="cz">Česko (cz)</option>
+                        <option value="us">USA (us)</option>
+                        <option value="uk">UK (uk)</option>
+                        <option value="de">Nemecko (de)</option>
+                        <option value="pl">Poľsko (pl)</option>
+                        <option value="hu">Maďarsko (hu)</option>
+                        <option value="at">Rakúsko (at)</option>
+                      </select>
+                    </div>
+                  </div>
+
                   <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
                     <div className="flex gap-2">
                       <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
                         Semrush
                       </span>
                       <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
-                        Slovenčina (SK)
+                        Gemini 2.5 Pro
                       </span>
                     </div>
                     <button
