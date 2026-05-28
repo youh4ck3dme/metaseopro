@@ -32,6 +32,8 @@ function AuditPage() {
   const save = useServerFn(saveOutput);
   const [input, setInput] = useState("");
   const [domains, setDomains] = useState<string[]>([]);
+  const [database, setDatabase] = useState<string>("");
+  const [yourDomain, setYourDomain] = useState<string>("");
   const [report, setReport] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
   const abortRef = useRef<AbortController | null>(null);
