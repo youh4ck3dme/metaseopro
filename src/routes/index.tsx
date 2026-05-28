@@ -46,6 +46,11 @@ function Index() {
   const { user } = useAuth();
   const save = useServerFn(saveOutput);
   const [topic, setTopic] = useState("");
+  const [primaryKeyword, setPrimaryKeyword] = useState("");
+  const [audience, setAudience] = useState("");
+  const [tone, setTone] = useState<"" | "friendly" | "expert" | "sales">("");
+  const [targetLength, setTargetLength] = useState<"" | "1500" | "2000" | "2800">("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [article, setArticle] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
   const [savedId, setSavedId] = useState<string | null>(null);
