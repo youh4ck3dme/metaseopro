@@ -96,7 +96,7 @@ function Index() {
 
     await streamSSE({
       url: "/api/generate-article",
-      body: { topic },
+      body: { topic, primaryKeyword, audience, tone, targetLength },
       signal: controller.signal,
       onDelta: (chunk) => {
         buffer += chunk;
