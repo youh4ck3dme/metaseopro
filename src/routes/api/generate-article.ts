@@ -1,9 +1,31 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
 import { ARTICLE_SYSTEM_PROMPT } from "@/lib/article-prompt";
 import { requireUser } from "@/lib/api-auth.server";
+import { checkRateLimit } from "@/lib/rate-limit.server";
 
-const MAX_BODY_BYTES = 16 * 1024; // 16 KB
+const MAX_BODY_BYTES = 16 * 1024;
 
+const InputSchema = z.object({
+  topic: z.string().trim().min(5).max(4000),
+  primaryKeyword: z.string().trim().max(150).optional().default(""),
+  audience: z.string().trim().max(300).optional().default(""),
+  tone: z.enum(["", "friendly", "expert", "sales"]).optional().default(""),
+  targetLength: z.enum(["", "1500", "2000", "2800"]).optional().default(""),
+});
+
+function err(status: number, message: string): Response {
+  return new Response(JSON.stringify({ error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+const TONE_LABEL: Record<string, string> = {
+  friendly: "priateľský, motivujúci",
+  expert: "expertný, autoritatívny, podložený dátami",
+  sales: "predajný, zameraný na konverziu a benefity",
+};
 
 export const Route = createFileRoute("/api/generate-article")({
   server: {
@@ -14,34 +36,51 @@ export const Route = createFileRoute("/api/generate-article")({
           if (!auth.ok) return auth.response;
 
           const contentLength = Number(request.headers.get("content-length") ?? "0");
-          if (contentLength > MAX_BODY_BYTES) {
-            return new Response(
-              JSON.stringify({ error: "Vstup je príliš veľký." }),
-              { status: 413, headers: { "Content-Type": "application/json" } },
-            );
-          }
-          const { topic } = (await request.json()) as { topic?: string };
+          if (contentLength > MAX_BODY_BYTES) return err(413, "Vstup je príliš veľký.");
 
-          if (!topic || typeof topic !== "string" || topic.trim().length < 5) {
+          const rl = checkRateLimit(`article:${auth.userId}`, {
+            limit: 8,
+            windowMs: 60_000,
+          });
+          if (!rl.ok) {
             return new Response(
-              JSON.stringify({ error: "Zadaj aspoň pár viet o téme." }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
+              JSON.stringify({
+                error: `Príliš veľa požiadaviek. Skús to o ${rl.retryAfterSec}s.`,
+              }),
+              {
+                status: 429,
+                headers: {
+                  "Content-Type": "application/json",
+                  "Retry-After": String(rl.retryAfterSec),
+                },
+              },
             );
           }
-          if (topic.length > 2000) {
-            return new Response(
-              JSON.stringify({ error: "Vstup je príliš dlhý (max 2000 znakov)." }),
-              { status: 400, headers: { "Content-Type": "application/json" } },
-            );
+
+          let raw: unknown;
+          try {
+            raw = await request.json();
+          } catch {
+            return err(400, "Neplatný JSON.");
           }
+          const parsed = InputSchema.safeParse(raw);
+          if (!parsed.success) {
+            return err(400, "Zadaj aspoň pár viet o téme.");
+          }
+          const { topic, primaryKeyword, audience, tone, targetLength } = parsed.data;
 
           const apiKey = process.env.LOVABLE_API_KEY;
-          if (!apiKey) {
-            return new Response(
-              JSON.stringify({ error: "LOVABLE_API_KEY nie je nakonfigurovaný." }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
-          }
+          if (!apiKey) return err(500, "LOVABLE_API_KEY nie je nakonfigurovaný.");
+
+          const userPrompt = [
+            `Téma a kontext:\n${topic}`,
+            primaryKeyword ? `Primárne keyword: ${primaryKeyword}` : "",
+            audience ? `Cieľové publikum: ${audience}` : "",
+            tone ? `Tón hlasu: ${TONE_LABEL[tone] ?? tone}` : "",
+            targetLength ? `Cieľová dĺžka: ~${targetLength} slov` : "",
+          ]
+            .filter(Boolean)
+            .join("\n\n");
 
           const upstream = await fetch(
             "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -56,36 +95,18 @@ export const Route = createFileRoute("/api/generate-article")({
                 stream: true,
                 messages: [
                   { role: "system", content: ARTICLE_SYSTEM_PROMPT },
-                  { role: "user", content: topic.trim() },
+                  { role: "user", content: userPrompt },
                 ],
               }),
             },
           );
 
           if (!upstream.ok || !upstream.body) {
-            if (upstream.status === 429) {
-              return new Response(
-                JSON.stringify({
-                  error: "Príliš veľa požiadaviek. Skús to o chvíľu znovu.",
-                }),
-                { status: 429, headers: { "Content-Type": "application/json" } },
-              );
-            }
-            if (upstream.status === 402) {
-              return new Response(
-                JSON.stringify({
-                  error:
-                    "Vyčerpané kredity. Pridaj kredity v Lovable workspace nastaveniach.",
-                }),
-                { status: 402, headers: { "Content-Type": "application/json" } },
-              );
-            }
+            if (upstream.status === 429) return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
+            if (upstream.status === 402) return err(402, "Vyčerpané AI kredity.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);
-            return new Response(
-              JSON.stringify({ error: "Chyba AI gateway." }),
-              { status: 500, headers: { "Content-Type": "application/json" } },
-            );
+            return err(500, "Chyba AI gateway.");
           }
 
           return new Response(upstream.body, {
@@ -96,10 +117,7 @@ export const Route = createFileRoute("/api/generate-article")({
           });
         } catch (e) {
           console.error("generate-article error:", e);
-          return new Response(
-            JSON.stringify({ error: "Neočakávaná chyba servera." }),
-            { status: 500, headers: { "Content-Type": "application/json" } },
-          );
+          return err(500, "Neočakávaná chyba servera.");
         }
       },
     },
