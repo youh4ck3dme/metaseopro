@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowDown, Copy, Trash2, X, FileText, BarChart3, Calendar, Lightbulb } from "lucide-react";
+import { ArrowDown, Copy, Trash2, X, FileText, BarChart3, Calendar, Lightbulb, Rocket } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { listOutputs, getOutput, deleteOutput } from "@/lib/outputs.functions";
