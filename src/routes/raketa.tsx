@@ -21,7 +21,6 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   LANGUAGE_LABEL,
   OUTPUT_LABEL,
-  OUTPUT_LABEL as _OUTPUT_LABEL,
   RAKETA_LANGUAGES,
   RAKETA_OUTPUTS,
   RaketaFormSchema,
