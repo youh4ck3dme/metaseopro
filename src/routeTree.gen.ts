@@ -15,6 +15,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
 import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
@@ -50,6 +51,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
+  id: '/api/raketa-generate',
+  path: '/api/raketa-generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
   id: '/api/raketa-analyze',
   path: '/api/raketa-analyze',
@@ -82,6 +88,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +130,7 @@ export interface FileRouteTypes {
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +143,7 @@ export interface FileRouteTypes {
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   id:
     | '__root__'
     | '/'
@@ -145,6 +156,7 @@ export interface FileRouteTypes {
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +170,7 @@ export interface RootRouteChildren {
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
+  ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -204,6 +217,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/raketa-generate': {
+      id: '/api/raketa-generate'
+      path: '/api/raketa-generate'
+      fullPath: '/api/raketa-generate'
+      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/raketa-analyze': {
       id: '/api/raketa-analyze'
       path: '/api/raketa-analyze'
@@ -246,6 +266,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
+  ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
