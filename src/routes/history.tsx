@@ -5,7 +5,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowDown, Copy, Trash2, X, FileText, BarChart3, Calendar, Lightbulb } from "lucide-react";
+import { ArrowDown, Copy, Trash2, X, FileText, BarChart3, Calendar, Lightbulb, Rocket } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { listOutputs, getOutput, deleteOutput } from "@/lib/outputs.functions";
@@ -23,11 +23,11 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
 });
 
-type FilterType = "all" | "article" | "audit" | "plan" | "brief";
+type FilterType = "all" | "article" | "audit" | "plan" | "brief" | "raketa";
 
 type Item = {
   id: string;
-  type: "article" | "audit" | "plan" | "brief";
+  type: "article" | "audit" | "plan" | "brief" | "raketa";
   title: string | null;
   created_at: string;
 };
@@ -39,6 +39,7 @@ const TYPE_LABEL: Record<Item["type"], string> = {
   audit: "SEO Audit",
   plan: "Content Plan",
   brief: "SEO Brief",
+  raketa: "SEO Raketa",
 };
 
 const TYPE_ICON: Record<Item["type"], typeof FileText> = {
@@ -46,6 +47,7 @@ const TYPE_ICON: Record<Item["type"], typeof FileText> = {
   audit: BarChart3,
   plan: Calendar,
   brief: Lightbulb,
+  raketa: Rocket,
 };
 
 function HistoryPage() {
@@ -143,7 +145,7 @@ function HistoryPage() {
           </p>
 
           <div className="mb-6 flex flex-wrap gap-2">
-            {(["all", "article", "audit", "plan", "brief"] as FilterType[]).map((f) => (
+            {(["all", "raketa", "article", "audit", "plan", "brief"] as FilterType[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}

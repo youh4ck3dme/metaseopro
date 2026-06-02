@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const SaveSchema = z.object({
-  type: z.enum(["article", "audit", "plan", "brief"]),
+  type: z.enum(["article", "audit", "plan", "brief", "raketa"]),
   title: z.string().min(1).max(300),
   input: z.record(z.string(), z.unknown()).optional().default({}),
   output_markdown: z.string().min(10).max(200_000),

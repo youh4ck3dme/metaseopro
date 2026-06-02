@@ -9,16 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RaketaRouteImport } from './routes/raketa'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
+import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
+const RaketaRoute = RaketaRouteImport.update({
+  id: '/raketa',
+  path: '/raketa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PlanRoute = PlanRouteImport.update({
   id: '/plan',
   path: '/plan',
@@ -49,6 +57,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
+  id: '/api/raketa-generate',
+  path: '/api/raketa-generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
+  id: '/api/raketa-analyze',
+  path: '/api/raketa-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
   id: '/api/generate-brief',
   path: '/api/generate-brief',
@@ -72,9 +90,12 @@ export interface FileRoutesByFullPath {
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
+  '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +104,12 @@ export interface FileRoutesByTo {
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
+  '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +119,12 @@ export interface FileRoutesById {
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
+  '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
+  '/api/raketa-generate': typeof ApiRaketaGenerateRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -108,9 +135,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/login'
     | '/plan'
+    | '/raketa'
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -119,9 +149,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/login'
     | '/plan'
+    | '/raketa'
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   id:
     | '__root__'
     | '/'
@@ -130,9 +163,12 @@ export interface FileRouteTypes {
     | '/history'
     | '/login'
     | '/plan'
+    | '/raketa'
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
+    | '/api/raketa-generate'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,13 +178,23 @@ export interface RootRouteChildren {
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PlanRoute: typeof PlanRoute
+  RaketaRoute: typeof RaketaRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
+  ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
+  ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/raketa': {
+      id: '/raketa'
+      path: '/raketa'
+      fullPath: '/raketa'
+      preLoaderRoute: typeof RaketaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/plan': {
       id: '/plan'
       path: '/plan'
@@ -191,6 +237,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/raketa-generate': {
+      id: '/api/raketa-generate'
+      path: '/api/raketa-generate'
+      fullPath: '/api/raketa-generate'
+      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/raketa-analyze': {
+      id: '/api/raketa-analyze'
+      path: '/api/raketa-analyze'
+      fullPath: '/api/raketa-analyze'
+      preLoaderRoute: typeof ApiRaketaAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generate-brief': {
       id: '/api/generate-brief'
       path: '/api/generate-brief'
@@ -222,20 +282,13 @@ const rootRouteChildren: RootRouteChildren = {
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PlanRoute: PlanRoute,
+  RaketaRoute: RaketaRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
+  ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
+  ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
