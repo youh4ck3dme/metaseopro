@@ -23,11 +23,11 @@ export const Route = createFileRoute("/history")({
   component: HistoryPage,
 });
 
-type FilterType = "all" | "article" | "audit" | "plan" | "brief";
+type FilterType = "all" | "article" | "audit" | "plan" | "brief" | "raketa";
 
 type Item = {
   id: string;
-  type: "article" | "audit" | "plan" | "brief";
+  type: "article" | "audit" | "plan" | "brief" | "raketa";
   title: string | null;
   created_at: string;
 };
@@ -39,6 +39,7 @@ const TYPE_LABEL: Record<Item["type"], string> = {
   audit: "SEO Audit",
   plan: "Content Plan",
   brief: "SEO Brief",
+  raketa: "SEO Raketa",
 };
 
 const TYPE_ICON: Record<Item["type"], typeof FileText> = {
@@ -46,6 +47,7 @@ const TYPE_ICON: Record<Item["type"], typeof FileText> = {
   audit: BarChart3,
   plan: Calendar,
   brief: Lightbulb,
+  raketa: Rocket,
 };
 
 function HistoryPage() {
