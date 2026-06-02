@@ -4,6 +4,7 @@ import { Menu, X } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 const NAV = [
+  { to: "/raketa", label: "SEO Raketa" },
   { to: "/", label: "Blog Writer" },
   { to: "/audit", label: "SEO Audit" },
   { to: "/plan", label: "Content Plan" },
