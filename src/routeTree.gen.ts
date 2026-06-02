@@ -15,6 +15,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
@@ -49,6 +50,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
+  id: '/api/raketa-analyze',
+  path: '/api/raketa-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
   id: '/api/generate-brief',
   path: '/api/generate-brief',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByTo {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -98,6 +106,7 @@ export interface FileRoutesById {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
+  '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +120,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +132,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
   id:
     | '__root__'
     | '/'
@@ -133,6 +144,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/generate-article'
     | '/api/generate-brief'
+    | '/api/raketa-analyze'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -145,6 +157,7 @@ export interface RootRouteChildren {
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
+  ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -191,6 +204,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/raketa-analyze': {
+      id: '/api/raketa-analyze'
+      path: '/api/raketa-analyze'
+      fullPath: '/api/raketa-analyze'
+      preLoaderRoute: typeof ApiRaketaAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/generate-brief': {
       id: '/api/generate-brief'
       path: '/api/generate-brief'
@@ -225,7 +245,18 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
+  ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
