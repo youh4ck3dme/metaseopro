@@ -145,7 +145,7 @@ function HistoryPage() {
           </p>
 
           <div className="mb-6 flex flex-wrap gap-2">
-            {(["all", "article", "audit", "plan", "brief"] as FilterType[]).map((f) => (
+            {(["all", "raketa", "article", "audit", "plan", "brief"] as FilterType[]).map((f) => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
