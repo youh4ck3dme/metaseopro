@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/use-auth";
 
 const NAV = [
   { to: "/raketa", label: "SEO Raketa" },
+  { to: "/decay", label: "Decay Radar" },
   { to: "/", label: "Blog Writer" },
   { to: "/audit", label: "SEO Audit" },
   { to: "/plan", label: "Content Plan" },
