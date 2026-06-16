@@ -22,6 +22,7 @@ import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brie
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay.gsc-properties'
+import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay.analyze'
 
 const RaketaRoute = RaketaRouteImport.update({
   id: '/raketa',
@@ -88,6 +89,11 @@ const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
   path: '/api/decay/gsc-properties',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
+  id: '/api/decay/analyze',
+  path: '/api/decay/analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
     | '/api/decay/gsc-properties'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
     | '/api/decay/gsc-properties'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
     | '/api/decay/gsc-properties'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
   ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
+  ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
   ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
 }
 
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/decay/analyze': {
+      id: '/api/decay/analyze'
+      path: '/api/decay/analyze'
+      fullPath: '/api/decay/analyze'
+      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
   ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
+  ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
   ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,
 }
 export const routeTree = rootRouteImport
