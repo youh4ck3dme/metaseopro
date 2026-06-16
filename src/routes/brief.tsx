@@ -50,6 +50,18 @@ function BriefPage() {
     if (!loading && !user) navigate({ to: "/login", search: { redirect: "/brief" } });
   }, [user, loading, navigate]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("fromDecay")) {
+      const t = sessionStorage.getItem("pismo:decay-brief-topic");
+      if (t) {
+        setTopic(t);
+        toast.success("Téma z Decay Radaru načítaná");
+      }
+    }
+  }, []);
+
   const addCompetitor = () => {
     const c = competitorInput
       .split(/[\s,;]+/)
