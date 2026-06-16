@@ -13,6 +13,7 @@ import { Route as RaketaRouteImport } from './routes/raketa'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DecayRouteImport } from './routes/decay'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
@@ -21,6 +22,9 @@ import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyz
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
+import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay.gsc-properties'
+import { Route as ApiDecayGenerateRefreshPlanRouteImport } from './routes/api/decay.generate-refresh-plan'
+import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay.analyze'
 
 const RaketaRoute = RaketaRouteImport.update({
   id: '/raketa',
@@ -40,6 +44,11 @@ const LoginRoute = LoginRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecayRoute = DecayRouteImport.update({
+  id: '/decay',
+  path: '/decay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BriefRoute = BriefRouteImport.update({
@@ -82,11 +91,28 @@ const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
   path: '/api/audit-domains',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
+  id: '/api/decay/gsc-properties',
+  path: '/api/decay/gsc-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayGenerateRefreshPlanRoute =
+  ApiDecayGenerateRefreshPlanRouteImport.update({
+    id: '/api/decay/generate-refresh-plan',
+    path: '/api/decay/generate-refresh-plan',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
+  id: '/api/decay/analyze',
+  path: '/api/decay/analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -96,11 +122,15 @@ export interface FileRoutesByFullPath {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
+  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -110,12 +140,16 @@ export interface FileRoutesByTo {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
+  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -125,6 +159,9 @@ export interface FileRoutesById {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
+  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -132,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -141,11 +179,15 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
+    | '/api/decay/generate-refresh-plan'
+    | '/api/decay/gsc-properties'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -155,11 +197,15 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
+    | '/api/decay/generate-refresh-plan'
+    | '/api/decay/gsc-properties'
   id:
     | '__root__'
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -169,12 +215,16 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/api/decay/analyze'
+    | '/api/decay/generate-refresh-plan'
+    | '/api/decay/gsc-properties'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   BriefRoute: typeof BriefRoute
+  DecayRoute: typeof DecayRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PlanRoute: typeof PlanRoute
@@ -184,6 +234,9 @@ export interface RootRouteChildren {
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
   ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
+  ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
+  ApiDecayGenerateRefreshPlanRoute: typeof ApiDecayGenerateRefreshPlanRoute
+  ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -214,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decay': {
+      id: '/decay'
+      path: '/decay'
+      fullPath: '/decay'
+      preLoaderRoute: typeof DecayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brief': {
@@ -272,6 +332,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuditDomainsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/decay/gsc-properties': {
+      id: '/api/decay/gsc-properties'
+      path: '/api/decay/gsc-properties'
+      fullPath: '/api/decay/gsc-properties'
+      preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay/generate-refresh-plan': {
+      id: '/api/decay/generate-refresh-plan'
+      path: '/api/decay/generate-refresh-plan'
+      fullPath: '/api/decay/generate-refresh-plan'
+      preLoaderRoute: typeof ApiDecayGenerateRefreshPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay/analyze': {
+      id: '/api/decay/analyze'
+      path: '/api/decay/analyze'
+      fullPath: '/api/decay/analyze'
+      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -279,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   BriefRoute: BriefRoute,
+  DecayRoute: DecayRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PlanRoute: PlanRoute,
@@ -288,6 +370,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
   ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
+  ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
+  ApiDecayGenerateRefreshPlanRoute: ApiDecayGenerateRefreshPlanRoute,
+  ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
