@@ -13,6 +13,7 @@ import { Route as RaketaRouteImport } from './routes/raketa'
 import { Route as PlanRouteImport } from './routes/plan'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DecayRouteImport } from './routes/decay'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
@@ -43,6 +44,11 @@ const LoginRoute = LoginRouteImport.update({
 const HistoryRoute = HistoryRouteImport.update({
   id: '/history',
   path: '/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DecayRoute = DecayRouteImport.update({
+  id: '/decay',
+  path: '/decay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BriefRoute = BriefRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -141,6 +149,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
@@ -160,6 +169,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -177,6 +187,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -194,6 +205,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/decay'
     | '/history'
     | '/login'
     | '/plan'
@@ -212,6 +224,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   BriefRoute: typeof BriefRoute
+  DecayRoute: typeof DecayRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PlanRoute: typeof PlanRoute
@@ -254,6 +267,13 @@ declare module '@tanstack/react-router' {
       path: '/history'
       fullPath: '/history'
       preLoaderRoute: typeof HistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/decay': {
+      id: '/decay'
+      path: '/decay'
+      fullPath: '/decay'
+      preLoaderRoute: typeof DecayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brief': {
@@ -340,6 +360,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   BriefRoute: BriefRoute,
+  DecayRoute: DecayRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PlanRoute: PlanRoute,
