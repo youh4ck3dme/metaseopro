@@ -51,7 +51,7 @@ function PlanPage() {
   const [status, setStatus] = useState<"idle" | "generating" | "done">("idle");
 
   useEffect(() => {
-    if (!loading && !user) navigate({ to: "/login" });
+    if (!loading && !user) navigate({ to: "/login", search: { redirect: "/plan" } });
   }, [user, loading, navigate]);
 
   useEffect(() => {
