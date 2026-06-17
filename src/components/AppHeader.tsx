@@ -21,7 +21,7 @@ export function AppHeader() {
   const handleSignOut = async () => {
     await signOut();
     setOpen(false);
-    navigate({ to: "/login" });
+    navigate({ to: "/login", search: { redirect: "/" } });
   };
 
   return (
@@ -64,6 +64,7 @@ export function AppHeader() {
           ) : (
             <Link
               to="/login"
+              search={{ redirect: "/" }}
               className="rounded-[8px] bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
             >
               Prihlásiť
@@ -115,6 +116,7 @@ export function AppHeader() {
             ) : (
               <Link
                 to="/login"
+                search={{ redirect: "/" }}
                 onClick={() => setOpen(false)}
                 className="rounded-md bg-neutral-900 px-3 py-2.5 text-center text-sm font-medium text-neutral-50"
               >
