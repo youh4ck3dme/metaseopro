@@ -1,67 +1,80 @@
-## SEO Raketa — automatizovaný SEO workflow
+# Stav projektu Písmo / Piiismo
 
-Pridáme jeden nový samostatný workflow na `/raketa`. Nič z existujúceho (Blog Writer, SEO Audit, Content Plan, SEO Brief, História, navigácia, dizajn) sa nemení ani nerozbije. Zachováme minimalistický čierno-biely editorial štýl a plnú responzivitu.
+## ✅ Čo funguje (overené)
+- TypeScript typecheck prechádza bez chýb (`tsgo --noEmit` = 0 chýb).
+- Existujúce nástroje a routy sú v poriadku: `/` (Blog Writer), `/audit`, `/plan`, `/brief`, `/raketa`, `/history`, `/login`.
+- Navigácia (desktop + mobil) v `AppHeader.tsx` funguje, login redirect opravený.
+- História: filter a mapovanie typov `article | audit | plan | brief | raketa` (label + ikony).
+- `outputs.functions.ts` enum obsahuje `raketa`.
+- Supabase auth, `generated_outputs` s RLS, server routy chránené JWT (`api-auth.server.ts`).
+- Oprava CSS 500 chyby (Google Fonts presunuté do `<link>` v `__root.tsx`, `@import` poradie v `styles.css`).
+- Semrush konektor je pripojený k projektu.
 
-### Čo používateľ zadá
-- Vlastná URL webu
-- URL konkurencie (voliteľné)
-- Cieľový keyword / téma
-- Jazyk: Slovenčina / Čeština / English
-- Cieľ výstupu: SEO audit, konkurenčný report, SEO blog článok, content brief, 30-dňový content plán, landing page copy
+## ❌ Čo NEFUNGUJE / chýba (hlavný problém)
+Celá funkcia **Content Decay / Decay Radar** bola predtým vytvorená, ale v aktuálnom kóde **úplne chýba** (pravdepodobne rollback). Konkrétne neexistujú:
+- `src/lib/decay-schema.ts`, `decay-demo.ts`, `decay-prompt.ts`, `decay-analyze.server.ts`, `gsc.server.ts`
+- `src/routes/api/decay.analyze.ts`, `decay.generate-refresh-plan.ts`, `decay.gsc-properties.ts`
+- `src/routes/decay.tsx`
+- nav link „Decay Radar" v `AppHeader.tsx`
+- typ `decay` v `history.tsx` a v enume `outputs.functions.ts`
+- Google Search Console konektor nie je vôbec pripojený k workspace.
 
-### Priebeh (stavy: Validating → Scanning → Comparing → Generating → Ready)
+## ⚠️ Čo treba vylepšiť / dokončiť
+1. GSC pripojenie (MVP fáza podľa tvojho rozhodnutia: Lovable connector + admin/allowlist).
+2. Demo režim ako fallback (nie hard-block), so 4 scenármi.
+3. Zabezpečenie nových endpointov (auth + rate-limit + Zod), oddelenie demo vs. live dát.
 
-**Krok 1 — Validácia URL**
-- Akceptuje len platné `http/https` URL, blokuje prázdny/poškodený vstup, priateľské chybové hlášky (client + server validácia cez zdieľanú Zod schému).
+---
 
-**Krok 2 — Analýza webu a konkurencie**
-- Server stiahne HTML vlastnej (a ak je zadaná, konkurenčnej) stránky a vyextrahuje: `<title>`, meta description, H1/H2/H3, súhrn viditeľného textu, CTA náznaky, štruktúru obsahu.
-- Porovná web vs konkurencia, deteguje content gapy, chýbajúce keywordy, slabé nadpisy, slabú meta description, nejasné CTA.
-- Fallback: ak fetch zlyhá alebo vráti tenký HTML (JS-heavy web), vráti štruktúrovaný mock s jasným príznakom „odhad", aby workflow nikdy nespadol. Kód je oddelený tak, že sa neskôr dá vymeniť za robustnejší crawler.
+# Plán: doplniť Content Decay (Demo-first) + MVP GSC
 
-**Krok 3 — AI SEO stratégia**
-- AI (Lovable AI gateway, streamované) vygeneruje: SEO skóre, priority fixes, keyword príležitosti, výhody konkurencie, odporúčané témy článkov, odporúčanú štruktúru stránky, meta title + meta description, H1/H2/H3 outline, FAQ, návrhy interného prelinkovania, 30-dňový content plán.
-
-**Krok 4 — Generátor výstupu**
-- Podľa zvoleného cieľa sa naformátuje finálny výstup (audit / konkurenčný report / blog článok / brief / 30-dňový kalendár / landing page copy).
-
-**Krok 5 — História**
-- Každý projekt sa uloží do existujúcej tabuľky `generated_outputs` (URL, konkurencia, keyword, dátum, typ výstupu, výsledok) a zobrazí v existujúcej Histórii.
-
-### UI
-- Veľká hero input karta na `/raketa`:
-  - Titulok: „Zadaj web. My odpálime SEO raketu."
-  - Podtitulok: „Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit, článok, brief alebo content plán."
-- Progress indikátor s piatimi stavmi, loading skeletony počas behu.
-- Výsledné karty po sekciách, každá s funkčným „Kopírovať" tlačidlom.
-- „Export ako Markdown" tlačidlo pre celý výstup.
-- Chybové stavy pre zlyhanie fetchu URL aj zlyhanie AI.
-- Plne responzívne (mobil/tablet/desktop). Žiadne nefunkčné tlačidlá.
-
-### Technická realizácia (oddelená UI logika od workflow logiky)
+## Fáza A — Demo-first Decay Radar (bez závislosti na GSC)
+Nová funkcia funguje kompletne aj bez GSC, na demo dátach. Banner: „You're viewing a demo dataset – connect Google Search Console for real analysis."
 
 Nové súbory:
-- `src/lib/raketa-schema.ts` — zdieľané Zod schémy + validácia/normalizácia URL (client-safe).
-- `src/lib/site-analyze.server.ts` — server-only: fetch URL, parse HTML (title/meta/headings/text/CTA), porovnanie + detekcia gapov, mock fallback.
-- `src/lib/raketa-prompt.ts` — system prompty pre stratégiu a jednotlivé typy výstupu.
-- `src/routes/api/raketa-analyze.ts` — server route (auth + rate-limit + Zod), vráti štruktúrovanú analýzu (JSON DTO).
-- `src/routes/api/raketa-generate.ts` — server route, SSE stream finálneho výstupu (reuse existujúceho `streamSSE`).
-- `src/routes/raketa.tsx` — workflow stránka (hero, formulár, progress, skeletony, result karty, copy/export, error stavy). Workflow orchestráciu (analyze → generate) izolujeme do malých reusable funkcií/hooku, oddelene od prezentácie.
+- `src/lib/decay-schema.ts` — zdieľané Zod schémy (client-safe): vstup analýzy, DTO decay tabuľky, query recovery map, refresh plan.
+- `src/lib/decay-demo.ts` — 4 realistické demo scenáre: **Blog, Ecommerce, Local Business, SaaS** (decay tabuľka, URL detaily, query mapy). Každý výstup jasne označený ako demo.
+- `src/lib/decay-prompt.ts` — system prompty pre AI refresh plan; každý AI výstup explicitne uvádza, že analýza je z demo dát.
+- `src/lib/decay-analyze.server.ts` — server-only logika: detekcia decayu, výpočty; v demo režime číta z `decay-demo.ts`.
+- `src/routes/api/decay.analyze.ts` — server route (auth + rate-limit + Zod), vráti decay dataset (demo alebo live).
+- `src/routes/api/decay.generate-refresh-plan.ts` — SSE stream AI refresh plánu (reuse `stream-sse.ts`).
+- `src/routes/decay.tsx` — stránka celého workflowu:
+  - Decay tabuľka
+  - URL detail panel
+  - Query recovery map
+  - AI refresh plan
+  - Markdown export
+  - Uloženie do histórie ako typ `decay`
+  - Prepínač Demo / Live + demo banner
 
 Úpravy existujúceho:
-- `src/components/AppHeader.tsx` — pridať „SEO Raketa" do navigácie (desktop + mobil).
-- `src/lib/outputs.functions.ts` — rozšíriť `type` enum v Zod schéme o `"raketa"` (stĺpec je text, netreba DB migráciu).
-- `src/routes/history.tsx` — pridať mapovanie štítku pre nový typ `raketa` (aby sa korektne zobrazil).
+- `AppHeader.tsx` — pridať nav položku „Decay Radar" (desktop + mobil).
+- `outputs.functions.ts` — rozšíriť enum o `"decay"`.
+- `history.tsx` — pridať `decay` do `FilterType`, `Item.type`, `TYPE_LABEL`, `TYPE_ICON` (label „Decay Radar").
 
-Bezpečnosť a kvalita:
-- Server-side validácia všetkých vstupov (Zod), limit veľkosti tela, rate-limit a kontrola prihlásenia ako pri existujúcich endpointoch.
-- URL fetch s timeoutom a limitom veľkosti odpovede, len `http/https`.
-- Žiadne zmeny v `client.ts`/`types.ts`, žiadny nový verejný endpoint bez auth.
-- Bez TS chýb, bez regresií existujúcich funkcií.
+Pravidlá: nikdy nemiešať demo a live dáta; demo dataset je vždy jasne označený vo výstupe aj v AI texte.
 
-### Akceptačné kritériá
-- Existujúce nástroje a navigácia fungujú nezmenené.
-- `/raketa` prebehne celým cyklom Validating → Scanning → Comparing → Generating → Ready.
-- Každé tlačidlo funguje (copy pre každú sekciu, export Markdown).
-- Výstup sa uloží do Histórie a dá sa tam otvoriť.
-- Funkčné na 375px, 768px aj desktope.
+## Fáza B — MVP GSC konektor (Lovable connector + allowlist)
+- Pripojiť Google Search Console cez Lovable connector (`standard_connectors--connect`) — vyžaduje tvoje schválenie.
+- `src/lib/gsc.server.ts` — volania GSC gateway (list verified properties, searchAnalytics/query) cez `connector-gateway.lovable.dev`, s hlavičkami `Authorization: Bearer $LOVABLE_API_KEY` + `X-Connection-Api-Key`.
+- `src/routes/api/decay.gsc-properties.ts` — vráti overené properties (len z `/sites`, nikdy z user vstupu).
+- Property allowlist / admin-only gating pre MVP (žiadna Pandorina skrinka per-user OAuth).
+- Ak GSC nie je pripojené alebo property nedostupné → automatický fallback na Demo režim (nie chyba).
+
+## Bezpečnosť
+- Všetky nové routy: kontrola prihlásenia (JWT), Zod validácia vstupu, limit veľkosti tela, rate-limit ako pri existujúcich endpointoch.
+- `siteUrl` len z GSC `/sites` odpovede, nikdy skonštruovaný z domény appky.
+- Service role key sa nikde nepoužíva; žiadny nový verejný endpoint bez auth.
+- Demo a live dáta striktne oddelené.
+
+## Overenie
+- `tsgo --noEmit` bez chýb.
+- Manuálne prejsť `/decay` v demo režime cez všetky 4 scenáre (tabuľka → detail → query map → AI plan → export → uloženie do histórie).
+- Skontrolovať, že všetky existujúce routy stále fungujú nezmenené.
+
+## Neskoršie fázy (mimo tohto rozsahu)
+- Fáza 2: per-user Google OAuth + šifrované tokeny.
+- Fáza 3: plánované skeny + email alerty + platené plány.
+
+---
+**Poznámka:** Fáza B vyžaduje tvoje schválenie pripojenia Google Search Console konektora. Môžem začať Fázou A (Demo-first) hneď — funguje aj bez GSC.
