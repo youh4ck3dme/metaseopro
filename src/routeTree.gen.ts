@@ -20,6 +20,7 @@ import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-gener
 import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
 const RaketaRoute = RaketaRouteImport.update({
@@ -77,6 +78,11 @@ const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
   path: '/api/generate-article',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
+  id: '/api/decay-analyze',
+  path: '/api/decay-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
   id: '/api/audit-domains',
   path: '/api/audit-domains',
@@ -92,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/decay-analyze'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -151,6 +161,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/decay-analyze'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -165,6 +176,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/decay-analyze'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -180,6 +192,7 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   RaketaRoute: typeof RaketaRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
+  ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
@@ -265,6 +278,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateArticleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/decay-analyze': {
+      id: '/api/decay-analyze'
+      path: '/api/decay-analyze'
+      fullPath: '/api/decay-analyze'
+      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/audit-domains': {
       id: '/api/audit-domains'
       path: '/api/audit-domains'
@@ -284,6 +304,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   RaketaRoute: RaketaRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
+  ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
