@@ -72,8 +72,9 @@ export type DecayDataset = {
 // ---- API request schemas ----
 
 export const AnalyzeDecaySchema = z.object({
+  mode: z.enum(["demo", "live"]).default("demo"),
   scenario: z.enum(DECAY_SCENARIOS),
-  // For future live mode; ignored in demo mode.
+  // Live mode only: must match a verified GSC property exactly.
   siteUrl: z.string().max(2048).optional(),
 });
 export type AnalyzeDecayInput = z.infer<typeof AnalyzeDecaySchema>;
