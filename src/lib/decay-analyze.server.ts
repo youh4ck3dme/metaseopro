@@ -7,6 +7,12 @@ import {
   DEMO_SCENARIOS,
 } from "./decay-demo";
 import {
+  LIVE_PERIOD_NOW,
+  LIVE_PERIOD_PREV,
+  assertVerifiedProperty,
+  fetchLiveDecayRows,
+} from "./gsc.server";
+import {
   SCENARIO_LABEL,
   type DecayDataset,
   type DecayRow,
