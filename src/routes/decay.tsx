@@ -112,6 +112,12 @@ function DecayPage() {
 
   const [scenario, setScenario] = useState<DecayScenario>("blog");
   const [language, setLanguage] = useState<DecayLanguage>("sk");
+  const [mode, setMode] = useState<"demo" | "live">("demo");
+  const [gscStatus, setGscStatus] = useState<"loading" | "ok" | "unavailable">(
+    "loading",
+  );
+  const [properties, setProperties] = useState<string[]>([]);
+  const [siteUrl, setSiteUrl] = useState("");
 
   const [phase, setPhase] = useState<Phase>("idle");
   const [errorMsg, setErrorMsg] = useState("");
@@ -128,6 +134,41 @@ function DecayPage() {
     if (!loading && !user)
       navigate({ to: "/login", search: { redirect: "/decay" } });
   }, [user, loading, navigate]);
+
+  // Load verified Search Console properties (if the connector is available).
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        const res = await fetch("/api/decay-gsc-properties", {
+          headers: session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
+            : {},
+        });
+        const json = await res.json().catch(() => ({}));
+        if (cancelled) return;
+        const list: string[] = (json.properties ?? []).map(
+          (p: { siteUrl: string }) => p.siteUrl,
+        );
+        if (res.ok && json.status === "ok" && list.length > 0) {
+          setProperties(list);
+          setSiteUrl(list[0]!);
+          setGscStatus("ok");
+        } else {
+          setGscStatus("unavailable");
+        }
+      } catch {
+        if (!cancelled) setGscStatus("unavailable");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const analyze = async () => {
     setPhase("analyzing");
@@ -148,7 +189,9 @@ function DecayPage() {
       const res = await fetch("/api/decay-analyze", {
         method: "POST",
         headers,
-        body: JSON.stringify({ scenario }),
+        body: JSON.stringify(
+          mode === "live" ? { mode, scenario, siteUrl } : { mode: "demo", scenario },
+        ),
       });
       if (!res.ok) {
         const e = await res.json().catch(() => ({}));
