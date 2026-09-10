@@ -340,31 +340,78 @@ function DecayPage() {
                 a vygeneruje AI refresh plán na obnovu výkonu.
               </p>
 
-              {/* Demo banner */}
-              <div className="mb-6 flex items-start gap-3 rounded-[12px] bg-amber-50 p-4 ring-1 ring-amber-200">
-                <Activity className="mt-0.5 size-5 shrink-0 text-amber-600" />
-                <p className="text-sm text-amber-800">
-                  You're viewing a demo dataset – connect Google Search Console
-                  for real analysis. Demo dáta slúžia na onboarding a
-                  testovanie; nikdy sa nemiešajú s reálnymi dátami.
-                </p>
+              {/* Mode switch */}
+              <div className="mb-5 inline-flex rounded-[10px] bg-neutral-100 p-1">
+                {(["demo", "live"] as const).map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setMode(m)}
+                    disabled={m === "live" && gscStatus !== "ok"}
+                    className={
+                      "rounded-[8px] px-4 py-1.5 text-sm font-medium transition disabled:opacity-40 " +
+                      (mode === m
+                        ? "bg-white text-neutral-900 shadow-sm"
+                        : "text-neutral-500 hover:text-neutral-800")
+                    }
+                  >
+                    {m === "demo" ? "Demo dáta" : "Search Console (live)"}
+                  </button>
+                ))}
               </div>
 
+              {mode === "demo" ? (
+                <div className="mb-6 flex items-start gap-3 rounded-[12px] bg-amber-50 p-4 ring-1 ring-amber-200">
+                  <Activity className="mt-0.5 size-5 shrink-0 text-amber-600" />
+                  <p className="text-sm text-amber-800">
+                    You're viewing a demo dataset – connect Google Search Console
+                    for real analysis.{" "}
+                    {gscStatus === "unavailable" &&
+                      "Search Console zatiaľ nie je pripojený, preto je dostupný len demo režim. "}
+                    Demo dáta sa nikdy nemiešajú s reálnymi dátami.
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-6 flex items-start gap-3 rounded-[12px] bg-emerald-50 p-4 ring-1 ring-emerald-200">
+                  <Activity className="mt-0.5 size-5 shrink-0 text-emerald-600" />
+                  <p className="text-sm text-emerald-800">
+                    Reálne dáta z Google Search Console — porovnanie posledných 90
+                    dní s predchádzajúcimi 90 dňami.
+                  </p>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <Field label="Demo scenár">
-                  <select
-                    value={scenario}
-                    onChange={(e) => setScenario(e.target.value as DecayScenario)}
-                    disabled={phase === "analyzing"}
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
-                  >
-                    {DECAY_SCENARIOS.map((s) => (
-                      <option key={s} value={s}>
-                        {SCENARIO_LABEL[s]}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
+                {mode === "demo" ? (
+                  <Field label="Demo scenár">
+                    <select
+                      value={scenario}
+                      onChange={(e) => setScenario(e.target.value as DecayScenario)}
+                      disabled={phase === "analyzing"}
+                      className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    >
+                      {DECAY_SCENARIOS.map((s) => (
+                        <option key={s} value={s}>
+                          {SCENARIO_LABEL[s]}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                ) : (
+                  <Field label="Search Console property">
+                    <select
+                      value={siteUrl}
+                      onChange={(e) => setSiteUrl(e.target.value)}
+                      disabled={phase === "analyzing"}
+                      className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    >
+                      {properties.map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                )}
                 <Field label="Jazyk výstupu">
                   <select
                     value={language}
