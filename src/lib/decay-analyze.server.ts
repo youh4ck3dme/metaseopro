@@ -67,9 +67,37 @@ export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
   };
 }
 
+/**
+ * Live mode: real Google Search Console data for one verified property.
+ * Demo and live data are never mixed — a live dataset always has demo: false.
+ */
+export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
+  const verified = await assertVerifiedProperty(siteUrl);
+  const rows = (await fetchLiveDecayRows(verified))
+    .map(scoreRow)
+    .sort((a, b) => {
+      const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+      if (s !== 0) return s;
+      return b.decayScore - a.decayScore;
+    });
+
+  return {
+    demo: false,
+    scenario: "blog",
+    siteUrl: verified,
+    scenarioLabel: verified,
+    periodPrev: LIVE_PERIOD_PREV,
+    periodNow: LIVE_PERIOD_NOW,
+    rows,
+    note:
+      rows.length === 0
+        ? "Google Search Console zatiaľ nevrátilo dosť dát pre porovnanie období."
+        : "Reálne dáta z Google Search Console.",
+  };
+}
+
 export async function runDecayAnalysis(
   scenario: DecayScenario,
 ): Promise<DecayDataset> {
-  // Phase 1: demo-only. Phase 2 will branch to live GSC data here.
   return buildDemoDataset(scenario);
 }

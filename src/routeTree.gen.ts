@@ -21,6 +21,7 @@ import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-gener
 import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay-gsc-properties'
 import { Route as ApiDecayGeneratePlanRouteImport } from './routes/api/decay-generate-plan'
 import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
@@ -85,6 +86,11 @@ const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
   path: '/api/generate-article',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
+  id: '/api/decay-gsc-properties',
+  path: '/api/decay-gsc-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiDecayGeneratePlanRoute = ApiDecayGeneratePlanRouteImport.update({
   id: '/api/decay-generate-plan',
   path: '/api/decay-generate-plan',
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/api/audit-domains': typeof ApiAuditDomainsRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
@@ -167,6 +176,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -184,6 +194,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -201,6 +212,7 @@ export interface FileRouteTypes {
     | '/api/audit-domains'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
@@ -219,6 +231,7 @@ export interface RootRouteChildren {
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
   ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
   ApiDecayGeneratePlanRoute: typeof ApiDecayGeneratePlanRoute
+  ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
@@ -311,6 +324,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiGenerateArticleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/decay-gsc-properties': {
+      id: '/api/decay-gsc-properties'
+      path: '/api/decay-gsc-properties'
+      fullPath: '/api/decay-gsc-properties'
+      preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/decay-generate-plan': {
       id: '/api/decay-generate-plan'
       path: '/api/decay-generate-plan'
@@ -347,6 +367,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
   ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
   ApiDecayGeneratePlanRoute: ApiDecayGeneratePlanRoute,
+  ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
