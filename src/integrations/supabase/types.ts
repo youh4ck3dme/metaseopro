@@ -98,6 +98,36 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_snapshots: {
+        Row: {
+          created_at: string
+          id: string
+          metrics_summary: Json
+          raw_data: Json
+          site_url: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metrics_summary?: Json
+          raw_data?: Json
+          site_url: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metrics_summary?: Json
+          raw_data?: Json
+          site_url?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -4,6 +4,7 @@ import { buildLiveDataset, runDecayAnalysis } from "@/lib/decay-analyze.server";
 import { isGscConfigured } from "@/lib/gsc.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
+import { saveDecaySnapshot } from "@/lib/snapshots.server";
 
 const MAX_BODY_BYTES = 8 * 1024;
 
@@ -76,7 +77,11 @@ export const Route = createFileRoute("/api/decay-analyze")({
           } else {
             dataset = await runDecayAnalysis(parsed.data.scenario);
           }
-          return new Response(JSON.stringify({ dataset }), {
+          let snapshotId: string | null = null;
+          if (!dataset.demo) {
+            snapshotId = await saveDecaySnapshot(request, auth.userId, dataset);
+          }
+          return new Response(JSON.stringify({ dataset, snapshotId }), {
             headers: { "Content-Type": "application/json" },
           });
         } catch (e) {
