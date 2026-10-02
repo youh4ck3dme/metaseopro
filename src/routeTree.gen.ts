@@ -14,6 +14,7 @@ import { Route as PlanRouteImport } from './routes/plan'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DecayRouteImport } from './routes/decay'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as BriefRouteImport } from './routes/brief'
 import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
@@ -49,6 +50,11 @@ const HistoryRoute = HistoryRouteImport.update({
 const DecayRoute = DecayRouteImport.update({
   id: '/decay',
   path: '/decay',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
 const BriefRoute = BriefRouteImport.update({
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
@@ -129,6 +136,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
@@ -148,6 +156,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
@@ -168,6 +177,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   BriefRoute: typeof BriefRoute
+  DashboardRoute: typeof DashboardRoute
   DecayRoute: typeof DecayRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
@@ -273,6 +286,13 @@ declare module '@tanstack/react-router' {
       path: '/decay'
       fullPath: '/decay'
       preLoaderRoute: typeof DecayRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/brief': {
@@ -359,6 +379,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   BriefRoute: BriefRoute,
+  DashboardRoute: DashboardRoute,
   DecayRoute: DecayRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
