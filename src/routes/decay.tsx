@@ -170,6 +170,27 @@ function DecayPage() {
     };
   }, [user]);
 
+  // Restore the latest saved live snapshot so results survive a refresh.
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("seo_snapshots")
+        .select("raw_data")
+        .eq("type", "decay")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (cancelled || !data?.raw_data) return;
+      setDataset((prev) => prev ?? (data.raw_data as unknown as DecayDataset));
+      setPhase((p) => (p === "idle" ? "ready" : p));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
   const analyze = async () => {
     setPhase("analyzing");
     setErrorMsg("");
