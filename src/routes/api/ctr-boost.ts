@@ -65,25 +65,34 @@ export const Route = createFileRoute("/api/ctr-boost")({
             .filter(Boolean)
             .join("\n");
 
-          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
             method: "POST",
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
             body: JSON.stringify({
-              model: "google/gemini-3-flash-preview",
-              stream: true,
-              messages: [
-                { role: "system", content: SYSTEM },
-                { role: "user", content: userPrompt },
-              ],
+              model: "openai/gpt-6-astra",
+              instructions: SYSTEM,
+              input: userPrompt,
             }),
           });
-          if (!upstream.ok || !upstream.body) {
+          if (!upstream.ok) {
             if (upstream.status === 429) return err(429, "AI je preťažené. Skús to o chvíľu.");
             if (upstream.status === 402) return err(402, "Vyčerpané AI kredity vo workspace.");
             console.error("ctr-boost AI error", upstream.status, await upstream.text());
             return err(500, "Chyba AI.");
           }
-          return new Response(upstream.body, {
+          const json = (await upstream.json()) as {
+            output?: { type?: string; content?: { type?: string; text?: string }[] }[];
+          };
+          const text = (json.output ?? [])
+            .flatMap((o) => o.content ?? [])
+            .filter((c) => c.type === "output_text")
+            .map((c) => c.text ?? "")
+            .join("");
+          // Re-emit as a single chat-style SSE chunk so the shared client stream reader works.
+          const sse =
+            `data: ${JSON.stringify({ choices: [{ delta: { content: text } }] })}\n\n` +
+            "data: [DONE]\n\n";
+          return new Response(sse, {
             headers: { "Content-Type": "text/event-stream", "Cache-Control": "no-cache" },
           });
         } catch (e) {
