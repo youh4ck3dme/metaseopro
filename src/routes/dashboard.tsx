@@ -1,6 +1,12 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, Minus, Trash2 } from "lucide-react";
+import { Fragment, useEffect, useMemo, useState } from "react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Copy, FileText, Minus, Sparkles, Trash2 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
+import { streamSSE } from "@/lib/stream-sse";
+import { handoffToWriter } from "@/lib/refresh-handoff";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,6 +122,7 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-neutral-50 text-neutral-900">
       <AppHeader />
+      <Toaster />
       <main className="mx-auto max-w-screen-xl px-6 pb-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -148,6 +155,9 @@ function DashboardPage() {
               <Kpi label="Health index" value={`${healthIndex(m)}/100`} delta={<span className="text-neutral-500">{m.critical ?? 0} kritických · {m.declining ?? 0} klesá</span>} />
             </section>
             <p className="mt-2 text-xs text-neutral-500">Posledný snapshot: {fmtDate(latest.created_at)} · porovnanie s predošlým 90-dňovým obdobím</p>
+
+            <Explorer snap={latest} />
+            <CtrBooster snap={latest} />
 
             {/* Snapshots */}
             <section className="mt-10">
@@ -274,5 +284,187 @@ function DiffTable({ title, lines }: { title: string; lines: Line[] }) {
         </table>
       </div>
     </div>
+  );
+}
+
+const path = (u: string) => u.replace(/^https?:\/\/[^/]+/, "") || "/";
+const ctrOf = (c: number, i: number) => (i > 0 ? (c / i) * 100 : 0);
+
+type SortKey = "decay" | "clicks" | "impressions" | "position" | "ctr";
+
+function Explorer({ snap }: { snap: Snapshot }) {
+  const navigate = useNavigate();
+  const rows = snap.raw_data?.rows ?? [];
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState<SortKey>("decay");
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+
+  const list = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    const f = rows.filter((r) => !needle || r.url.toLowerCase().includes(needle) || r.topQueries.some((x) => x.query.toLowerCase().includes(needle)));
+    const key: Record<SortKey, (r: ScoredDecayRow) => number> = {
+      decay: (r) => -r.decayScore,
+      clicks: (r) => -r.clicksNow,
+      impressions: (r) => -r.impressionsNow,
+      position: (r) => r.positionNow,
+      ctr: (r) => ctrOf(r.clicksNow, r.impressionsNow),
+    };
+    return [...f].sort((a, b) => key[sort](a) - key[sort](b));
+  }, [rows, q, sort]);
+
+  const refresh = (r: ScoredDecayRow) => {
+    handoffToWriter(snap.site_url, r);
+    navigate({ to: "/", search: { fromRefresh: "1" } as never });
+  };
+
+  return (
+    <section className="mt-10">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-semibold">Všetky URL a kľúčové slová</h2>
+          <p className="text-xs text-neutral-500">{rows.length} URL z posledného snapshotu · klikni na riadok pre dopyty</p>
+        </div>
+        <div className="flex gap-2 text-sm">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Hľadať URL alebo dopyt…" className="rounded-[8px] border border-neutral-200 bg-white px-3 py-1.5" />
+          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-[8px] border border-neutral-200 bg-white px-2 py-1.5">
+            <option value="decay">Najväčší prepad</option>
+            <option value="clicks">Kliky</option>
+            <option value="impressions">Impresie</option>
+            <option value="position">Najlepšia pozícia</option>
+            <option value="ctr">Najnižší CTR</option>
+          </select>
+        </div>
+      </div>
+      <div className="mt-3 overflow-x-auto rounded-[12px] bg-white ring-1 ring-black/5">
+        <table className="w-full min-w-[760px] text-xs">
+          <thead className="bg-neutral-50 text-neutral-500">
+            <tr>
+              <th className="px-3 py-2 text-left">URL / dopyt</th>
+              <th className="px-2 text-right">Kliky</th>
+              <th className="px-2 text-right">Impresie</th>
+              <th className="px-2 text-right">CTR</th>
+              <th className="px-2 text-right">Pozícia</th>
+              <th className="px-2 text-right">Decay</th>
+              <th className="px-3" />
+            </tr>
+          </thead>
+          <tbody>
+            {list.length === 0 && <tr><td colSpan={7} className="px-3 py-4 text-neutral-500">Nič sa nenašlo.</td></tr>}
+            {list.map((r) => {
+              const isOpen = !!open[r.url];
+              return (
+                <Fragment key={r.url}>
+                  <tr className="cursor-pointer border-t border-neutral-100 hover:bg-neutral-50" onClick={() => setOpen((o) => ({ ...o, [r.url]: !isOpen }))}>
+                    <td className="max-w-[280px] px-3 py-2">
+                      <span className="flex items-center gap-1 truncate font-medium" title={r.url}>
+                        {isOpen ? <ChevronDown className="size-3 shrink-0" /> : <ChevronRight className="size-3 shrink-0" />}
+                        {path(r.url)}
+                      </span>
+                    </td>
+                    <td className="px-2 text-right">{fmt(r.clicksNow)} <Delta value={r.clicksNow - r.clicksPrev} /></td>
+                    <td className="px-2 text-right">{fmt(r.impressionsNow)}</td>
+                    <td className="px-2 text-right">{ctrOf(r.clicksNow, r.impressionsNow).toFixed(1)} %</td>
+                    <td className="px-2 text-right">{r.positionNow.toFixed(1)} <Delta invert value={Number((r.positionNow - r.positionPrev).toFixed(1))} /></td>
+                    <td className="px-2 text-right">{r.decayScore}</td>
+                    <td className="px-3 py-2 text-right">
+                      <button onClick={(e) => { e.stopPropagation(); refresh(r); }} className="inline-flex items-center gap-1 rounded-[6px] bg-neutral-900 px-2 py-1 text-[11px] font-medium text-neutral-50">
+                        <FileText className="size-3" /> Aktualizovať článok
+                      </button>
+                    </td>
+                  </tr>
+                  {isOpen && r.topQueries.map((x) => (
+                    <tr key={r.url + x.query} className="bg-neutral-50/60 text-neutral-600">
+                      <td className="py-1.5 pl-9 pr-3">„{x.query}“</td>
+                      <td className="px-2 text-right">{fmt(x.clicksNow)} <Delta value={x.clicksNow - x.clicksPrev} /></td>
+                      <td className="px-2 text-right">—</td>
+                      <td className="px-2 text-right">—</td>
+                      <td className="px-2 text-right">{x.positionNow.toFixed(1)} <Delta invert value={Number((x.positionNow - x.positionPrev).toFixed(1))} /></td>
+                      <td colSpan={2} />
+                    </tr>
+                  ))}
+                </Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+// Expected organic CTR by position (rough industry curve, %).
+const expectedCtr = (pos: number) => (pos <= 1 ? 28 : pos <= 2 ? 15 : pos <= 3 ? 11 : pos <= 5 ? 7 : pos <= 10 ? 3 : 1.2);
+
+function CtrBooster({ snap }: { snap: Snapshot }) {
+  const candidates = useMemo(
+    () =>
+      (snap.raw_data?.rows ?? [])
+        .filter((r) => r.impressionsNow >= 100 && r.positionNow <= 15)
+        .map((r) => ({ r, ctr: ctrOf(r.clicksNow, r.impressionsNow), exp: expectedCtr(r.positionNow) }))
+        .filter((x) => x.ctr < x.exp)
+        .sort((a, b) => b.r.impressionsNow * (b.exp - b.ctr) - a.r.impressionsNow * (a.exp - a.ctr))
+        .slice(0, 8),
+    [snap],
+  );
+  const [active, setActive] = useState<string | null>(null);
+  const [out, setOut] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  const run = async (r: ScoredDecayRow, ctr: number) => {
+    setActive(r.url);
+    setOut("");
+    setBusy(true);
+    let buf = "";
+    await streamSSE({
+      url: "/api/ctr-boost",
+      body: { url: r.url, title: r.title, queries: r.topQueries.map((q) => q.query).slice(0, 10), position: r.positionNow, ctr, impressions: r.impressionsNow },
+      onDelta: (c) => { buf += c; setOut(buf); },
+      onDone: () => setBusy(false),
+      onError: (m) => { setBusy(false); toast.error(m); },
+    });
+  };
+
+  return (
+    <section className="mt-10">
+      <h2 className="flex items-center gap-2 text-lg font-semibold"><Sparkles className="size-4" /> CTR Booster</h2>
+      <p className="text-xs text-neutral-500">Stránky, ktoré Google často zobrazuje, ale ľudia na ne klikajú menej, než je pri ich pozícii bežné.</p>
+      {candidates.length === 0 ? (
+        <p className="mt-3 rounded-[12px] bg-white p-4 text-sm text-neutral-500 ring-1 ring-black/5">Žiadne stránky s podpriemerným CTR. Výborné!</p>
+      ) : (
+        <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
+          <ul className="divide-y divide-neutral-100 rounded-[12px] bg-white ring-1 ring-black/5">
+            {candidates.map(({ r, ctr, exp }) => (
+              <li key={r.url} className={"flex items-center justify-between gap-3 px-4 py-3 text-sm " + (active === r.url ? "bg-neutral-50" : "")}>
+                <div className="min-w-0">
+                  <p className="truncate font-medium" title={r.url}>{path(r.url)}</p>
+                  <p className="text-xs text-neutral-500">
+                    poz. {r.positionNow.toFixed(1)} · {fmt(r.impressionsNow)} impresií · CTR <span className="text-red-600">{ctr.toFixed(1)} %</span> (bežne ~{exp} %)
+                  </p>
+                </div>
+                <button disabled={busy} onClick={() => run(r, ctr)} className="shrink-0 rounded-[6px] bg-neutral-900 px-2.5 py-1 text-xs font-medium text-neutral-50 disabled:opacity-50">
+                  Navrhnúť title + popis
+                </button>
+              </li>
+            ))}
+          </ul>
+          <div className="min-h-[200px] rounded-[12px] bg-white p-4 ring-1 ring-black/5">
+            {!active ? (
+              <p className="text-sm text-neutral-500">Vyber stránku vľavo a AI navrhne 3 varianty title a meta popisu.</p>
+            ) : (
+              <>
+                <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
+                  <span className="truncate">{path(active)}</span>
+                  {out && !busy && (
+                    <button onClick={() => { navigator.clipboard.writeText(out); toast.success("Skopírované"); }} className="inline-flex items-center gap-1 hover:text-neutral-900"><Copy className="size-3" /> Kopírovať</button>
+                  )}
+                </div>
+                {busy && !out && <p className="text-sm text-neutral-500">Generujem návrhy…</p>}
+                <div className="prose prose-sm max-w-none"><ReactMarkdown remarkPlugins={[remarkGfm]}>{out}</ReactMarkdown></div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
