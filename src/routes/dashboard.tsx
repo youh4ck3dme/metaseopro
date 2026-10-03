@@ -293,7 +293,6 @@ const ctrOf = (c: number, i: number) => (i > 0 ? (c / i) * 100 : 0);
 type SortKey = "decay" | "clicks" | "impressions" | "position" | "ctr";
 
 function Explorer({ snap }: { snap: Snapshot }) {
-  const navigate = useNavigate();
   const rows = snap.raw_data?.rows ?? [];
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("decay");
@@ -314,7 +313,7 @@ function Explorer({ snap }: { snap: Snapshot }) {
 
   const refresh = (r: ScoredDecayRow) => {
     handoffToWriter(snap.site_url, r);
-    navigate({ to: "/", search: { fromRefresh: "1" } as never });
+    window.location.href = "/?fromRefresh=1";
   };
 
   return (

@@ -22,6 +22,7 @@ import {
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { streamSSE } from "@/lib/stream-sse";
+import { handoffToWriter } from "@/lib/refresh-handoff";
 import { saveOutput } from "@/lib/outputs.functions";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -609,6 +610,15 @@ function DecayPage() {
               )}
 
               <p className="break-all text-xs text-neutral-400">{selected.url}</p>
+              <button
+                onClick={() => {
+                  handoffToWriter(dataset.siteUrl, selected);
+                  window.location.href = "/?fromRefresh=1";
+                }}
+                className="inline-flex items-center gap-1.5 rounded-[8px] bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-50"
+              >
+                <Sparkles className="size-3.5" /> Vygenerovať aktualizovaný článok v Blog Writeri
+              </button>
 
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
