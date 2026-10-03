@@ -25,6 +25,7 @@ import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-ar
 import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay-gsc-properties'
 import { Route as ApiDecayGeneratePlanRouteImport } from './routes/api/decay-generate-plan'
 import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
+import { Route as ApiCtrBoostRouteImport } from './routes/api/ctr-boost'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
 const RaketaRoute = RaketaRouteImport.update({
@@ -107,6 +108,11 @@ const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
   path: '/api/decay-analyze',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiCtrBoostRoute = ApiCtrBoostRouteImport.update({
+  id: '/api/ctr-boost',
+  path: '/api/ctr-boost',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
   id: '/api/audit-domains',
   path: '/api/audit-domains',
@@ -124,6 +130,7 @@ export interface FileRoutesByFullPath {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
   '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
@@ -143,6 +150,7 @@ export interface FileRoutesByTo {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
   '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
@@ -163,6 +171,7 @@ export interface FileRoutesById {
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
   '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
   '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
   '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
@@ -184,6 +193,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
     | '/api/decay-gsc-properties'
@@ -203,6 +213,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
     | '/api/decay-gsc-properties'
@@ -222,6 +233,7 @@ export interface FileRouteTypes {
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
     | '/api/decay-analyze'
     | '/api/decay-generate-plan'
     | '/api/decay-gsc-properties'
@@ -242,6 +254,7 @@ export interface RootRouteChildren {
   PlanRoute: typeof PlanRoute
   RaketaRoute: typeof RaketaRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
+  ApiCtrBoostRoute: typeof ApiCtrBoostRoute
   ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
   ApiDecayGeneratePlanRoute: typeof ApiDecayGeneratePlanRoute
   ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
@@ -365,6 +378,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ctr-boost': {
+      id: '/api/ctr-boost'
+      path: '/api/ctr-boost'
+      fullPath: '/api/ctr-boost'
+      preLoaderRoute: typeof ApiCtrBoostRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/audit-domains': {
       id: '/api/audit-domains'
       path: '/api/audit-domains'
@@ -386,6 +406,7 @@ const rootRouteChildren: RootRouteChildren = {
   PlanRoute: PlanRoute,
   RaketaRoute: RaketaRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
+  ApiCtrBoostRoute: ApiCtrBoostRoute,
   ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
   ApiDecayGeneratePlanRoute: ApiDecayGeneratePlanRoute,
   ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,

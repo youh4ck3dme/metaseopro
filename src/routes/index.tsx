@@ -69,6 +69,19 @@ function Index() {
         if (t) toast.success(`Brief načítaný: ${t}`);
       }
     }
+    if (url.searchParams.get("fromRefresh")) {
+      const raw = sessionStorage.getItem("pismo:refresh-context");
+      if (raw) {
+        try {
+          const c = JSON.parse(raw) as { brief: string; keyword: string; label: string };
+          setTopic(c.brief);
+          if (c.keyword) setPrimaryKeyword(c.keyword);
+          toast.success(`Podklady pre refresh načítané: ${c.label}. Skontroluj a klikni na generovanie.`);
+        } catch {
+          /* ignore */
+        }
+      }
+    }
   }, []);
 
   const startGeneration = async () => {
