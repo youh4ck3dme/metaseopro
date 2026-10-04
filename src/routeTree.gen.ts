@@ -9,58 +9,28 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuditRouteImport } from './routes/audit'
-import { Route as BriefRouteImport } from './routes/brief'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as DecayRouteImport } from './routes/decay'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as PlanRouteImport } from './routes/plan'
 import { Route as RaketaRouteImport } from './routes/raketa'
-import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
-import { Route as ApiCtrBoostRouteImport } from './routes/api/ctr-boost'
-import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
-import { Route as ApiDecayGeneratePlanRouteImport } from './routes/api/decay-generate-plan'
-import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay-gsc-properties'
-import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
-import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
-import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
+import { Route as PlanRouteImport } from './routes/plan'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as DecayRouteImport } from './routes/decay'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as BriefRouteImport } from './routes/brief'
+import { Route as AuditRouteImport } from './routes/audit'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
+import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
+import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
+import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay-gsc-properties'
+import { Route as ApiDecayGeneratePlanRouteImport } from './routes/api/decay-generate-plan'
+import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
+import { Route as ApiCtrBoostRouteImport } from './routes/api/ctr-boost'
+import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AuditRoute = AuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BriefRoute = BriefRouteImport.update({
-  id: '/brief',
-  path: '/brief',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DecayRoute = DecayRouteImport.update({
-  id: '/decay',
-  path: '/decay',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
+const RaketaRoute = RaketaRouteImport.update({
+  id: '/raketa',
+  path: '/raketa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PlanRoute = PlanRouteImport.update({
@@ -68,44 +38,44 @@ const PlanRoute = PlanRouteImport.update({
   path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RaketaRoute = RaketaRouteImport.update({
-  id: '/raketa',
-  path: '/raketa',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
-  id: '/api/audit-domains',
-  path: '/api/audit-domains',
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiCtrBoostRoute = ApiCtrBoostRouteImport.update({
-  id: '/api/ctr-boost',
-  path: '/api/ctr-boost',
+const DecayRoute = DecayRouteImport.update({
+  id: '/decay',
+  path: '/decay',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
-  id: '/api/decay-analyze',
-  path: '/api/decay-analyze',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDecayGeneratePlanRoute = ApiDecayGeneratePlanRouteImport.update({
-  id: '/api/decay-generate-plan',
-  path: '/api/decay-generate-plan',
+const BriefRoute = BriefRouteImport.update({
+  id: '/brief',
+  path: '/brief',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
-  id: '/api/decay-gsc-properties',
-  path: '/api/decay-gsc-properties',
+const AuditRoute = AuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
-  id: '/api/generate-article',
-  path: '/api/generate-article',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
-  id: '/api/generate-brief',
-  path: '/api/generate-brief',
+const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
+  id: '/api/raketa-generate',
+  path: '/api/raketa-generate',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
@@ -113,9 +83,39 @@ const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
   path: '/api/raketa-analyze',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
-  id: '/api/raketa-generate',
-  path: '/api/raketa-generate',
+const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
+  id: '/api/generate-brief',
+  path: '/api/generate-brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
+  id: '/api/generate-article',
+  path: '/api/generate-article',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
+  id: '/api/decay-gsc-properties',
+  path: '/api/decay-gsc-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayGeneratePlanRoute = ApiDecayGeneratePlanRouteImport.update({
+  id: '/api/decay-generate-plan',
+  path: '/api/decay-generate-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
+  id: '/api/decay-analyze',
+  path: '/api/decay-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiCtrBoostRoute = ApiCtrBoostRouteImport.update({
+  id: '/api/ctr-boost',
+  path: '/api/ctr-boost',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
+  id: '/api/audit-domains',
+  path: '/api/audit-domains',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -266,53 +266,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/audit': {
-      id: '/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/brief': {
-      id: '/brief'
-      path: '/brief'
-      fullPath: '/brief'
-      preLoaderRoute: typeof BriefRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/decay': {
-      id: '/decay'
-      path: '/decay'
-      fullPath: '/decay'
-      preLoaderRoute: typeof DecayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
+    '/raketa': {
+      id: '/raketa'
+      path: '/raketa'
+      fullPath: '/raketa'
+      preLoaderRoute: typeof RaketaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/plan': {
@@ -322,60 +280,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/raketa': {
-      id: '/raketa'
-      path: '/raketa'
-      fullPath: '/raketa'
-      preLoaderRoute: typeof RaketaRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/audit-domains': {
-      id: '/api/audit-domains'
-      path: '/api/audit-domains'
-      fullPath: '/api/audit-domains'
-      preLoaderRoute: typeof ApiAuditDomainsRouteImport
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/ctr-boost': {
-      id: '/api/ctr-boost'
-      path: '/api/ctr-boost'
-      fullPath: '/api/ctr-boost'
-      preLoaderRoute: typeof ApiCtrBoostRouteImport
+    '/decay': {
+      id: '/decay'
+      path: '/decay'
+      fullPath: '/decay'
+      preLoaderRoute: typeof DecayRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay-analyze': {
-      id: '/api/decay-analyze'
-      path: '/api/decay-analyze'
-      fullPath: '/api/decay-analyze'
-      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay-generate-plan': {
-      id: '/api/decay-generate-plan'
-      path: '/api/decay-generate-plan'
-      fullPath: '/api/decay-generate-plan'
-      preLoaderRoute: typeof ApiDecayGeneratePlanRouteImport
+    '/brief': {
+      id: '/brief'
+      path: '/brief'
+      fullPath: '/brief'
+      preLoaderRoute: typeof BriefRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay-gsc-properties': {
-      id: '/api/decay-gsc-properties'
-      path: '/api/decay-gsc-properties'
-      fullPath: '/api/decay-gsc-properties'
-      preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
+    '/audit': {
+      id: '/audit'
+      path: '/audit'
+      fullPath: '/audit'
+      preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/generate-article': {
-      id: '/api/generate-article'
-      path: '/api/generate-article'
-      fullPath: '/api/generate-article'
-      preLoaderRoute: typeof ApiGenerateArticleRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/generate-brief': {
-      id: '/api/generate-brief'
-      path: '/api/generate-brief'
-      fullPath: '/api/generate-brief'
-      preLoaderRoute: typeof ApiGenerateBriefRouteImport
+    '/api/raketa-generate': {
+      id: '/api/raketa-generate'
+      path: '/api/raketa-generate'
+      fullPath: '/api/raketa-generate'
+      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/raketa-analyze': {
@@ -385,11 +343,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRaketaAnalyzeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/raketa-generate': {
-      id: '/api/raketa-generate'
-      path: '/api/raketa-generate'
-      fullPath: '/api/raketa-generate'
-      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
+    '/api/generate-brief': {
+      id: '/api/generate-brief'
+      path: '/api/generate-brief'
+      fullPath: '/api/generate-brief'
+      preLoaderRoute: typeof ApiGenerateBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/generate-article': {
+      id: '/api/generate-article'
+      path: '/api/generate-article'
+      fullPath: '/api/generate-article'
+      preLoaderRoute: typeof ApiGenerateArticleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-gsc-properties': {
+      id: '/api/decay-gsc-properties'
+      path: '/api/decay-gsc-properties'
+      fullPath: '/api/decay-gsc-properties'
+      preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-generate-plan': {
+      id: '/api/decay-generate-plan'
+      path: '/api/decay-generate-plan'
+      fullPath: '/api/decay-generate-plan'
+      preLoaderRoute: typeof ApiDecayGeneratePlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-analyze': {
+      id: '/api/decay-analyze'
+      path: '/api/decay-analyze'
+      fullPath: '/api/decay-analyze'
+      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ctr-boost': {
+      id: '/api/ctr-boost'
+      path: '/api/ctr-boost'
+      fullPath: '/api/ctr-boost'
+      preLoaderRoute: typeof ApiCtrBoostRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/audit-domains': {
+      id: '/api/audit-domains'
+      path: '/api/audit-domains'
+      fullPath: '/api/audit-domains'
+      preLoaderRoute: typeof ApiAuditDomainsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

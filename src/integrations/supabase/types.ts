@@ -98,6 +98,45 @@ export type Database = {
         }
         Relationships: []
       }
+      seo_experiments: {
+        Row: {
+          baseline: Json
+          changes: string
+          created_at: string
+          id: string
+          implemented_at: string
+          page_url: string
+          site_url: string
+          status: string
+          target_queries: string[]
+          user_id: string
+        }
+        Insert: {
+          baseline?: Json
+          changes?: string
+          created_at?: string
+          id?: string
+          implemented_at?: string
+          page_url: string
+          site_url: string
+          status?: string
+          target_queries?: string[]
+          user_id: string
+        }
+        Update: {
+          baseline?: Json
+          changes?: string
+          created_at?: string
+          id?: string
+          implemented_at?: string
+          page_url?: string
+          site_url?: string
+          status?: string
+          target_queries?: string[]
+          user_id?: string
+        }
+        Relationships: []
+      }
       seo_snapshots: {
         Row: {
           created_at: string
