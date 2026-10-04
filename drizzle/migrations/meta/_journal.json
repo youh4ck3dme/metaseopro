@@ -8,6 +8,13 @@
       "when": 1790940733045,
       "tag": "0000_create_seo_snapshots",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791114021871,
+      "tag": "0001_create_seo_experiments",
+      "breakpoints": true
     }
   ]
 }
