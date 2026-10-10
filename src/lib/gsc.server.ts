@@ -137,7 +137,7 @@ export async function fetchLiveDecayRows(
       };
     })
     // Only pages with meaningful prior traffic can meaningfully decay.
-    .filter((r) => r.clicksPrev >= 10)
+    .filter((r) => r.impressionsPrev >= 15 || r.clicksPrev >= 2 || r.impressionsNow >= 15)
     .sort((a, b) => a.clicksNow - a.clicksPrev - (b.clicksNow - b.clicksPrev))
     .slice(0, maxUrls);
 

@@ -20,6 +20,7 @@ import { streamSSE } from "@/lib/stream-sse";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
+import { SerpLab } from "@/components/SerpLab";
 import { saveOutput } from "@/lib/outputs.functions";
 
 export const Route = createFileRoute("/")({
@@ -489,6 +490,7 @@ function Index() {
             </div>
           </section>
         )}
+        {status === "done" && article && <SerpLab key={article.length} article={article} primary={primaryKeyword} />}
       </main>
 
       {status === "done" && article && (
