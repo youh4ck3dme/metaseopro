@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import { streamSSE } from "@/lib/stream-sse";
 import { handoffToWriter } from "@/lib/refresh-handoff";
+import { OpportunityRadar } from "@/components/OpportunityRadar";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,6 +157,7 @@ function DashboardPage() {
             </section>
             <p className="mt-2 text-xs text-neutral-500">Posledný snapshot: {fmtDate(latest.created_at)} · porovnanie s predošlým 90-dňovým obdobím</p>
 
+            {user && <OpportunityRadar snap={latest} userId={user.id} />}
             <Explorer snap={latest} />
             <CtrBooster snap={latest} />
 
