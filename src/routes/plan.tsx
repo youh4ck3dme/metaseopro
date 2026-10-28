@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,12 +19,16 @@ import { saveOutput } from "@/lib/outputs.functions";
 export const Route = createFileRoute("/plan")({
   head: () => ({
     meta: [
-      { title: "30-dňový Content Plan — Písmo" },
+      { title: "30-dňový Content Plan — SEO4WEB" },
       {
         name: "description",
         content:
           "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné.",
       },
+      { property: "og:title", content: "30-dňový Content Plan — SEO4WEB" },
+      { property: "og:description", content: "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: PlanPage,
@@ -113,14 +118,14 @@ function PlanPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-neutral-500">
+      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-muted-foreground">
         Načítavam…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground">
       <Toaster />
       <AppHeader />
 
@@ -128,10 +133,10 @@ function PlanPage() {
         <section className="px-6">
           <div className="mx-auto max-w-screen-xl">
             <div className="max-w-[40ch]">
-              <h1 className="mb-6 font-serif text-5xl leading-tight text-balance">
+              <h1 className="mb-6 font-display text-5xl leading-tight text-balance">
                 30-dňový obsahový plán
               </h1>
-              <p className="mb-8 text-neutral-600 text-pretty">
+              <p className="mb-8 text-secondary-foreground text-pretty">
                 Zadaj svoju niche a cieľ. AI vygeneruje kompletný SEO kalendár na 30 dní —
                 deň po dni, vrátane H1 nadpisov, kľúčových slov a CTA.
               </p>
@@ -142,8 +147,8 @@ function PlanPage() {
                 className={
                   "mb-6 inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs " +
                   (access.allowed
-                    ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
-                    : "bg-amber-50 text-amber-800 ring-1 ring-amber-200")
+                    ? "bg-success-subtle text-success-foreground ring-1 ring-success-border"
+                    : "bg-warning-subtle text-warning-foreground ring-1 ring-warning-border")
                 }
               >
                 {access.allowed ? (
@@ -160,10 +165,10 @@ function PlanPage() {
               </div>
             )}
 
-            <div className="rounded-[16px] bg-neutral-100/50 p-1.5 ring-1 ring-black/5">
-              <div className="rounded-[12px] bg-white p-6 shadow-sm space-y-4">
+            <div className="rounded-lg bg-muted/50 p-1.5 ring-1 ring-border/5">
+              <div className="rounded-lg bg-card p-6 shadow-sm space-y-4">
                 <div>
-                  <label className="text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                  <label className="text-xs font-medium tracking-normalr text-muted-foreground uppercase">
                     Niche / odvetvie
                   </label>
                   <input
@@ -171,11 +176,11 @@ function PlanPage() {
                     onChange={(e) => setNiche(e.target.value)}
                     disabled={status === "generating"}
                     placeholder="napr. osobné financie pre mladých"
-                    className="mt-2 w-full border-none bg-transparent text-lg placeholder:text-neutral-300 focus:outline-none"
+                    className="mt-2 w-full border-none bg-transparent text-lg placeholder:text-muted-foreground focus:outline-none"
                   />
                 </div>
-                <div className="border-t border-neutral-100 pt-4">
-                  <label className="text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                <div className="border-t border-border pt-4">
+                  <label className="text-xs font-medium tracking-normalr text-muted-foreground uppercase">
                     Hlavný cieľ
                   </label>
                   <input
@@ -183,11 +188,11 @@ function PlanPage() {
                     onChange={(e) => setGoal(e.target.value)}
                     disabled={status === "generating"}
                     placeholder="napr. zvýšiť organickú návštevnosť o 200 %"
-                    className="mt-2 w-full border-none bg-transparent text-lg placeholder:text-neutral-300 focus:outline-none"
+                    className="mt-2 w-full border-none bg-transparent text-lg placeholder:text-muted-foreground focus:outline-none"
                   />
                 </div>
-                <div className="border-t border-neutral-100 pt-4">
-                  <label className="text-xs font-medium tracking-wider text-neutral-400 uppercase">
+                <div className="border-t border-border pt-4">
+                  <label className="text-xs font-medium tracking-normalr text-muted-foreground uppercase">
                     Doplňujúce info (voliteľné)
                   </label>
                   <textarea
@@ -196,21 +201,21 @@ function PlanPage() {
                     disabled={status === "generating"}
                     rows={2}
                     placeholder="cieľová krajina, konkurencia, aktuálny stav webu…"
-                    className="mt-2 w-full resize-none border-none bg-transparent text-base placeholder:text-neutral-300 focus:outline-none"
+                    className="mt-2 w-full resize-none border-none bg-transparent text-base placeholder:text-muted-foreground focus:outline-none"
                   />
                 </div>
-                <div className="flex items-center justify-end border-t border-neutral-100 pt-4">
-                  <button
+                <div className="flex items-center justify-end border-t border-border pt-4">
+                  <Button variant="studio" size="studio"
                     onClick={run}
                     disabled={status === "generating" || (access ? !access.allowed : false)}
-                    className="flex items-center gap-2 rounded-[8px] bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50 hover:bg-neutral-800 disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {status === "generating"
                       ? "Generujem 30-dňový plán..."
                       : access && !access.allowed
                         ? "Predplatné vyžadované"
                         : "Vygenerovať plán"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -229,18 +234,18 @@ function PlanPage() {
                 ]}
               />
               <div className="col-span-12 lg:col-span-8">
-                <div className="min-h-[600px] rounded-[12px] bg-white p-8 shadow-sm ring-1 ring-black/5 md:p-12">
+                <div className="min-h-[600px] rounded-lg bg-card p-8 shadow-sm ring-1 ring-border/5 md:p-12">
                   {plan ? (
-                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-serif prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-lg prose-p:text-neutral-700">
+                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-4xl prose-h2:text-2xl prose-h3:text-lg prose-p:text-secondary-foreground">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan}</ReactMarkdown>
                     </article>
                   ) : (
                     <div className="space-y-3">
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-100" />
-                      <p className="pt-4 text-xs text-neutral-400">
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
+                      <p className="pt-4 text-xs text-muted-foreground">
                         AI pripravuje kompletný 30-dňový plán. Môže to trvať 30–60 sekúnd.
                       </p>
                     </div>
@@ -253,21 +258,21 @@ function PlanPage() {
       </main>
 
       {status === "done" && plan && (
-        <div className="fixed bottom-8 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-neutral-900 p-2 text-neutral-50 shadow-2xl ring-1 ring-black/10">
-          <button
+        <div className="fixed bottom-4 left-1/2 flex flex-wrap justify-center max-w-[calc(100vw-1rem)] -translate-x-1/2 gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10">
+          <Button variant="studio" size="studio"
             onClick={run}
             disabled={access ? !access.allowed : false}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800 disabled:opacity-50"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary disabled:opacity-50"
           >
             <RotateCcw className="size-4" /> Regenerovať
-          </button>
-          <div className="my-1 w-px bg-neutral-700" />
-          <button onClick={copy} className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800">
+          </Button>
+          <div className="my-1 w-px bg-foreground" />
+          <Button variant="studio" size="studio" onClick={copy} className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary">
             <Copy className="size-4" /> Kopírovať
-          </button>
-          <button onClick={download} className="flex items-center gap-2 rounded-full bg-neutral-50 py-2 pr-4 pl-3 text-sm font-medium text-neutral-900 hover:bg-white">
+          </Button>
+          <Button variant="studio" size="studio" onClick={download} className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground hover:bg-card">
             <ArrowDown className="size-4" /> Stiahnuť .md
-          </button>
+          </Button>
         </div>
       )}
     </div>

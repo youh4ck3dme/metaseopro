@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Copy, FileText, Minus, Sparkles, Trash2 } from "lucide-react";
@@ -16,9 +17,9 @@ import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
     meta: [
-      { title: "SEO Dashboard — Písmo" },
+      { title: "SEO Dashboard — SEO4WEB" },
       { name: "description", content: "SEO veliace centrum: KPI, história snapshotov a porovnanie zmien URL a kľúčových slov." },
-      { property: "og:title", content: "SEO Dashboard — Písmo" },
+      { property: "og:title", content: "SEO Dashboard — SEO4WEB" },
       { property: "og:description", content: "Sleduj kliky, impresie a pozície svojej domény a porovnávaj snapshoty v čase." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -60,11 +61,11 @@ function healthIndex(s: Summary): number {
 }
 
 function Delta({ value, invert = false, suffix = "" }: { value: number; invert?: boolean; suffix?: string }) {
-  if (!value) return <span className="inline-flex items-center gap-0.5 text-neutral-400"><Minus className="size-3" />0{suffix}</span>;
+  if (!value) return <span className="inline-flex items-center gap-0.5 text-muted-foreground"><Minus className="size-3" />0{suffix}</span>;
   const good = invert ? value < 0 : value > 0;
   const Icon = value > 0 ? ArrowUpRight : ArrowDownRight;
   return (
-    <span className={"inline-flex items-center gap-0.5 font-medium " + (good ? "text-emerald-600" : "text-red-600")}>
+    <span className={"inline-flex items-center gap-0.5 font-medium " + (good ? "text-success-foreground" : "text-danger-foreground")}>
       <Icon className="size-3" />
       {value > 0 ? "+" : ""}
       {Number.isInteger(value) ? fmt(value) : value.toFixed(1)}
@@ -121,28 +122,28 @@ function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 text-neutral-900">
+    <div className="min-h-screen bg-background text-foreground">
       <AppHeader />
       <Toaster />
       <main className="mx-auto max-w-screen-xl px-6 pb-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs uppercase tracking-widest text-neutral-500">SEO veliace centrum</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight md:text-4xl">Dashboard</h1>
+            <p className="text-xs uppercase tracking-normalst text-muted-foreground">SEO veliace centrum</p>
+            <h1 className="mt-1 text-3xl font-semibold tracking-normal md:text-4xl">Dashboard</h1>
           </div>
           {sites.length > 0 && (
-            <select value={site} onChange={(e) => setSite(e.target.value)} className="rounded-[8px] border border-neutral-200 bg-white px-3 py-2 text-sm">
+            <select value={site} onChange={(e) => setSite(e.target.value)} className="rounded-[8px] border border-border bg-card px-3 py-2 text-sm">
               {sites.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           )}
         </div>
 
         {busy ? (
-          <p className="mt-10 text-sm text-neutral-500">Načítavam…</p>
+          <p className="mt-10 text-sm text-muted-foreground">Načítavam…</p>
         ) : !latest ? (
-          <div className="mt-10 rounded-[12px] bg-white p-8 text-center ring-1 ring-black/5">
-            <p className="text-neutral-600">Zatiaľ nemáš žiadne uložené snapshoty.</p>
-            <Link to="/decay" className="mt-4 inline-block rounded-[8px] bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-50">
+          <div className="mt-10 rounded-lg bg-card p-8 text-center ring-1 ring-border/5">
+            <p className="text-secondary-foreground">Zatiaľ nemáš žiadne uložené snapshoty.</p>
+            <Link to="/decay" className="mt-4 inline-block rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
               Spustiť live analýzu v Decay Radar
             </Link>
           </div>
@@ -153,9 +154,9 @@ function DashboardPage() {
               <Kpi label="Kliky (90 dní)" value={fmt(m.clicksNow ?? 0)} delta={<Delta value={(m.clicksNow ?? 0) - (m.clicksPrev ?? 0)} />} />
               <Kpi label="Impresie" value={fmt(m.impressionsNow ?? 0)} delta={<Delta value={(m.impressionsNow ?? 0) - (m.impressionsPrev ?? 0)} />} />
               <Kpi label="Priem. pozícia" value={(m.avgPositionNow ?? 0).toFixed(1)} delta={<Delta invert value={Number(((m.avgPositionNow ?? 0) - (m.avgPositionPrev ?? 0)).toFixed(1))} />} />
-              <Kpi label="Health index" value={`${healthIndex(m)}/100`} delta={<span className="text-neutral-500">{m.critical ?? 0} kritických · {m.declining ?? 0} klesá</span>} />
+              <Kpi label="Health index" value={`${healthIndex(m)}/100`} delta={<span className="text-muted-foreground">{m.critical ?? 0} kritických · {m.declining ?? 0} klesá</span>} />
             </section>
-            <p className="mt-2 text-xs text-neutral-500">Posledný snapshot: {fmtDate(latest.created_at)} · porovnanie s predošlým 90-dňovým obdobím</p>
+            <p className="mt-2 text-xs text-muted-foreground">Posledný snapshot: {fmtDate(latest.created_at)} · porovnanie s predošlým 90-dňovým obdobím</p>
 
             {user && <OpportunityRadar snap={latest} userId={user.id} />}
             <Explorer snap={latest} />
@@ -164,18 +165,18 @@ function DashboardPage() {
             {/* Snapshots */}
             <section className="mt-10">
               <h2 className="text-lg font-semibold">Uložené snapshoty</h2>
-              <ul className="mt-3 divide-y divide-neutral-100 rounded-[12px] bg-white ring-1 ring-black/5">
+              <ul className="mt-3 divide-y divide-neutral-100 rounded-lg bg-card ring-1 ring-border/5">
                 {siteSnaps.map((s) => (
                   <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
                     <div>
                       <p className="font-medium">{fmtDate(s.created_at)}</p>
-                      <p className="text-xs text-neutral-500">{s.type} · {s.metrics_summary.pages ?? 0} URL</p>
+                      <p className="text-xs text-muted-foreground">{s.type} · {s.metrics_summary.pages ?? 0} URL</p>
                     </div>
                     <div className="flex items-center gap-4">
                       <span>{fmt(s.metrics_summary.clicksNow ?? 0)} klikov</span>
-                      <span className="text-neutral-500">poz. {(s.metrics_summary.avgPositionNow ?? 0).toFixed(1)}</span>
-                      <span className="text-neutral-500">health {healthIndex(s.metrics_summary)}</span>
-                      <button onClick={() => remove(s.id)} aria-label="Zmazať" className="text-neutral-400 hover:text-red-600"><Trash2 className="size-4" /></button>
+                      <span className="text-muted-foreground">poz. {(s.metrics_summary.avgPositionNow ?? 0).toFixed(1)}</span>
+                      <span className="text-muted-foreground">health {healthIndex(s.metrics_summary)}</span>
+                      <Button variant="studio" size="studio" onClick={() => remove(s.id)} aria-label="Zmazať" className="text-muted-foreground hover:text-danger-foreground"><Trash2 className="size-4" /></Button>
                     </div>
                   </li>
                 ))}
@@ -187,11 +188,11 @@ function DashboardPage() {
               <h2 className="text-lg font-semibold">Porovnávač snapshotov</h2>
               <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">
                 <SnapSelect label="Starší (A)" value={aId} onChange={setAId} snaps={siteSnaps} />
-                <span className="text-neutral-400">→</span>
+                <span className="text-muted-foreground">→</span>
                 <SnapSelect label="Novší (B)" value={bId} onChange={setBId} snaps={siteSnaps} />
               </div>
               {siteSnaps.length < 2 && (
-                <p className="mt-3 text-sm text-neutral-500">Na porovnanie potrebuješ aspoň 2 snapshoty. Spusti ďalšiu live analýzu neskôr.</p>
+                <p className="mt-3 text-sm text-muted-foreground">Na porovnanie potrebuješ aspoň 2 snapshoty. Spusti ďalšiu live analýzu neskôr.</p>
               )}
               {a && b && a.id !== b.id && <DiffView a={a} b={b} />}
             </section>
@@ -204,9 +205,9 @@ function DashboardPage() {
 
 function Kpi({ label, value, delta }: { label: string; value: string; delta: React.ReactNode }) {
   return (
-    <div className="rounded-[12px] bg-white p-4 ring-1 ring-black/5">
-      <p className="text-xs text-neutral-500">{label}</p>
-      <p className="mt-1 text-2xl font-semibold tracking-tight">{value}</p>
+    <div className="rounded-lg bg-card p-4 ring-1 ring-border/5">
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="mt-1 text-2xl font-semibold tracking-normal">{value}</p>
       <p className="mt-1 text-xs">{delta}</p>
     </div>
   );
@@ -215,8 +216,8 @@ function Kpi({ label, value, delta }: { label: string; value: string; delta: Rea
 function SnapSelect({ label, value, onChange, snaps }: { label: string; value: string; onChange: (v: string) => void; snaps: Snapshot[] }) {
   return (
     <label className="flex items-center gap-2">
-      <span className="text-neutral-500">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded-[8px] border border-neutral-200 bg-white px-2 py-1.5">
+      <span className="text-muted-foreground">{label}</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} className="rounded-[8px] border border-border bg-card px-2 py-1.5">
         {snaps.map((s) => <option key={s.id} value={s.id}>{fmtDate(s.created_at)}</option>)}
       </select>
     </label>
@@ -258,23 +259,23 @@ function DiffView({ a, b }: { a: Snapshot; b: Snapshot }) {
 
 function DiffTable({ title, lines }: { title: string; lines: Line[] }) {
   return (
-    <div className="overflow-hidden rounded-[12px] bg-white ring-1 ring-black/5">
-      <div className="border-b border-neutral-100 px-4 py-2 text-sm font-medium">{title}</div>
+    <div className="overflow-hidden rounded-lg bg-card ring-1 ring-border/5">
+      <div className="border-b border-border px-4 py-2 text-sm font-medium">{title}</div>
       <div className="max-h-[480px] overflow-auto">
         <table className="w-full text-xs">
-          <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
+          <thead className="sticky top-0 bg-background text-muted-foreground">
             <tr><th className="px-3 py-2 text-left">{title}</th><th className="px-2 text-right">Kliky A→B</th><th className="px-2 text-right">Δ</th><th className="px-3 text-right">Pozícia</th></tr>
           </thead>
           <tbody>
-            {lines.length === 0 && <tr><td colSpan={4} className="px-3 py-4 text-neutral-500">Žiadne dáta.</td></tr>}
+            {lines.length === 0 && <tr><td colSpan={4} className="px-3 py-4 text-muted-foreground">Žiadne dáta.</td></tr>}
             {lines.map((l) => {
               const d = l.bClicks - l.aClicks;
               const pd = l.aPos != null && l.bPos != null ? Number((l.bPos - l.aPos).toFixed(1)) : 0;
-              const bg = d > 0 ? "bg-emerald-50/60" : d < 0 ? "bg-red-50/60" : "";
+              const bg = d > 0 ? "bg-success-subtle/60" : d < 0 ? "bg-danger-subtle/60" : "";
               return (
-                <tr key={l.key} className={"border-t border-neutral-100 " + bg}>
+                <tr key={l.key} className={"border-t border-border " + bg}>
                   <td className="max-w-[220px] truncate px-3 py-2" title={l.key}>{l.key.replace(/^https?:\/\/[^/]+/, "") || "/"}</td>
-                  <td className="px-2 text-right text-neutral-600">{fmt(l.aClicks)} → {fmt(l.bClicks)}</td>
+                  <td className="px-2 text-right text-secondary-foreground">{fmt(l.aClicks)} → {fmt(l.bClicks)}</td>
                   <td className="px-2 text-right"><Delta value={d} /></td>
                   <td className="px-3 text-right">
                     {l.bPos != null ? l.bPos.toFixed(1) : "—"} {pd !== 0 && <Delta invert value={pd} />}
@@ -323,11 +324,11 @@ function Explorer({ snap }: { snap: Snapshot }) {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Všetky URL a kľúčové slová</h2>
-          <p className="text-xs text-neutral-500">{rows.length} URL z posledného snapshotu · klikni na riadok pre dopyty</p>
+          <p className="text-xs text-muted-foreground">{rows.length} URL z posledného snapshotu · klikni na riadok pre dopyty</p>
         </div>
-        <div className="flex gap-2 text-sm">
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Hľadať URL alebo dopyt…" className="rounded-[8px] border border-neutral-200 bg-white px-3 py-1.5" />
-          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-[8px] border border-neutral-200 bg-white px-2 py-1.5">
+        <div className="flex flex-wrap gap-2 text-sm">
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Hľadať URL alebo dopyt…" className="rounded-[8px] border border-border bg-card px-3 py-1.5" />
+          <select value={sort} onChange={(e) => setSort(e.target.value as SortKey)} className="rounded-[8px] border border-border bg-card px-2 py-1.5">
             <option value="decay">Najväčší prepad</option>
             <option value="clicks">Kliky</option>
             <option value="impressions">Impresie</option>
@@ -336,9 +337,9 @@ function Explorer({ snap }: { snap: Snapshot }) {
           </select>
         </div>
       </div>
-      <div className="mt-3 overflow-x-auto rounded-[12px] bg-white ring-1 ring-black/5">
+      <div className="mt-3 overflow-x-auto rounded-lg bg-card ring-1 ring-border/5">
         <table className="w-full min-w-[760px] text-xs">
-          <thead className="bg-neutral-50 text-neutral-500">
+          <thead className="bg-background text-muted-foreground">
             <tr>
               <th className="px-3 py-2 text-left">URL / dopyt</th>
               <th className="px-2 text-right">Kliky</th>
@@ -350,12 +351,12 @@ function Explorer({ snap }: { snap: Snapshot }) {
             </tr>
           </thead>
           <tbody>
-            {list.length === 0 && <tr><td colSpan={7} className="px-3 py-4 text-neutral-500">Nič sa nenašlo.</td></tr>}
+            {list.length === 0 && <tr><td colSpan={7} className="px-3 py-4 text-muted-foreground">Nič sa nenašlo.</td></tr>}
             {list.map((r) => {
               const isOpen = !!open[r.url];
               return (
                 <Fragment key={r.url}>
-                  <tr className="cursor-pointer border-t border-neutral-100 hover:bg-neutral-50" onClick={() => setOpen((o) => ({ ...o, [r.url]: !isOpen }))}>
+                  <tr className="cursor-pointer border-t border-border hover:bg-background" onClick={() => setOpen((o) => ({ ...o, [r.url]: !isOpen }))}>
                     <td className="max-w-[280px] px-3 py-2">
                       <span className="flex items-center gap-1 truncate font-medium" title={r.url}>
                         {isOpen ? <ChevronDown className="size-3 shrink-0" /> : <ChevronRight className="size-3 shrink-0" />}
@@ -368,13 +369,13 @@ function Explorer({ snap }: { snap: Snapshot }) {
                     <td className="px-2 text-right">{r.positionNow.toFixed(1)} <Delta invert value={Number((r.positionNow - r.positionPrev).toFixed(1))} /></td>
                     <td className="px-2 text-right">{r.decayScore}</td>
                     <td className="px-3 py-2 text-right">
-                      <button onClick={(e) => { e.stopPropagation(); refresh(r); }} className="inline-flex items-center gap-1 rounded-[6px] bg-neutral-900 px-2 py-1 text-[11px] font-medium text-neutral-50">
+                      <Button variant="studio" size="studio" onClick={(e) => { e.stopPropagation(); refresh(r); }} className="inline-flex items-center gap-1 rounded-[6px] bg-primary px-2 py-1 text-[11px] font-medium text-primary-foreground">
                         <FileText className="size-3" /> Aktualizovať článok
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                   {isOpen && r.topQueries.map((x) => (
-                    <tr key={r.url + x.query} className="bg-neutral-50/60 text-neutral-600">
+                    <tr key={r.url + x.query} className="bg-background/60 text-secondary-foreground">
                       <td className="py-1.5 pl-9 pr-3">„{x.query}“</td>
                       <td className="px-2 text-right">{fmt(x.clicksNow)} <Delta value={x.clicksNow - x.clicksPrev} /></td>
                       <td className="px-2 text-right">—</td>
@@ -428,38 +429,38 @@ function CtrBooster({ snap }: { snap: Snapshot }) {
   return (
     <section className="mt-10">
       <h2 className="flex items-center gap-2 text-lg font-semibold"><Sparkles className="size-4" /> CTR Booster</h2>
-      <p className="text-xs text-neutral-500">Stránky, ktoré Google často zobrazuje, ale ľudia na ne klikajú menej, než je pri ich pozícii bežné.</p>
+      <p className="text-xs text-muted-foreground">Stránky, ktoré Google často zobrazuje, ale ľudia na ne klikajú menej, než je pri ich pozícii bežné.</p>
       {candidates.length === 0 ? (
-        <p className="mt-3 rounded-[12px] bg-white p-4 text-sm text-neutral-500 ring-1 ring-black/5">Žiadne stránky s podpriemerným CTR. Výborné!</p>
+        <p className="mt-3 rounded-lg bg-card p-4 text-sm text-muted-foreground ring-1 ring-border/5">Žiadne stránky s podpriemerným CTR. Výborné!</p>
       ) : (
         <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <ul className="divide-y divide-neutral-100 rounded-[12px] bg-white ring-1 ring-black/5">
+          <ul className="divide-y divide-neutral-100 rounded-lg bg-card ring-1 ring-border/5">
             {candidates.map(({ r, ctr, exp }) => (
-              <li key={r.url} className={"flex items-center justify-between gap-3 px-4 py-3 text-sm " + (active === r.url ? "bg-neutral-50" : "")}>
+              <li key={r.url} className={"flex items-center justify-between gap-3 px-4 py-3 text-sm " + (active === r.url ? "bg-background" : "")}>
                 <div className="min-w-0">
                   <p className="truncate font-medium" title={r.url}>{path(r.url)}</p>
-                  <p className="text-xs text-neutral-500">
-                    poz. {r.positionNow.toFixed(1)} · {fmt(r.impressionsNow)} impresií · CTR <span className="text-red-600">{ctr.toFixed(1)} %</span> (bežne ~{exp} %)
+                  <p className="text-xs text-muted-foreground">
+                    poz. {r.positionNow.toFixed(1)} · {fmt(r.impressionsNow)} impresií · CTR <span className="text-danger-foreground">{ctr.toFixed(1)} %</span> (bežne ~{exp} %)
                   </p>
                 </div>
-                <button disabled={busy} onClick={() => run(r, ctr)} className="shrink-0 rounded-[6px] bg-neutral-900 px-2.5 py-1 text-xs font-medium text-neutral-50 disabled:opacity-50">
+                <Button variant="studio" size="studio" disabled={busy} onClick={() => run(r, ctr)} className="shrink-0 rounded-[6px] bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50">
                   Navrhnúť title + popis
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
-          <div className="min-h-[200px] rounded-[12px] bg-white p-4 ring-1 ring-black/5">
+          <div className="min-h-[200px] rounded-lg bg-card p-4 ring-1 ring-border/5">
             {!active ? (
-              <p className="text-sm text-neutral-500">Vyber stránku vľavo a AI navrhne 3 varianty title a meta popisu.</p>
+              <p className="text-sm text-muted-foreground">Vyber stránku vľavo a AI navrhne 3 varianty title a meta popisu.</p>
             ) : (
               <>
-                <div className="mb-2 flex items-center justify-between text-xs text-neutral-500">
+                <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
                   <span className="truncate">{path(active)}</span>
                   {out && !busy && (
-                    <button onClick={() => { navigator.clipboard.writeText(out); toast.success("Skopírované"); }} className="inline-flex items-center gap-1 hover:text-neutral-900"><Copy className="size-3" /> Kopírovať</button>
+                    <Button variant="studio" size="studio" onClick={() => { navigator.clipboard.writeText(out); toast.success("Skopírované"); }} className="inline-flex items-center gap-1 hover:text-foreground"><Copy className="size-3" /> Kopírovať</Button>
                   )}
                 </div>
-                {busy && !out && <p className="text-sm text-neutral-500">Generujem návrhy…</p>}
+                {busy && !out && <p className="text-sm text-muted-foreground">Generujem návrhy…</p>}
                 <div className="prose prose-sm max-w-none"><ReactMarkdown remarkPlugins={[remarkGfm]}>{out}</ReactMarkdown></div>
               </>
             )}
