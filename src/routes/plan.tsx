@@ -111,7 +111,7 @@ function PlanPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `content-plan-${Date.now()}.md`;
+    a.download = `seo4web-content-plan-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };

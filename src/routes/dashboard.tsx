@@ -165,7 +165,7 @@ function DashboardPage() {
             {/* Snapshots */}
             <section className="mt-10">
               <h2 className="text-lg font-semibold">Uložené snapshoty</h2>
-              <ul className="mt-3 divide-y divide-neutral-100 rounded-lg bg-card ring-1 ring-border/5">
+              <ul className="mt-3 divide-y divide-border rounded-lg bg-card ring-1 ring-border/5">
                 {siteSnaps.map((s) => (
                   <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 text-sm">
                     <div>
@@ -434,7 +434,7 @@ function CtrBooster({ snap }: { snap: Snapshot }) {
         <p className="mt-3 rounded-lg bg-card p-4 text-sm text-muted-foreground ring-1 ring-border/5">Žiadne stránky s podpriemerným CTR. Výborné!</p>
       ) : (
         <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
-          <ul className="divide-y divide-neutral-100 rounded-lg bg-card ring-1 ring-border/5">
+          <ul className="divide-y divide-border rounded-lg bg-card ring-1 ring-border/5">
             {candidates.map(({ r, ctr, exp }) => (
               <li key={r.url} className={"flex items-center justify-between gap-3 px-4 py-3 text-sm " + (active === r.url ? "bg-background" : "")}>
                 <div className="min-w-0">
