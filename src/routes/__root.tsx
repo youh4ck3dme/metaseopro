@@ -84,6 +84,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
     ],
     links: [
+      { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
