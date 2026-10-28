@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -26,18 +27,20 @@ import { saveOutput } from "@/lib/outputs.functions";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Písmo — AI SEO Command Center pre slovenský trh" },
+      { title: "SEO4WEB — AI SEO Command Center pre slovenský trh" },
       {
         name: "description",
         content:
           "Blog Writer, SEO Audit, Content Plan a SEO Brief v jednom nástroji. Profesionálne SEO výstupy v slovenčine pre agentúry, freelancerov a malé firmy.",
       },
-      { property: "og:title", content: "Písmo — AI SEO Command Center" },
+      { property: "og:title", content: "SEO4WEB — AI SEO Command Center" },
       {
         property: "og:description",
         content:
           "Audit → Brief → 30-dňový plán → SEO článok. Slovenský trh, jeden workflow.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: Index,
@@ -162,7 +165,7 @@ function Index() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pismo-clanok-${Date.now()}.md`;
+    a.download = `seo4web-clanok-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -170,7 +173,7 @@ function Index() {
   const showOutput = status !== "idle" || article.length > 0;
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900 selection:bg-neutral-200">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground selection:bg-border">
       <Toaster />
       <AppHeader />
 
@@ -179,32 +182,32 @@ function Index() {
         <section className="px-6">
           <div className="mx-auto max-w-screen-xl">
             <div className="max-w-[44ch]">
-              <span className="inline-block rounded-full bg-neutral-900 px-3 py-1 text-[10px] font-medium tracking-widest text-neutral-50 uppercase">
+              <span className="inline-block rounded-full bg-primary px-3 py-1 text-[10px] font-medium tracking-normalst text-primary-foreground uppercase">
                 AI SEO Command Center
               </span>
-              <h1 className="mt-5 mb-6 font-serif text-4xl md:text-5xl lg:text-6xl leading-tight text-balance text-neutral-950">
-                Odborný SEO obsah pre slovenský trh
+              <h1 className="mt-5 mb-6 font-display text-4xl md:text-5xl lg:text-6xl leading-tight text-balance text-foreground">
+                SEO4WEB
               </h1>
-              <p className="mb-8 text-base md:text-lg text-neutral-600 text-pretty">
+              <p className="mb-8 text-base md:text-lg text-secondary-foreground text-pretty">
                 Audit konkurencie, content brief, 30-dňový plán a hotový článok —
                 jeden workflow pre agentúry, freelancerov a malé firmy.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   to={user ? "/brief" : "/login"}
-                  className="rounded-[8px] bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                  className="rounded-[8px] bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                 >
                   {user ? "Vytvoriť SEO brief" : "Začať zadarmo"}
                 </Link>
                 <Link
                   to="/audit"
-                  className="rounded-[8px] bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 ring-1 ring-black/10 hover:bg-neutral-50"
+                  className="rounded-[8px] bg-card px-4 py-2.5 text-sm font-medium text-foreground ring-1 ring-border/10 hover:bg-background"
                 >
                   Spustiť SEO audit
                 </Link>
                 <a
                   href="#writer"
-                  className="rounded-[8px] bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 ring-1 ring-black/10 hover:bg-neutral-50"
+                  className="rounded-[8px] bg-card px-4 py-2.5 text-sm font-medium text-foreground ring-1 ring-border/10 hover:bg-background"
                 >
                   Vytvoriť článok
                 </a>
@@ -216,8 +219,8 @@ function Index() {
         {/* Tools */}
         <section className="mt-20 px-6">
           <div className="mx-auto max-w-screen-xl">
-            <h2 className="mb-2 font-serif text-2xl md:text-3xl">Štyri nástroje, jeden workflow</h2>
-            <p className="mb-8 text-sm text-neutral-500">
+            <h2 className="mb-2 font-display text-2xl md:text-3xl">Štyri nástroje, jeden workflow</h2>
+            <p className="mb-8 text-sm text-muted-foreground">
               Pracujú samostatne aj v reťazci — od auditu po publikovaný článok.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
@@ -252,9 +255,9 @@ function Index() {
         {/* Workflow */}
         <section className="mt-20 px-6">
           <div className="mx-auto max-w-screen-xl">
-            <div className="rounded-[16px] bg-white p-6 md:p-10 ring-1 ring-black/5">
-              <h2 className="mb-2 font-serif text-2xl md:text-3xl">Workflow Písma</h2>
-              <p className="mb-8 text-sm text-neutral-500 max-w-[60ch]">
+            <div className="border-y border-border py-8 md:py-10">
+              <h2 className="mb-2 font-display text-2xl md:text-3xl">Workflow SEO4WEB</h2>
+              <p className="mb-8 text-sm text-muted-foreground max-w-[60ch]">
                 Štandardná postupnosť, ktorú reálne používajú SEO špecialisti — len rýchlejšie.
               </p>
               <ol className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -264,12 +267,12 @@ function Index() {
                   ["30-dňový plán", "Rozplánuj obsah na celý mesiac."],
                   ["SEO článok", "Vygeneruj long-form článok podľa briefu."],
                 ].map(([t, d], i) => (
-                  <li key={t} className="rounded-[12px] bg-neutral-50 p-4 ring-1 ring-black/5">
-                    <div className="mb-2 text-xs font-medium tracking-widest text-neutral-400 uppercase">
+                  <li key={t} className="rounded-lg bg-background p-4 ring-1 ring-border/5">
+                    <div className="mb-2 text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                       Krok {i + 1}
                     </div>
-                    <p className="font-medium text-neutral-900">{t}</p>
-                    <p className="mt-1 text-sm text-neutral-600">{d}</p>
+                    <p className="font-medium text-foreground">{t}</p>
+                    <p className="mt-1 text-sm text-secondary-foreground">{d}</p>
                   </li>
                 ))}
               </ol>
@@ -291,12 +294,12 @@ function Index() {
               ],
               [
                 "Pre malé firmy",
-                "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — Písmo dorobí SEO časť.",
+                "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — SEO4WEB dorobí SEO časť.",
               ],
             ].map(([t, d]) => (
-              <div key={t} className="rounded-[12px] bg-white p-5 ring-1 ring-black/5">
-                <p className="font-medium text-neutral-900">{t}</p>
-                <p className="mt-2 text-sm text-neutral-600">{d}</p>
+              <div key={t} className="rounded-lg bg-card p-5 ring-1 ring-border/5">
+                <p className="font-medium text-foreground">{t}</p>
+                <p className="mt-2 text-sm text-secondary-foreground">{d}</p>
               </div>
             ))}
           </div>
@@ -306,19 +309,19 @@ function Index() {
         <section id="writer" className="mt-24 px-6 scroll-mt-12">
           <div className="mx-auto max-w-screen-xl">
             <div className="max-w-[44ch] mb-8">
-              <h2 className="mb-3 font-serif text-3xl md:text-4xl">Blog Writer</h2>
-              <p className="text-neutral-600 text-pretty">
-                Zadaj 2–3 vety o téme alebo vlož brief. Písmo vygeneruje hĺbkový SEO článok
+              <h2 className="mb-3 font-display text-3xl md:text-4xl">Blog Writer</h2>
+              <p className="text-secondary-foreground text-pretty">
+                Zadaj 2–3 vety o téme alebo vlož brief. SEO4WEB vygeneruje hĺbkový SEO článok
                 s kompletnou štruktúrou.
               </p>
             </div>
 
-            <div className="rounded-[16px] bg-neutral-100/50 p-1.5 ring-1 ring-black/5">
-              <div className="rounded-[12px] bg-white p-6 shadow-sm">
+            <div className="rounded-lg bg-muted/50 p-1.5 ring-1 ring-border/5">
+              <div className="rounded-lg bg-card p-6 shadow-sm">
                 <div className="flex flex-col gap-4">
                   <label
                     htmlFor="prompt"
-                    className="text-xs font-medium tracking-wider text-neutral-400 uppercase"
+                    className="text-xs font-medium tracking-normalr text-muted-foreground uppercase"
                   >
                     Téma a kontext článku
                   </label>
@@ -329,18 +332,18 @@ function Index() {
                     onChange={(e) => setTopic(e.target.value)}
                     disabled={status === "streaming"}
                     maxLength={4000}
-                    className="w-full resize-none border-none bg-transparent text-base md:text-lg placeholder:text-neutral-300 focus:ring-0 focus:outline-none disabled:opacity-60"
+                    className="w-full resize-none border-none bg-transparent text-base md:text-lg placeholder:text-muted-foreground focus:ring-0 focus:outline-none disabled:opacity-60"
                     placeholder="Napríklad: Prečo je dôležitá lokálna SEO optimalizácia pre malé firmy v Bratislave a aké nástroje použiť…"
                   />
 
-                  <div className="border-t border-neutral-100 pt-3">
-                    <button
+                  <div className="border-t border-border pt-3">
+                    <Button variant="studio" size="studio"
                       type="button"
                       onClick={() => setShowAdvanced((v) => !v)}
-                      className="text-xs font-medium tracking-wider text-neutral-500 uppercase hover:text-neutral-900"
+                      className="text-xs font-medium tracking-normalr text-muted-foreground uppercase hover:text-foreground"
                     >
                       {showAdvanced ? "− Skryť pokročilé" : "+ Pokročilé (KW, publikum, tón, dĺžka)"}
-                    </button>
+                    </Button>
                     {showAdvanced && (
                       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <input
@@ -349,7 +352,7 @@ function Index() {
                           disabled={status === "streaming"}
                           maxLength={150}
                           placeholder="Primárne keyword"
-                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                          className="rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         />
                         <input
                           value={audience}
@@ -357,13 +360,13 @@ function Index() {
                           disabled={status === "streaming"}
                           maxLength={300}
                           placeholder="Cieľové publikum"
-                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                          className="rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         />
                         <select
                           value={tone}
                           onChange={(e) => setTone(e.target.value as typeof tone)}
                           disabled={status === "streaming"}
-                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                          className="rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         >
                           <option value="">Tón (auto)</option>
                           <option value="friendly">Priateľský</option>
@@ -374,7 +377,7 @@ function Index() {
                           value={targetLength}
                           onChange={(e) => setTargetLength(e.target.value as typeof targetLength)}
                           disabled={status === "streaming"}
-                          className="rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                          className="rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                         >
                           <option value="">Dĺžka (auto)</option>
                           <option value="1500">~1500 slov</option>
@@ -384,33 +387,33 @@ function Index() {
                       </div>
                     )}
                   </div>
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-100 pt-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
                     <div className="flex flex-wrap gap-2">
-                      <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                      <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                         Slovenčina (SK)
                       </span>
-                      <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                      <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                         Dĺžka: 1800+ slov
                       </span>
                       {!user && (
-                        <span className="rounded bg-amber-50 px-2 py-1 text-[10px] text-amber-700 ring-1 ring-amber-200">
+                        <span className="rounded bg-warning-subtle px-2 py-1 text-[10px] text-warning-foreground ring-1 ring-warning-border">
                           Prihlásenie potrebné
                         </span>
                       )}
                     </div>
                     {user ? (
-                      <button
+                      <Button variant="studio" size="studio"
                         onClick={startGeneration}
                         disabled={status === "streaming"}
-                        className="flex items-center gap-2 rounded-[8px] bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {status === "streaming" ? "Generujem…" : "Generovať článok"}
-                      </button>
+                      </Button>
                     ) : (
                       <Link
                         to="/login"
                         search={{ redirect: "/" }}
-                        className="rounded-[8px] bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                        className="rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary"
                       >
                         Prihlásiť a generovať
                       </Link>
@@ -426,7 +429,7 @@ function Index() {
           <section className="mt-12 px-6">
             <div className="mx-auto grid max-w-screen-xl grid-cols-12 gap-8 lg:gap-12">
               <SidebarTips
-                title="Ako Písmo pracuje"
+                title="Ako SEO4WEB pracuje"
                 steps={[
                   "Analyzuje sémantické jadro slovenskej SEO scény pre danú tému.",
                   "Navrhuje štruktúru H1-H3, ktorá prirodzene vedie k akcii.",
@@ -441,15 +444,15 @@ function Index() {
                   <div className="flex items-center gap-2">
                     {status === "streaming" ? (
                       <>
-                        <div className="size-2 animate-pulse rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 animate-pulse rounded-full bg-success" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           Generuje sa…
                         </span>
                       </>
                     ) : (
                       <>
-                        <div className="size-2 rounded-full bg-neutral-300" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 rounded-full bg-border" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           {status === "done"
                             ? savedId
                               ? "Hotovo · uložené do Histórie"
@@ -460,29 +463,29 @@ function Index() {
                     )}
                   </div>
                   {status === "streaming" && (
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={stop}
-                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100"
+                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
                     >
                       <Square className="size-3" /> Zastaviť
-                    </button>
+                    </Button>
                   )}
                 </div>
 
-                <div className="min-h-[600px] rounded-[12px] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-12">
+                <div className="min-h-[600px] rounded-lg bg-card p-6 shadow-sm ring-1 ring-border/5 md:p-12">
                   {article ? (
-                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-serif prose-h1:text-3xl md:prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-xl md:prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-10 prose-h3:text-base md:prose-h3:text-lg prose-p:text-neutral-700 prose-p:leading-relaxed prose-strong:text-neutral-900 prose-a:text-neutral-900">
+                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-3xl md:prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-xl md:prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-10 prose-h3:text-base md:prose-h3:text-lg prose-p:text-secondary-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-foreground">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{article}</ReactMarkdown>
                       {status === "streaming" && (
-                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-neutral-900 align-middle" />
+                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                       )}
                     </article>
                   ) : (
                     <div className="space-y-3">
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-100" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
                     </div>
                   )}
                 </div>
@@ -494,25 +497,25 @@ function Index() {
       </main>
 
       {status === "done" && article && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-neutral-900 p-2 text-neutral-50 shadow-2xl ring-1 ring-black/10 max-w-[calc(100vw-1rem)]">
-          <button
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10 max-w-[calc(100vw-1rem)]">
+          <Button variant="studio" size="studio"
             onClick={startGeneration}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <RotateCcw className="size-4" /> Regenerovať
-          </button>
-          <button
+          </Button>
+          <Button variant="studio" size="studio"
             onClick={copy}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <Copy className="size-4" /> Kopírovať
-          </button>
-          <button
+          </Button>
+          <Button variant="studio" size="studio"
             onClick={download}
-            className="flex items-center gap-2 rounded-full bg-neutral-50 py-2 pr-4 pl-3 text-sm font-medium text-neutral-900 hover:bg-white"
+            className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground hover:bg-card"
           >
             <ArrowDown className="size-4" /> .md
-          </button>
+          </Button>
         </div>
       )}
     </div>
@@ -532,14 +535,14 @@ function ToolCard({
 }) {
   const isHash = to.startsWith("#");
   const className =
-    "block rounded-[12px] bg-white p-5 ring-1 ring-black/5 transition hover:ring-black/15 hover:-translate-y-0.5";
+    "block rounded-lg bg-card p-5 ring-1 ring-border/5 transition hover:ring-border/15 hover:-translate-y-0.5";
   const inner = (
     <>
-      <div className="mb-3 inline-flex size-9 items-center justify-center rounded-md bg-neutral-900 text-neutral-50">
+      <div className="mb-3 inline-flex size-9 items-center justify-center rounded-md bg-primary text-primary-foreground">
         {icon}
       </div>
-      <p className="font-medium text-neutral-900">{title}</p>
-      <p className="mt-1 text-sm text-neutral-600">{desc}</p>
+      <p className="font-medium text-foreground">{title}</p>
+      <p className="mt-1 text-sm text-secondary-foreground">{desc}</p>
     </>
   );
   if (isHash) {

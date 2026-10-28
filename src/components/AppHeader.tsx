@@ -1,6 +1,7 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChartNoAxesCombined, LogOut, ArrowUpRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 
 const NAV = [
@@ -19,114 +20,41 @@ export function AppHeader() {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-
   const handleSignOut = async () => {
     await signOut();
     setOpen(false);
     navigate({ to: "/login", search: { redirect: "/" } });
   };
-
   return (
-    <header className="px-6 py-6 md:py-10">
-      <div className="mx-auto flex max-w-screen-xl items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <div className="flex size-8 items-center justify-center rounded-[6px] bg-neutral-900 text-neutral-50">
-            <span className="text-xs font-semibold">P</span>
-          </div>
-          <span className="text-lg font-medium tracking-tight">Písmo</span>
+    <header className="app-header mb-8 px-4 md:px-6">
+      <div className="mx-auto flex min-h-20 max-w-screen-xl items-center justify-between gap-4">
+        <Link to="/" className="flex shrink-0 items-center gap-2.5" onClick={() => setOpen(false)} aria-label="SEO4WEB — úvod">
+          <span className="brand-mark flex size-9 items-center justify-center rounded-lg"><ChartNoAxesCombined className="size-5" /></span>
+          <span className="font-display text-xl font-semibold text-foreground">SEO4WEB</span>
         </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden lg:flex items-center gap-7">
-          {NAV.map((item) => {
-            const active = pathname === item.to;
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={
-                  "text-sm transition-colors " +
-                  (active
-                    ? "text-neutral-900 font-medium"
-                    : "text-neutral-500 hover:text-neutral-900")
-                }
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-          {user ? (
-            <button
-              onClick={handleSignOut}
-              className="text-sm text-neutral-500 hover:text-neutral-900"
-              title={user.email ?? undefined}
-            >
-              Odhlásiť
-            </button>
-          ) : (
-            <Link
-              to="/login"
-              search={{ redirect: "/" }}
-              className="rounded-[8px] bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
-            >
-              Prihlásiť
+        <nav aria-label="Hlavná navigácia" className="hidden xl:flex items-center gap-0.5">
+          {NAV.map((item) => (
+            <Link key={item.to} to={item.to} aria-current={pathname === item.to ? "page" : undefined}
+              className={"nav-item rounded-md px-2.5 py-3 text-[13px] font-medium " + (pathname === item.to ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground")}>
+              {item.label}
             </Link>
-          )}
+          ))}
         </nav>
-
-        {/* Mobile toggle */}
-        <button
-          onClick={() => setOpen((v) => !v)}
-          className="lg:hidden inline-flex size-9 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100"
-          aria-label="Otvoriť menu"
-          aria-expanded={open}
-        >
-          {open ? <X className="size-5" /> : <Menu className="size-5" />}
-        </button>
-      </div>
-
-      {/* Mobile menu */}
-      {open && (
-        <div className="lg:hidden mx-auto mt-3 max-w-screen-xl rounded-[12px] bg-white p-3 shadow-sm ring-1 ring-black/5">
-          <nav className="flex flex-col">
-            {NAV.map((item) => {
-              const active = pathname === item.to;
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  onClick={() => setOpen(false)}
-                  className={
-                    "rounded-md px-3 py-2.5 text-sm " +
-                    (active
-                      ? "bg-neutral-100 text-neutral-900 font-medium"
-                      : "text-neutral-600 hover:bg-neutral-50")
-                  }
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            <div className="my-2 h-px bg-neutral-100" />
-            {user ? (
-              <button
-                onClick={handleSignOut}
-                className="rounded-md px-3 py-2.5 text-left text-sm text-neutral-600 hover:bg-neutral-50"
-              >
-                Odhlásiť ({user.email})
-              </button>
-            ) : (
-              <Link
-                to="/login"
-                search={{ redirect: "/" }}
-                onClick={() => setOpen(false)}
-                className="rounded-md bg-neutral-900 px-3 py-2.5 text-center text-sm font-medium text-neutral-50"
-              >
-                Prihlásiť
-              </Link>
-            )}
-          </nav>
+        <div className="flex items-center gap-2">
+          {user ? <Button variant="ghost" size="icon" onClick={handleSignOut} title="Odhlásiť" aria-label="Odhlásiť" className="hidden xl:inline-flex"><LogOut /></Button> :
+            <Button asChild size="sm" className="hidden sm:inline-flex"><Link to="/login" search={{ redirect: "/" }}>Prihlásiť <ArrowUpRight /></Link></Button>}
+          <Button variant="ghost" size="icon" className="xl:hidden" onClick={() => setOpen((v) => !v)} aria-label={open ? "Zavrieť menu" : "Otvoriť menu"} aria-expanded={open} aria-controls="mobile-nav">
+            {open ? <X /> : <Menu />}
+          </Button>
         </div>
+      </div>
+      {open && (
+        <nav id="mobile-nav" aria-label="Mobilná navigácia" className="mx-auto grid max-w-screen-xl gap-1 border-t border-border py-3 sm:grid-cols-2 xl:hidden">
+          {NAV.map((item) => <Link key={item.to} to={item.to} onClick={() => setOpen(false)} aria-current={pathname === item.to ? "page" : undefined}
+            className={"rounded-md px-3 py-3 text-sm font-medium " + (pathname === item.to ? "bg-secondary text-primary" : "text-muted-foreground hover:bg-muted")}>{item.label}</Link>)}
+          {user ? <Button variant="ghost" className="justify-start" onClick={handleSignOut}><LogOut /> Odhlásiť</Button> :
+            <Button asChild><Link to="/login" search={{ redirect: "/" }} onClick={() => setOpen(false)}>Prihlásiť <ArrowUpRight /></Link></Button>}
+        </nav>
       )}
     </header>
   );

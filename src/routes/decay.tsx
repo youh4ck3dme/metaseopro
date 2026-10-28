@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -41,7 +42,7 @@ import {
 export const Route = createFileRoute("/decay")({
   head: () => ({
     meta: [
-      { title: "Decay Radar — nájdi klesajúci obsah | Písmo" },
+      { title: "Decay Radar — nájdi klesajúci obsah | SEO4WEB" },
       {
         name: "description",
         content:
@@ -53,6 +54,8 @@ export const Route = createFileRoute("/decay")({
         content:
           "Odhaľ stránky, ktoré strácajú organický traffic, a získaj AI refresh plán.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DecayPage,
@@ -61,27 +64,27 @@ export const Route = createFileRoute("/decay")({
 type Phase = "idle" | "analyzing" | "ready" | "error";
 
 const STATUS_STYLE: Record<DecayStatus, string> = {
-  critical: "bg-red-100 text-red-700",
-  declining: "bg-amber-100 text-amber-700",
-  stable: "bg-neutral-100 text-neutral-600",
-  growing: "bg-emerald-100 text-emerald-700",
+  critical: "bg-danger-subtle text-danger-foreground",
+  declining: "bg-warning-subtle text-warning-foreground",
+  stable: "bg-muted text-secondary-foreground",
+  growing: "bg-success-subtle text-success-foreground",
 };
 
 function pctBadge(pct: number) {
   if (pct <= -1)
     return (
-      <span className="inline-flex items-center gap-1 text-red-600">
+      <span className="inline-flex items-center gap-1 text-danger-foreground">
         <ArrowDownRight className="size-3.5" /> {pct}%
       </span>
     );
   if (pct >= 1)
     return (
-      <span className="inline-flex items-center gap-1 text-emerald-600">
+      <span className="inline-flex items-center gap-1 text-success-foreground">
         <ArrowUpRight className="size-3.5" /> +{pct}%
       </span>
     );
   return (
-    <span className="inline-flex items-center gap-1 text-neutral-500">
+    <span className="inline-flex items-center gap-1 text-muted-foreground">
       <Minus className="size-3.5" /> {pct}%
     </span>
   );
@@ -157,7 +160,7 @@ function DecayPage() {
         );
         if (res.ok && json.status === "ok" && list.length > 0) {
           setProperties(list);
-          setSiteUrl(list[0]!);
+          setSiteUrl(list[0] ?? "");
           setGscStatus("ok");
         } else {
           setGscStatus("unavailable");
@@ -322,69 +325,69 @@ function DecayPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pismo-decay-${Date.now()}.md`;
+    a.download = `seo4web-decay-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-neutral-500">
+      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-muted-foreground">
         Načítavam…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground">
       <Toaster />
       <AppHeader />
 
       <main className="px-6 pb-28">
         <div className="mx-auto max-w-screen-xl">
           {/* Hero / controls */}
-          <div className="rounded-[20px] bg-neutral-900 p-1.5 shadow-xl">
-            <div className="rounded-[15px] bg-white p-6 md:p-10">
+          <div className="tool-workspace">
+            <div className="py-6 md:py-8">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-[10px] bg-neutral-900 text-neutral-50">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <TrendingDown className="size-5" />
                 </div>
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-medium tracking-widest text-neutral-500 uppercase">
+                <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium tracking-normalst text-muted-foreground uppercase">
                   Content Decay Radar
                 </span>
               </div>
 
-              <h1 className="mb-3 font-serif text-3xl md:text-5xl leading-tight text-balance text-neutral-950">
+              <h1 className="mb-3 font-display text-3xl md:text-5xl leading-tight text-balance text-foreground">
                 Nájdi obsah, ktorý stráca traffic.
               </h1>
-              <p className="mb-6 max-w-[60ch] text-base md:text-lg text-neutral-600 text-pretty">
+              <p className="mb-6 max-w-[60ch] text-base md:text-lg text-secondary-foreground text-pretty">
                 Decay Radar odhalí stránky s klesajúcimi kliknutiami a pozíciami
                 a vygeneruje AI refresh plán na obnovu výkonu.
               </p>
 
               {/* Mode switch */}
-              <div className="mb-5 inline-flex rounded-[10px] bg-neutral-100 p-1">
+              <div className="mb-5 inline-flex rounded-lg bg-muted p-1">
                 {(["demo", "live"] as const).map((m) => (
-                  <button
+                  <Button variant="studio" size="studio"
                     key={m}
                     onClick={() => setMode(m)}
                     disabled={m === "live" && gscStatus !== "ok"}
                     className={
                       "rounded-[8px] px-4 py-1.5 text-sm font-medium transition disabled:opacity-40 " +
                       (mode === m
-                        ? "bg-white text-neutral-900 shadow-sm"
-                        : "text-neutral-500 hover:text-neutral-800")
+                        ? "bg-card text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground")
                     }
                   >
                     {m === "demo" ? "Demo dáta" : "Search Console (live)"}
-                  </button>
+                  </Button>
                 ))}
               </div>
 
               {mode === "demo" ? (
-                <div className="mb-6 flex items-start gap-3 rounded-[12px] bg-amber-50 p-4 ring-1 ring-amber-200">
-                  <Activity className="mt-0.5 size-5 shrink-0 text-amber-600" />
-                  <p className="text-sm text-amber-800">
+                <div className="mb-6 flex items-start gap-3 rounded-lg bg-warning-subtle p-4 ring-1 ring-warning-border">
+                  <Activity className="mt-0.5 size-5 shrink-0 text-warning-foreground" />
+                  <p className="text-sm text-warning-foreground">
                     You're viewing a demo dataset – connect Google Search Console
                     for real analysis.{" "}
                     {gscStatus === "unavailable" &&
@@ -393,9 +396,9 @@ function DecayPage() {
                   </p>
                 </div>
               ) : (
-                <div className="mb-6 flex items-start gap-3 rounded-[12px] bg-emerald-50 p-4 ring-1 ring-emerald-200">
-                  <Activity className="mt-0.5 size-5 shrink-0 text-emerald-600" />
-                  <p className="text-sm text-emerald-800">
+                <div className="mb-6 flex items-start gap-3 rounded-lg bg-success-subtle p-4 ring-1 ring-success-border">
+                  <Activity className="mt-0.5 size-5 shrink-0 text-success-foreground" />
+                  <p className="text-sm text-success-foreground">
                     Reálne dáta z Google Search Console — porovnanie posledných 90
                     dní s predchádzajúcimi 90 dňami.
                   </p>
@@ -409,7 +412,7 @@ function DecayPage() {
                       value={scenario}
                       onChange={(e) => setScenario(e.target.value as DecayScenario)}
                       disabled={phase === "analyzing"}
-                      className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                      className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                     >
                       {DECAY_SCENARIOS.map((s) => (
                         <option key={s} value={s}>
@@ -424,7 +427,7 @@ function DecayPage() {
                       value={siteUrl}
                       onChange={(e) => setSiteUrl(e.target.value)}
                       disabled={phase === "analyzing"}
-                      className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                      className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                     >
                       {properties.map((p) => (
                         <option key={p} value={p}>
@@ -438,7 +441,7 @@ function DecayPage() {
                   <select
                     value={language}
                     onChange={(e) => setLanguage(e.target.value as DecayLanguage)}
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                   >
                     {DECAY_LANGUAGES.map((l) => (
                       <option key={l} value={l}>
@@ -448,14 +451,14 @@ function DecayPage() {
                   </select>
                 </Field>
                 <div className="flex items-end">
-                  <button
+                  <Button variant="studio" size="studio"
                     onClick={analyze}
                     disabled={phase === "analyzing"}
-                    className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800 disabled:opacity-60"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-60"
                   >
                     <TrendingDown className="size-4" />
                     {phase === "analyzing" ? "Analyzujem…" : "Spustiť analýzu"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -463,15 +466,15 @@ function DecayPage() {
 
           {/* Error */}
           {phase === "error" && (
-            <div className="mt-6 rounded-[14px] bg-red-50 p-5 ring-1 ring-red-200">
-              <p className="text-sm font-medium text-red-800">Niečo sa pokazilo</p>
-              <p className="mt-1 text-sm text-red-700">{errorMsg}</p>
-              <button
+            <div className="mt-6 rounded-lg bg-danger-subtle p-5 ring-1 ring-danger-border">
+              <p className="text-sm font-medium text-danger-foreground">Niečo sa pokazilo</p>
+              <p className="mt-1 text-sm text-danger-foreground">{errorMsg}</p>
+              <Button variant="studio" size="studio"
                 onClick={analyze}
-                className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+                className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-danger px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-danger"
               >
                 <RotateCcw className="size-4" /> Skúsiť znova
-              </button>
+              </Button>
             </div>
           )}
 
@@ -481,7 +484,7 @@ function DecayPage() {
               {[1, 2, 3, 4].map((i) => (
                 <div
                   key={i}
-                  className="h-14 animate-pulse rounded-[12px] bg-white ring-1 ring-black/5"
+                  className="h-14 animate-pulse rounded-lg bg-card ring-1 ring-border/5"
                 />
               ))}
             </div>
@@ -491,20 +494,20 @@ function DecayPage() {
           {phase === "ready" && dataset && (
             <div className="mt-6">
               <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <h2 className="font-serif text-2xl">
+                <h2 className="font-display text-2xl">
                   {dataset.scenarioLabel} · {dataset.rows.length} URL
                 </h2>
                 {dataset.demo && (
-                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
+                  <span className="rounded-full bg-warning-subtle px-3 py-1 text-xs font-medium text-warning-foreground">
                     Demo dataset
                   </span>
                 )}
               </div>
 
-              <div className="overflow-x-auto rounded-[14px] bg-white ring-1 ring-black/5">
+              <div className="overflow-x-auto rounded-lg bg-card ring-1 ring-border/5">
                 <table className="w-full min-w-[720px] text-sm">
                   <thead>
-                    <tr className="border-b border-neutral-100 text-left text-xs text-neutral-500">
+                    <tr className="border-b border-border text-left text-xs text-muted-foreground">
                       <th className="px-4 py-3 font-medium">URL</th>
                       <th className="px-4 py-3 font-medium">Kliknutia</th>
                       <th className="px-4 py-3 font-medium">Δ</th>
@@ -518,40 +521,40 @@ function DecayPage() {
                       <tr
                         key={row.url}
                         onClick={() => openRow(row)}
-                        className="cursor-pointer border-b border-neutral-50 last:border-0 hover:bg-neutral-50"
+                        className="cursor-pointer border-b border-border last:border-0 hover:bg-background"
                       >
                         <td className="max-w-[280px] px-4 py-3">
-                          <p className="truncate font-medium text-neutral-900">
+                          <p className="truncate font-medium text-foreground">
                             {row.title}
                           </p>
-                          <p className="truncate text-xs text-neutral-400">
+                          <p className="truncate text-xs text-muted-foreground">
                             {row.url.replace(/^https?:\/\//, "")}
                           </p>
                         </td>
-                        <td className="px-4 py-3 text-neutral-600">
+                        <td className="px-4 py-3 text-secondary-foreground">
                           {row.clicksPrev.toLocaleString("sk-SK")} →{" "}
                           {row.clicksNow.toLocaleString("sk-SK")}
                         </td>
                         <td className="px-4 py-3">{pctBadge(row.clicksDeltaPct)}</td>
-                        <td className="px-4 py-3 text-neutral-600">
+                        <td className="px-4 py-3 text-secondary-foreground">
                           {row.positionPrev.toFixed(1)} → {row.positionNow.toFixed(1)}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-neutral-100">
+                            <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
                               <div
                                 className={
                                   "h-full rounded-full " +
                                   (row.decayScore >= 55
-                                    ? "bg-red-500"
+                                    ? "bg-danger"
                                     : row.decayScore >= 25
-                                      ? "bg-amber-500"
-                                      : "bg-emerald-500")
+                                      ? "bg-warning"
+                                      : "bg-success")
                                 }
                                 style={{ width: `${row.decayScore}%` }}
                               />
                             </div>
-                            <span className="text-xs text-neutral-500">
+                            <span className="text-xs text-muted-foreground">
                               {row.decayScore}
                             </span>
                           </div>
@@ -579,46 +582,46 @@ function DecayPage() {
       {/* URL detail panel */}
       {selected && dataset && (
         <div
-          className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+          className="fixed inset-0 z-50 bg-overlay/40 backdrop-blur-sm"
           onClick={() => setSelected(null)}
         >
           <div
-            className="absolute inset-y-0 right-0 w-full max-w-3xl overflow-y-auto bg-white shadow-2xl"
+            className="absolute inset-y-0 right-0 w-full max-w-3xl overflow-y-auto bg-card shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-neutral-100 bg-white/95 px-6 py-4 backdrop-blur">
+            <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-border bg-card/95 px-6 py-4 backdrop-blur">
               <div className="min-w-0">
-                <p className="text-xs text-neutral-400">
+                <p className="text-xs text-muted-foreground">
                   {STATUS_LABEL[selected.status]} · Decay {selected.decayScore}/100
                 </p>
                 <h2 className="truncate text-base font-medium">{selected.title}</h2>
               </div>
-              <button
+              <Button variant="studio" size="studio"
                 onClick={() => setSelected(null)}
-                className="flex size-8 shrink-0 items-center justify-center rounded-md text-neutral-500 hover:bg-neutral-100"
+                className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
                 aria-label="Zavrieť"
               >
                 <X className="size-4" />
-              </button>
+              </Button>
             </div>
 
             <div className="space-y-6 px-6 py-6">
               {dataset.demo && (
-                <div className="rounded-[10px] bg-amber-50 px-4 py-2.5 text-xs text-amber-800 ring-1 ring-amber-200">
+                <div className="rounded-lg bg-warning-subtle px-4 py-2.5 text-xs text-warning-foreground ring-1 ring-warning-border">
                   Demo dáta — analýza nevychádza z reálneho Google Search Console.
                 </div>
               )}
 
-              <p className="break-all text-xs text-neutral-400">{selected.url}</p>
-              <button
+              <p className="break-all text-xs text-muted-foreground">{selected.url}</p>
+              <Button variant="studio" size="studio"
                 onClick={() => {
                   handoffToWriter(dataset.siteUrl, selected);
                   window.location.href = "/?fromRefresh=1";
                 }}
-                className="inline-flex items-center gap-1.5 rounded-[8px] bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-50"
+                className="inline-flex items-center gap-1.5 rounded-[8px] bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground"
               >
                 <Sparkles className="size-3.5" /> Vygenerovať aktualizovaný článok v Blog Writeri
-              </button>
+              </Button>
 
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -630,13 +633,13 @@ function DecayPage() {
 
               {/* Query recovery map */}
               <div>
-                <h3 className="mb-2 text-sm font-medium text-neutral-900">
+                <h3 className="mb-2 text-sm font-medium text-foreground">
                   Query recovery mapa
                 </h3>
-                <div className="overflow-hidden rounded-[12px] ring-1 ring-black/5">
+                <div className="overflow-hidden rounded-lg ring-1 ring-border/5">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-neutral-100 bg-neutral-50 text-left text-xs text-neutral-500">
+                      <tr className="border-b border-border bg-background text-left text-xs text-muted-foreground">
                         <th className="px-3 py-2 font-medium">Query</th>
                         <th className="px-3 py-2 font-medium">Kliknutia</th>
                         <th className="px-3 py-2 font-medium">Pozícia</th>
@@ -644,12 +647,12 @@ function DecayPage() {
                     </thead>
                     <tbody>
                       {selected.topQueries.map((q) => (
-                        <tr key={q.query} className="border-b border-neutral-50 last:border-0">
-                          <td className="px-3 py-2 text-neutral-800">{q.query}</td>
-                          <td className="px-3 py-2 text-neutral-600">
+                        <tr key={q.query} className="border-b border-border last:border-0">
+                          <td className="px-3 py-2 text-foreground">{q.query}</td>
+                          <td className="px-3 py-2 text-secondary-foreground">
                             {q.clicksPrev} → {q.clicksNow}
                           </td>
-                          <td className="px-3 py-2 text-neutral-600">
+                          <td className="px-3 py-2 text-secondary-foreground">
                             {q.positionPrev.toFixed(1)} → {q.positionNow.toFixed(1)}
                           </td>
                         </tr>
@@ -662,62 +665,62 @@ function DecayPage() {
               {/* AI refresh plan */}
               <div>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-medium text-neutral-900">
+                  <h3 className="text-sm font-medium text-foreground">
                     AI refresh plán
                   </h3>
                   <div className="flex gap-2">
                     {plan && (
                       <>
-                        <button
+                        <Button variant="studio" size="studio"
                           onClick={copyPlan}
-                          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100"
+                          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted"
                         >
                           {copied ? <Check className="size-4" /> : <Copy className="size-4" />}{" "}
                           Kopírovať
-                        </button>
-                        <button
+                        </Button>
+                        <Button variant="studio" size="studio"
                           onClick={exportPlan}
-                          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-neutral-600 hover:bg-neutral-100"
+                          className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted"
                         >
                           <ArrowDown className="size-4" /> .md
-                        </button>
+                        </Button>
                       </>
                     )}
                     {planLoading ? (
-                      <button
+                      <Button variant="studio" size="studio"
                         onClick={stopPlan}
-                        className="flex items-center gap-1.5 rounded-md bg-neutral-100 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
+                        className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-border"
                       >
                         <Square className="size-4" /> Zastaviť
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button variant="studio" size="studio"
                         onClick={generatePlan}
-                        className="flex items-center gap-1.5 rounded-md bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                        className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                       >
                         <Sparkles className="size-4" />
                         {plan ? "Znovu vygenerovať" : "Vygenerovať plán"}
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
 
                 {planLoading && !plan && (
-                  <div className="space-y-3 rounded-[12px] bg-neutral-50 p-4">
-                    <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-200" />
-                    <div className="h-4 w-full animate-pulse rounded bg-neutral-200" />
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-200" />
+                  <div className="space-y-3 rounded-lg bg-background p-4">
+                    <div className="h-4 w-1/3 animate-pulse rounded bg-border" />
+                    <div className="h-4 w-full animate-pulse rounded bg-border" />
+                    <div className="h-4 w-5/6 animate-pulse rounded bg-border" />
                   </div>
                 )}
 
                 {plan && (
-                  <article className="prose prose-neutral max-w-none rounded-[12px] bg-neutral-50 p-4 prose-headings:font-serif prose-h2:text-lg prose-h2:mt-6 prose-p:text-neutral-700">
+                  <article className="prose prose-neutral max-w-none rounded-lg bg-background p-4 prose-headings:font-display prose-h2:text-lg prose-h2:mt-6 prose-p:text-secondary-foreground">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{plan}</ReactMarkdown>
                   </article>
                 )}
 
                 {!plan && !planLoading && (
-                  <p className="rounded-[12px] bg-neutral-50 p-4 text-sm text-neutral-500">
+                  <p className="rounded-lg bg-background p-4 text-sm text-muted-foreground">
                     Vygeneruj konkrétny plán na obnovu tejto stránky. Plán sa
                     automaticky uloží do Histórie.
                   </p>
@@ -740,7 +743,7 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-neutral-600">
+      <span className="mb-1.5 block text-xs font-medium text-secondary-foreground">
         {label}
       </span>
       {children}
@@ -758,10 +761,10 @@ function Metric({
   sub: string;
 }) {
   return (
-    <div className="rounded-[12px] bg-neutral-50 p-3">
-      <p className="text-[11px] uppercase tracking-wide text-neutral-400">{label}</p>
-      <p className="mt-1 text-lg font-semibold text-neutral-900">{value}</p>
-      <p className="text-xs text-neutral-400">{sub}</p>
+    <div className="rounded-lg bg-background p-3">
+      <p className="text-[11px] uppercase tracking-normal text-muted-foreground">{label}</p>
+      <p className="mt-1 text-lg font-semibold text-foreground">{value}</p>
+      <p className="text-xs text-muted-foreground">{sub}</p>
     </div>
   );
 }
