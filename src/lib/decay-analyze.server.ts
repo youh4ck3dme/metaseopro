@@ -1,11 +1,7 @@
 // Server-only Decay Radar logic: scoring + dataset assembly.
 // Demo mode reads from decay-demo.ts. Live GSC mode is a Phase-2 extension;
 // until GSC is connected we always return demo data (clearly flagged).
-import {
-  DEMO_PERIOD_NOW,
-  DEMO_PERIOD_PREV,
-  DEMO_SCENARIOS,
-} from "./decay-demo";
+import { DEMO_PERIOD_NOW, DEMO_PERIOD_PREV, DEMO_SCENARIOS } from "./decay-demo";
 import {
   LIVE_PERIOD_NOW,
   LIVE_PERIOD_PREV,
@@ -23,9 +19,7 @@ import {
 
 function scoreRow(row: DecayRow): ScoredDecayRow {
   const clicksDeltaPct =
-    row.clicksPrev > 0
-      ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100)
-      : 0;
+    row.clicksPrev > 0 ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100) : 0;
   // Positive positionDelta = worse (higher number = lower rank).
   const positionDelta = Number((row.positionNow - row.positionPrev).toFixed(1));
 
@@ -53,13 +47,11 @@ const STATUS_ORDER: Record<DecayStatus, number> = {
 
 export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
   const demo = DEMO_SCENARIOS[scenario];
-  const rows = demo.rows
-    .map(scoreRow)
-    .sort((a, b) => {
-      const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-      if (s !== 0) return s;
-      return b.decayScore - a.decayScore;
-    });
+  const rows = demo.rows.map(scoreRow).sort((a, b) => {
+    const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (s !== 0) return s;
+    return b.decayScore - a.decayScore;
+  });
 
   return {
     demo: true,
@@ -79,13 +71,11 @@ export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
  */
 export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   const verified = await assertVerifiedProperty(siteUrl);
-  const rows = (await fetchLiveDecayRows(verified))
-    .map(scoreRow)
-    .sort((a, b) => {
-      const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-      if (s !== 0) return s;
-      return b.decayScore - a.decayScore;
-    });
+  const rows = (await fetchLiveDecayRows(verified)).map(scoreRow).sort((a, b) => {
+    const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (s !== 0) return s;
+    return b.decayScore - a.decayScore;
+  });
 
   return {
     demo: false,
@@ -102,8 +92,6 @@ export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   };
 }
 
-export async function runDecayAnalysis(
-  scenario: DecayScenario,
-): Promise<DecayDataset> {
+export async function runDecayAnalysis(scenario: DecayScenario): Promise<DecayDataset> {
   return buildDemoDataset(scenario);
 }

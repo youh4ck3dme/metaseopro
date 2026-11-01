@@ -56,13 +56,9 @@ export const Route = createFileRoute("/api/decay-analyze")({
 
           let dataset;
           if (parsed.data.mode === "live") {
-            if (!parsed.data.siteUrl)
-              return err(400, "Vyber overenú Search Console property.");
+            if (!parsed.data.siteUrl) return err(400, "Vyber overenú Search Console property.");
             if (!isGscConfigured())
-              return err(
-                409,
-                "Google Search Console nie je pripojený. Použi demo režim.",
-              );
+              return err(409, "Google Search Console nie je pripojený. Použi demo režim.");
             try {
               dataset = await buildLiveDataset(parsed.data.siteUrl);
             } catch (e) {

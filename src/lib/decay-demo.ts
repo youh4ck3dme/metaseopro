@@ -24,9 +24,27 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 3.1,
         positionNow: 7.8,
         topQueries: [
-          { query: "ako začať behať", clicksPrev: 1900, clicksNow: 720, positionPrev: 2.4, positionNow: 6.9 },
-          { query: "beh pre začiatočníkov", clicksPrev: 1100, clicksNow: 540, positionPrev: 3.0, positionNow: 8.1 },
-          { query: "behanie plán", clicksPrev: 620, clicksNow: 310, positionPrev: 4.2, positionNow: 9.4 },
+          {
+            query: "ako začať behať",
+            clicksPrev: 1900,
+            clicksNow: 720,
+            positionPrev: 2.4,
+            positionNow: 6.9,
+          },
+          {
+            query: "beh pre začiatočníkov",
+            clicksPrev: 1100,
+            clicksNow: 540,
+            positionPrev: 3.0,
+            positionNow: 8.1,
+          },
+          {
+            query: "behanie plán",
+            clicksPrev: 620,
+            clicksNow: 310,
+            positionPrev: 4.2,
+            positionNow: 9.4,
+          },
         ],
       },
       {
@@ -39,8 +57,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 4.0,
         positionNow: 6.2,
         topQueries: [
-          { query: "ovsená kaša recept", clicksPrev: 1400, clicksNow: 820, positionPrev: 3.5, positionNow: 5.8 },
-          { query: "raňajky ovsené vločky", clicksPrev: 700, clicksNow: 400, positionPrev: 4.6, positionNow: 7.0 },
+          {
+            query: "ovsená kaša recept",
+            clicksPrev: 1400,
+            clicksNow: 820,
+            positionPrev: 3.5,
+            positionNow: 5.8,
+          },
+          {
+            query: "raňajky ovsené vločky",
+            clicksPrev: 700,
+            clicksNow: 400,
+            positionPrev: 4.6,
+            positionNow: 7.0,
+          },
         ],
       },
       {
@@ -53,7 +83,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 5.2,
         positionNow: 5.0,
         topQueries: [
-          { query: "ranná rutina", clicksPrev: 900, clicksNow: 880, positionPrev: 4.8, positionNow: 4.7 },
+          {
+            query: "ranná rutina",
+            clicksPrev: 900,
+            clicksNow: 880,
+            positionPrev: 4.8,
+            positionNow: 4.7,
+          },
         ],
       },
       {
@@ -66,8 +102,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 2.8,
         positionNow: 11.3,
         topQueries: [
-          { query: "ako šetriť peniaze", clicksPrev: 1600, clicksNow: 380, positionPrev: 2.2, positionNow: 10.6 },
-          { query: "tipy na šetrenie", clicksPrev: 900, clicksNow: 300, positionPrev: 3.4, positionNow: 12.0 },
+          {
+            query: "ako šetriť peniaze",
+            clicksPrev: 1600,
+            clicksNow: 380,
+            positionPrev: 2.2,
+            positionNow: 10.6,
+          },
+          {
+            query: "tipy na šetrenie",
+            clicksPrev: 900,
+            clicksNow: 300,
+            positionPrev: 3.4,
+            positionNow: 12.0,
+          },
         ],
       },
       {
@@ -80,7 +128,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 6.9,
         positionNow: 4.4,
         topQueries: [
-          { query: "cvičenie doma", clicksPrev: 800, clicksNow: 1200, positionPrev: 6.1, positionNow: 3.9 },
+          {
+            query: "cvičenie doma",
+            clicksPrev: 800,
+            clicksNow: 1200,
+            positionPrev: 6.1,
+            positionNow: 3.9,
+          },
         ],
       },
     ],
@@ -98,8 +152,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 2.6,
         positionNow: 6.4,
         topQueries: [
-          { query: "bežecké topánky", clicksPrev: 3200, clicksNow: 1400, positionPrev: 2.1, positionNow: 5.9 },
-          { query: "topánky na beh dámske", clicksPrev: 1600, clicksNow: 780, positionPrev: 3.0, positionNow: 6.8 },
+          {
+            query: "bežecké topánky",
+            clicksPrev: 3200,
+            clicksNow: 1400,
+            positionPrev: 2.1,
+            positionNow: 5.9,
+          },
+          {
+            query: "topánky na beh dámske",
+            clicksPrev: 1600,
+            clicksNow: 780,
+            positionPrev: 3.0,
+            positionNow: 6.8,
+          },
         ],
       },
       {
@@ -112,8 +178,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 3.4,
         positionNow: 12.1,
         topQueries: [
-          { query: "nepremokavá bunda", clicksPrev: 1200, clicksNow: 320, positionPrev: 2.9, positionNow: 11.4 },
-          { query: "gore-tex bunda", clicksPrev: 700, clicksNow: 260, positionPrev: 3.8, positionNow: 12.9 },
+          {
+            query: "nepremokavá bunda",
+            clicksPrev: 1200,
+            clicksNow: 320,
+            positionPrev: 2.9,
+            positionNow: 11.4,
+          },
+          {
+            query: "gore-tex bunda",
+            clicksPrev: 700,
+            clicksNow: 260,
+            positionPrev: 3.8,
+            positionNow: 12.9,
+          },
         ],
       },
       {
@@ -126,7 +204,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 4.1,
         positionNow: 6.6,
         topQueries: [
-          { query: "ako vybrať batoh", clicksPrev: 1000, clicksNow: 600, positionPrev: 3.7, positionNow: 6.2 },
+          {
+            query: "ako vybrať batoh",
+            clicksPrev: 1000,
+            clicksNow: 600,
+            positionPrev: 3.7,
+            positionNow: 6.2,
+          },
         ],
       },
       {
@@ -139,7 +223,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 3.0,
         positionNow: 3.1,
         topQueries: [
-          { query: "stan pre 2 osoby", clicksPrev: 1700, clicksNow: 1680, positionPrev: 2.7, positionNow: 2.8 },
+          {
+            query: "stan pre 2 osoby",
+            clicksPrev: 1700,
+            clicksNow: 1680,
+            positionPrev: 2.7,
+            positionNow: 2.8,
+          },
         ],
       },
       {
@@ -152,7 +242,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 7.2,
         positionNow: 4.1,
         topQueries: [
-          { query: "čelovka led", clicksPrev: 500, clicksNow: 950, positionPrev: 6.5, positionNow: 3.7 },
+          {
+            query: "čelovka led",
+            clicksPrev: 500,
+            clicksNow: 950,
+            positionPrev: 6.5,
+            positionNow: 3.7,
+          },
         ],
       },
     ],
@@ -170,8 +266,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 2.3,
         positionNow: 5.9,
         topQueries: [
-          { query: "kaviareň bratislava menu", clicksPrev: 1100, clicksNow: 440, positionPrev: 1.9, positionNow: 5.4 },
-          { query: "espresso bar centrum", clicksPrev: 500, clicksNow: 220, positionPrev: 2.8, positionNow: 6.6 },
+          {
+            query: "kaviareň bratislava menu",
+            clicksPrev: 1100,
+            clicksNow: 440,
+            positionPrev: 1.9,
+            positionNow: 5.4,
+          },
+          {
+            query: "espresso bar centrum",
+            clicksPrev: 500,
+            clicksNow: 220,
+            positionPrev: 2.8,
+            positionNow: 6.6,
+          },
         ],
       },
       {
@@ -184,8 +292,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 3.0,
         positionNow: 10.4,
         topQueries: [
-          { query: "raňajky bratislava", clicksPrev: 800, clicksNow: 240, positionPrev: 2.6, positionNow: 9.8 },
-          { query: "brunch centrum", clicksPrev: 400, clicksNow: 160, positionPrev: 3.6, positionNow: 11.2 },
+          {
+            query: "raňajky bratislava",
+            clicksPrev: 800,
+            clicksNow: 240,
+            positionPrev: 2.6,
+            positionNow: 9.8,
+          },
+          {
+            query: "brunch centrum",
+            clicksPrev: 400,
+            clicksNow: 160,
+            positionPrev: 3.6,
+            positionNow: 11.2,
+          },
         ],
       },
       {
@@ -198,7 +318,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 1.6,
         positionNow: 1.7,
         topQueries: [
-          { query: "kaviareň otváracie hodiny", clicksPrev: 700, clicksNow: 690, positionPrev: 1.4, positionNow: 1.5 },
+          {
+            query: "kaviareň otváracie hodiny",
+            clicksPrev: 700,
+            clicksNow: 690,
+            positionPrev: 1.4,
+            positionNow: 1.5,
+          },
         ],
       },
       {
@@ -211,7 +337,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 4.2,
         positionNow: 13.5,
         topQueries: [
-          { query: "priestor na oslavu bratislava", clicksPrev: 420, clicksNow: 140, positionPrev: 3.9, positionNow: 12.8 },
+          {
+            query: "priestor na oslavu bratislava",
+            clicksPrev: 420,
+            clicksNow: 140,
+            positionPrev: 3.9,
+            positionNow: 12.8,
+          },
         ],
       },
       {
@@ -224,7 +356,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 6.0,
         positionNow: 4.2,
         topQueries: [
-          { query: "najlepšia kaviareň bratislava", clicksPrev: 200, clicksNow: 360, positionPrev: 5.4, positionNow: 3.8 },
+          {
+            query: "najlepšia kaviareň bratislava",
+            clicksPrev: 200,
+            clicksNow: 360,
+            positionPrev: 5.4,
+            positionNow: 3.8,
+          },
         ],
       },
     ],
@@ -242,8 +380,20 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 2.9,
         positionNow: 7.4,
         topQueries: [
-          { query: "project management tips", clicksPrev: 2600, clicksNow: 900, positionPrev: 2.3, positionNow: 6.8 },
-          { query: "remote team management", clicksPrev: 1500, clicksNow: 640, positionPrev: 3.1, positionNow: 7.9 },
+          {
+            query: "project management tips",
+            clicksPrev: 2600,
+            clicksNow: 900,
+            positionPrev: 2.3,
+            positionNow: 6.8,
+          },
+          {
+            query: "remote team management",
+            clicksPrev: 1500,
+            clicksNow: 640,
+            positionPrev: 3.1,
+            positionNow: 7.9,
+          },
         ],
       },
       {
@@ -256,7 +406,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 3.2,
         positionNow: 9.6,
         topQueries: [
-          { query: "best project tool alternative", clicksPrev: 1700, clicksNow: 500, positionPrev: 2.8, positionNow: 9.1 },
+          {
+            query: "best project tool alternative",
+            clicksPrev: 1700,
+            clicksNow: 500,
+            positionPrev: 2.8,
+            positionNow: 9.1,
+          },
         ],
       },
       {
@@ -269,7 +425,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 4.0,
         positionNow: 5.7,
         topQueries: [
-          { query: "okr guide", clicksPrev: 1400, clicksNow: 980, positionPrev: 3.6, positionNow: 5.2 },
+          {
+            query: "okr guide",
+            clicksPrev: 1400,
+            clicksNow: 980,
+            positionPrev: 3.6,
+            positionNow: 5.2,
+          },
         ],
       },
       {
@@ -282,7 +444,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 1.8,
         positionNow: 1.9,
         topQueries: [
-          { query: "demo saas pricing", clicksPrev: 2200, clicksNow: 2180, positionPrev: 1.5, positionNow: 1.6 },
+          {
+            query: "demo saas pricing",
+            clicksPrev: 2200,
+            clicksNow: 2180,
+            positionPrev: 1.5,
+            positionNow: 1.6,
+          },
         ],
       },
       {
@@ -295,7 +463,13 @@ export const DEMO_SCENARIOS: Record<DecayScenario, DemoScenario> = {
         positionPrev: 8.1,
         positionNow: 4.0,
         topQueries: [
-          { query: "async communication", clicksPrev: 700, clicksNow: 1400, positionPrev: 7.4, positionNow: 3.6 },
+          {
+            query: "async communication",
+            clicksPrev: 700,
+            clicksNow: 1400,
+            positionPrev: 7.4,
+            positionNow: 3.6,
+          },
         ],
       },
     ],

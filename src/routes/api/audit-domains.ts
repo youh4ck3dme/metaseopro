@@ -1,11 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { AUDIT_SYSTEM_PROMPT } from "@/lib/audit-prompt";
-import {
-  getDomainSnapshot,
-  SemrushError,
-  type DomainSnapshot,
-} from "@/lib/semrush.server";
+import { getDomainSnapshot, SemrushError, type DomainSnapshot } from "@/lib/semrush.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
 
@@ -100,10 +96,7 @@ export const Route = createFileRoute("/api/audit-domains")({
             );
           } catch (e) {
             if (e instanceof SemrushError) {
-              return err(
-                e.status >= 400 && e.status < 600 ? e.status : 500,
-                e.message,
-              );
+              return err(e.status >= 400 && e.status < 600 ? e.status : 500, e.message);
             }
             throw e;
           }
@@ -120,27 +113,25 @@ export const Route = createFileRoute("/api/audit-domains")({
             `Semrush database: ${parsed.data.database || "auto-detekcia podľa TLD"}\n\n` +
             `Reálne dáta (JSON):\n\`\`\`json\n${JSON.stringify(snapshots, null, 2)}\n\`\`\``;
 
-          const upstream = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-pro",
-                stream: true,
-                messages: [
-                  { role: "system", content: AUDIT_SYSTEM_PROMPT },
-                  { role: "user", content: userPrompt },
-                ],
-              }),
+          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              model: "google/gemini-2.5-pro",
+              stream: true,
+              messages: [
+                { role: "system", content: AUDIT_SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+            }),
+          });
 
           if (!upstream.ok || !upstream.body) {
-            if (upstream.status === 429) return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
+            if (upstream.status === 429)
+              return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
             if (upstream.status === 402) return err(402, "Vyčerpané AI kredity.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);

@@ -30,10 +30,9 @@ export const Route = createFileRoute("/api/decay-gsc-properties")({
         }
 
         if (!isGscConfigured()) {
-          return new Response(
-            JSON.stringify({ status: "not_connected", properties: [] }),
-            { headers: { "Content-Type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ status: "not_connected", properties: [] }), {
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         try {

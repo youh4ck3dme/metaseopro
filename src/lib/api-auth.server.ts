@@ -1,9 +1,7 @@
 // Server-only helper for verifying Supabase JWTs in raw HTTP route handlers.
 import { createClient } from "@supabase/supabase-js";
 
-export type AuthResult =
-  | { ok: true; userId: string }
-  | { ok: false; response: Response };
+export type AuthResult = { ok: true; userId: string } | { ok: false; response: Response };
 
 function unauthorized(message = "Vyžaduje sa prihlásenie."): Response {
   return new Response(JSON.stringify({ error: message }), {
@@ -18,10 +16,10 @@ export async function requireUser(request: Request): Promise<AuthResult> {
   if (!url || !key) {
     return {
       ok: false,
-      response: new Response(
-        JSON.stringify({ error: "Server nie je správne nakonfigurovaný." }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      ),
+      response: new Response(JSON.stringify({ error: "Server nie je správne nakonfigurovaný." }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
     };
   }
 

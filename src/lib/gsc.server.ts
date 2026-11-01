@@ -73,10 +73,7 @@ export const LIVE_PERIOD_PREV = `${isoDay(183)} – ${isoDay(94)}`;
 
 type SaRow = { keys: string[]; clicks: number; impressions: number; position: number };
 
-async function query(
-  siteUrl: string,
-  body: Record<string, unknown>,
-): Promise<SaRow[]> {
+async function query(siteUrl: string, body: Record<string, unknown>): Promise<SaRow[]> {
   const res = await gscFetch(
     `/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
     { method: "POST", body: JSON.stringify(body) },
@@ -109,10 +106,7 @@ function splitPeriod(period: string): [string, string] {
  * Builds decay rows from live GSC data: page-level comparison of two 90-day
  * windows, enriched with per-URL top queries for the most-declining pages.
  */
-export async function fetchLiveDecayRows(
-  siteUrl: string,
-  maxUrls = 12,
-): Promise<DecayRow[]> {
+export async function fetchLiveDecayRows(siteUrl: string, maxUrls = 12): Promise<DecayRow[]> {
   const [nowStart, nowEnd] = splitPeriod(LIVE_PERIOD_NOW);
   const [prevStart, prevEnd] = splitPeriod(LIVE_PERIOD_PREV);
 
@@ -148,9 +142,7 @@ export async function fetchLiveDecayRows(
       const filters = {
         dimensionFilterGroups: [
           {
-            filters: [
-              { dimension: "page", operator: "equals", expression: r.url },
-            ],
+            filters: [{ dimension: "page", operator: "equals", expression: r.url }],
           },
         ],
         rowLimit: 10,

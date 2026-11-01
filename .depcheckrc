@@ -1,0 +1,14 @@
+{
+  "ignoreMatches": [
+    "virtual:*",
+    "@cloudflare/vite-plugin",
+    "@hookform/resolvers",
+    "@tailwindcss/typography",
+    "@tanstack/router-plugin",
+    "date-fns",
+    "tailwindcss",
+    "tw-animate-css",
+    "drizzle-orm",
+    "postgres"
+  ]
+}

@@ -62,30 +62,26 @@ export const Route = createFileRoute("/api/decay-generate-plan")({
             row: parsed.data.row,
           });
 
-          const upstream = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-2.5-pro",
-                stream: true,
-                messages: [
-                  { role: "system", content: DECAY_SYSTEM_PROMPT },
-                  { role: "user", content: userPrompt },
-                ],
-              }),
+          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              model: "google/gemini-2.5-pro",
+              stream: true,
+              messages: [
+                { role: "system", content: DECAY_SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+            }),
+          });
 
           if (!upstream.ok || !upstream.body) {
             if (upstream.status === 429)
               return err(429, "AI gateway je preťažený. Skús to o chvíľu.");
-            if (upstream.status === 402)
-              return err(402, "Vyčerpané AI kredity v workspace.");
+            if (upstream.status === 402) return err(402, "Vyčerpané AI kredity v workspace.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);
             return err(500, "Chyba AI gateway.");
