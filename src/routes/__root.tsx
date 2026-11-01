@@ -72,12 +72,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Generates long-form, SEO-optimized blog" },
-      { name: "description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Generates long-form, SEO-optimized blog" },
-      { property: "og:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
+      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
+      { title: "Písmo — AI SEO Command Center pre slovenský trh" },
+      { name: "description", content: "AI SEO nástroje v slovenčine: audit, brief, content plán a Blog Writer pre slovenský trh." },
+      { name: "author", content: "Písmo" },
+      { property: "og:title", content: "Písmo — AI SEO Command Center" },
+      { property: "og:description", content: "Audit, brief, content plán a SEO článok v jednom workflow." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },

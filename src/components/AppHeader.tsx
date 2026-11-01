@@ -76,7 +76,7 @@ export function AppHeader() {
         {/* Mobile toggle */}
         <button
           onClick={() => setOpen((v) => !v)}
-          className="lg:hidden inline-flex size-9 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100"
+          className="lg:hidden inline-flex size-11 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
           aria-label="Otvoriť menu"
           aria-expanded={open}
         >

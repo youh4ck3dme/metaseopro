@@ -178,7 +178,7 @@ function Index() {
               <div className="flex flex-wrap gap-3">
                 <Link
                   to={user ? "/brief" : "/login"}
-                  className="rounded-[8px] bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                  className="inline-flex min-h-11 items-center justify-center rounded-[8px] bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900"
                 >
                   {user ? "Vytvoriť SEO brief" : "Začať zadarmo"}
                 </Link>
