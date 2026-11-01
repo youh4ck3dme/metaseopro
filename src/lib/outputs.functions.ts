@@ -10,8 +10,8 @@ const SaveSchema = z.object({
 });
 
 export const saveOutput = createServerFn({ method: "POST" })
+  .validator((input: unknown) => SaveSchema.parse(input))
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => SaveSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -43,10 +43,10 @@ export const listOutputs = createServerFn({ method: "GET" })
   });
 
 export const getOutput = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z.object({ id: z.string().uuid() }).parse(input),
   )
+  .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { data: row, error } = await supabase
@@ -60,10 +60,10 @@ export const getOutput = createServerFn({ method: "POST" })
   });
 
 export const deleteOutput = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
+  .validator((input: unknown) =>
     z.object({ id: z.string().uuid() }).parse(input),
   )
+  .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { error } = await supabase
