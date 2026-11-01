@@ -36,8 +36,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "SEO4WEB — AI SEO Command Center" },
       {
         property: "og:description",
-        content:
-          "Audit → Brief → 30-dňový plán → SEO článok. Slovenský trh, jeden workflow.",
+        content: "Audit → Brief → 30-dňový plán → SEO článok. Slovenský trh, jeden workflow.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -80,7 +79,9 @@ function Index() {
           const c = JSON.parse(raw) as { brief: string; keyword: string; label: string };
           setTopic(c.brief);
           if (c.keyword) setPrimaryKeyword(c.keyword);
-          toast.success(`Podklady pre refresh načítané: ${c.label}. Skontroluj a klikni na generovanie.`);
+          toast.success(
+            `Podklady pre refresh načítané: ${c.label}. Skontroluj a klikni na generovanie.`,
+          );
         } catch {
           /* ignore */
         }
@@ -127,9 +128,7 @@ function Index() {
           const r = await save({
             data: {
               type: "article",
-              title:
-                topic.trim().slice(0, 80) +
-                (topic.trim().length > 80 ? "…" : ""),
+              title: topic.trim().slice(0, 80) + (topic.trim().length > 80 ? "…" : ""),
               input: { topic },
               output_markdown: buffer,
             },
@@ -189,13 +188,13 @@ function Index() {
                 SEO4WEB
               </h1>
               <p className="mb-8 text-base md:text-lg text-secondary-foreground text-pretty">
-                Audit konkurencie, content brief, 30-dňový plán a hotový článok —
-                jeden workflow pre agentúry, freelancerov a malé firmy.
+                Audit konkurencie, content brief, 30-dňový plán a hotový článok — jeden workflow pre
+                agentúry, freelancerov a malé firmy.
               </p>
               <div className="flex flex-wrap gap-3">
                 <Link
                   to={user ? "/brief" : "/login"}
-                  className="rounded-[8px] bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary"
+                  className="inline-flex min-h-11 items-center justify-center rounded-[8px] bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   {user ? "Vytvoriť SEO brief" : "Začať zadarmo"}
                 </Link>
@@ -219,7 +218,9 @@ function Index() {
         {/* Tools */}
         <section className="mt-20 px-6">
           <div className="mx-auto max-w-screen-xl">
-            <h2 className="mb-2 font-display text-2xl md:text-3xl">Štyri nástroje, jeden workflow</h2>
+            <h2 className="mb-2 font-display text-2xl md:text-3xl">
+              Štyri nástroje, jeden workflow
+            </h2>
             <p className="mb-8 text-sm text-muted-foreground">
               Pracujú samostatne aj v reťazci — od auditu po publikovaný článok.
             </p>
@@ -311,8 +312,8 @@ function Index() {
             <div className="max-w-[44ch] mb-8">
               <h2 className="mb-3 font-display text-3xl md:text-4xl">Blog Writer</h2>
               <p className="text-secondary-foreground text-pretty">
-                Zadaj 2–3 vety o téme alebo vlož brief. SEO4WEB vygeneruje hĺbkový SEO článok
-                s kompletnou štruktúrou.
+                Zadaj 2–3 vety o téme alebo vlož brief. SEO4WEB vygeneruje hĺbkový SEO článok s
+                kompletnou štruktúrou.
               </p>
             </div>
 
@@ -337,12 +338,16 @@ function Index() {
                   />
 
                   <div className="border-t border-border pt-3">
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       type="button"
                       onClick={() => setShowAdvanced((v) => !v)}
                       className="text-xs font-medium tracking-normalr text-muted-foreground uppercase hover:text-foreground"
                     >
-                      {showAdvanced ? "− Skryť pokročilé" : "+ Pokročilé (KW, publikum, tón, dĺžka)"}
+                      {showAdvanced
+                        ? "− Skryť pokročilé"
+                        : "+ Pokročilé (KW, publikum, tón, dĺžka)"}
                     </Button>
                     {showAdvanced && (
                       <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -402,7 +407,9 @@ function Index() {
                       )}
                     </div>
                     {user ? (
-                      <Button variant="studio" size="studio"
+                      <Button
+                        variant="studio"
+                        size="studio"
                         onClick={startGeneration}
                         disabled={status === "streaming"}
                         className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
@@ -463,7 +470,9 @@ function Index() {
                     )}
                   </div>
                   {status === "streaming" && (
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={stop}
                       className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
                     >
@@ -493,24 +502,32 @@ function Index() {
             </div>
           </section>
         )}
-        {status === "done" && article && <SerpLab key={article.length} article={article} primary={primaryKeyword} />}
+        {status === "done" && article && (
+          <SerpLab key={article.length} article={article} primary={primaryKeyword} />
+        )}
       </main>
 
       {status === "done" && article && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10 max-w-[calc(100vw-1rem)]">
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={startGeneration}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <RotateCcw className="size-4" /> Regenerovať
           </Button>
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={copy}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <Copy className="size-4" /> Kopírovať
           </Button>
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={download}
             className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground hover:bg-card"
           >
