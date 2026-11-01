@@ -72,11 +72,7 @@ export const RaketaFormSchema = z.object({
     .max(2048)
     .refine(isValidUrl, "Neplatná URL. Použi formát napr. https://priklad.sk"),
   competitorUrl: optionalUrl,
-  keyword: z
-    .string()
-    .trim()
-    .min(2, "Zadaj cieľový keyword alebo tému.")
-    .max(200),
+  keyword: z.string().trim().min(2, "Zadaj cieľový keyword alebo tému.").max(200),
   language: z.enum(RAKETA_LANGUAGES),
   output: z.enum(RAKETA_OUTPUTS),
 });

@@ -6,7 +6,18 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowDown, Copy, Trash2, X, FileText, BarChart3, Calendar, Lightbulb, Rocket, TrendingDown } from "lucide-react";
+import {
+  ArrowDown,
+  Copy,
+  Trash2,
+  X,
+  FileText,
+  BarChart3,
+  Calendar,
+  Lightbulb,
+  Rocket,
+  TrendingDown,
+} from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { listOutputs, getOutput, deleteOutput } from "@/lib/outputs.functions";
@@ -20,7 +31,10 @@ export const Route = createFileRoute("/history")({
         content: "Tvoje vygenerované články, audity, plány a briefy na jednom mieste.",
       },
       { property: "og:title", content: "História — SEO4WEB" },
-      { property: "og:description", content: "Tvoje vygenerované články, audity, plány a briefy na jednom mieste." },
+      {
+        property: "og:description",
+        content: "Tvoje vygenerované články, audity, plány a briefy na jednom mieste.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -134,8 +148,7 @@ function HistoryPage() {
     );
   }
 
-  const filtered =
-    items?.filter((i) => filter === "all" || i.type === filter) ?? null;
+  const filtered = items?.filter((i) => filter === "all" || i.type === filter) ?? null;
 
   return (
     <div className="min-h-screen bg-page-bg font-sans text-foreground">
@@ -144,34 +157,39 @@ function HistoryPage() {
 
       <main className="px-6 pb-24">
         <div className="mx-auto max-w-screen-xl">
-          <h1 className="mb-2 font-display text-4xl md:text-5xl leading-tight">
-            Tvoja história
-          </h1>
+          <h1 className="mb-2 font-display text-4xl md:text-5xl leading-tight">Tvoja história</h1>
           <p className="mb-8 text-secondary-foreground">
             Všetky vygenerované články, audity, plány a briefy. Viditeľné len pre teba.
           </p>
 
           <div className="mb-6 flex flex-wrap gap-2">
-            {(["all", "raketa", "decay", "article", "audit", "plan", "brief"] as FilterType[]).map((f) => (
-              <Button variant="studio" size="studio"
-                key={f}
-                onClick={() => setFilter(f)}
-                className={
-                  "rounded-full px-3 py-1.5 text-sm transition-colors " +
-                  (filter === f
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-card text-secondary-foreground ring-1 ring-border/5 hover:bg-background")
-                }
-              >
-                {f === "all" ? "Všetko" : TYPE_LABEL[f]}
-              </Button>
-            ))}
+            {(["all", "raketa", "decay", "article", "audit", "plan", "brief"] as FilterType[]).map(
+              (f) => (
+                <Button
+                  variant="studio"
+                  size="studio"
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={
+                    "rounded-full px-3 py-1.5 text-sm transition-colors " +
+                    (filter === f
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-card text-secondary-foreground ring-1 ring-border/5 hover:bg-background")
+                  }
+                >
+                  {f === "all" ? "Všetko" : TYPE_LABEL[f]}
+                </Button>
+              ),
+            )}
           </div>
 
           {filtered === null ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded-lg bg-card ring-1 ring-border/5" />
+                <div
+                  key={i}
+                  className="h-16 animate-pulse rounded-lg bg-card ring-1 ring-border/5"
+                />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -191,7 +209,9 @@ function HistoryPage() {
                     key={item.id}
                     className="flex items-center justify-between gap-3 rounded-lg bg-card px-4 py-3 ring-1 ring-border/5 hover:ring-border/10 transition"
                   >
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={() => open(item.id)}
                       className="flex flex-1 items-center gap-3 text-left min-w-0"
                     >
@@ -214,7 +234,9 @@ function HistoryPage() {
                         </p>
                       </div>
                     </Button>
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={() => remove(item.id)}
                       className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-danger-subtle hover:text-danger-foreground"
                       aria-label="Zmazať"
@@ -248,21 +270,27 @@ function HistoryPage() {
                 </h2>
               </div>
               <div className="flex shrink-0 gap-2">
-                <Button variant="studio" size="studio"
+                <Button
+                  variant="studio"
+                  size="studio"
                   onClick={copy}
                   disabled={!selected}
                   className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted disabled:opacity-50"
                 >
                   <Copy className="size-4" /> Kopírovať
                 </Button>
-                <Button variant="studio" size="studio"
+                <Button
+                  variant="studio"
+                  size="studio"
                   onClick={download}
                   disabled={!selected}
                   className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted disabled:opacity-50"
                 >
                   <ArrowDown className="size-4" /> .md
                 </Button>
-                <Button variant="studio" size="studio"
+                <Button
+                  variant="studio"
+                  size="studio"
                   onClick={() => setSelected(null)}
                   className="flex size-8 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
                   aria-label="Zavrieť"

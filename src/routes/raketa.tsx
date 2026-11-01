@@ -6,14 +6,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import {
-  ArrowDown,
-  Check,
-  Copy,
-  Rocket,
-  RotateCcw,
-  Square,
-} from "lucide-react";
+import { ArrowDown, Check, Copy, Rocket, RotateCcw, Square } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { streamSSE } from "@/lib/stream-sse";
@@ -52,14 +45,7 @@ export const Route = createFileRoute("/raketa")({
   component: RaketaPage,
 });
 
-type Phase =
-  | "idle"
-  | "validating"
-  | "scanning"
-  | "comparing"
-  | "generating"
-  | "ready"
-  | "error";
+type Phase = "idle" | "validating" | "scanning" | "comparing" | "generating" | "ready" | "error";
 
 const PHASE_STEPS: { key: Phase; label: string }[] = [
   { key: "validating", label: "Validujem" },
@@ -112,8 +98,7 @@ function RaketaPage() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!loading && !user)
-      navigate({ to: "/login", search: { redirect: "/raketa" } });
+    if (!loading && !user) navigate({ to: "/login", search: { redirect: "/raketa" } });
   }, [user, loading, navigate]);
 
   const running =
@@ -168,8 +153,7 @@ function RaketaPage() {
       const fieldErrors: Record<string, string> = {};
       for (const issue of parsed.error.issues) {
         const path = issue.path[0];
-        if (typeof path === "string" && !fieldErrors[path])
-          fieldErrors[path] = issue.message;
+        if (typeof path === "string" && !fieldErrors[path]) fieldErrors[path] = issue.message;
       }
       setErrors(fieldErrors);
       setPhase("validating");
@@ -190,12 +174,13 @@ function RaketaPage() {
     let analysisData: RaketaAnalysis;
     try {
       setPhase("scanning");
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-      if (session?.access_token)
-        headers["Authorization"] = `Bearer ${session.access_token}`;
+      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
 
       const res = await fetch("/api/raketa-analyze", {
         method: "POST",
@@ -255,10 +240,7 @@ function RaketaPage() {
           await save({
             data: {
               type: "raketa",
-              title: `${OUTPUT_LABEL[parsed.data.output]}: ${parsed.data.keyword}`.slice(
-                0,
-                300,
-              ),
+              title: `${OUTPUT_LABEL[parsed.data.output]}: ${parsed.data.keyword}`.slice(0, 300),
               input: {
                 ownUrl: parsed.data.ownUrl,
                 competitorUrl: parsed.data.competitorUrl,
@@ -287,10 +269,7 @@ function RaketaPage() {
     });
   };
 
-  const sections = useMemo(
-    () => (phase === "ready" ? splitSections(result) : []),
-    [phase, result],
-  );
+  const sections = useMemo(() => (phase === "ready" ? splitSections(result) : []), [phase, result]);
 
   if (loading || !user) {
     return (
@@ -323,8 +302,8 @@ function RaketaPage() {
                 Zadaj web. My odpálime SEO raketu.
               </h1>
               <p className="mb-8 max-w-[60ch] text-base md:text-lg text-secondary-foreground text-pretty">
-                Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit,
-                článok, brief alebo content plán.
+                Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit, článok, brief alebo
+                content plán.
               </p>
 
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -386,14 +365,18 @@ function RaketaPage() {
                 </Field>
                 <div className="flex items-end">
                   {running ? (
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={stop}
                       className="flex w-full items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-border"
                     >
                       <Square className="size-4" /> Zastaviť
                     </Button>
                   ) : (
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={launch}
                       className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                     >
@@ -451,7 +434,9 @@ function RaketaPage() {
             <div className="mt-6 rounded-lg bg-danger-subtle p-5 ring-1 ring-danger-border">
               <p className="text-sm font-medium text-danger-foreground">Niečo sa pokazilo</p>
               <p className="mt-1 text-sm text-danger-foreground">{errorMsg}</p>
-              <Button variant="studio" size="studio"
+              <Button
+                variant="studio"
+                size="studio"
                 onClick={launch}
                 className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-danger px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-danger"
               >
@@ -505,7 +490,9 @@ function RaketaPage() {
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={() => copyText(result, "all")}
                     className="flex items-center gap-1.5 rounded-[8px] bg-card px-3 py-1.5 text-sm font-medium text-secondary-foreground ring-1 ring-border/10 hover:bg-background"
                   >
@@ -516,13 +503,17 @@ function RaketaPage() {
                     )}
                     Kopírovať všetko
                   </Button>
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={exportMarkdown}
                     className="flex items-center gap-1.5 rounded-[8px] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                   >
                     <ArrowDown className="size-4" /> Export .md
                   </Button>
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={reset}
                     className="flex items-center gap-1.5 rounded-[8px] bg-card px-3 py-1.5 text-sm font-medium text-secondary-foreground ring-1 ring-border/10 hover:bg-background"
                   >
@@ -533,18 +524,15 @@ function RaketaPage() {
 
               <div className="space-y-4">
                 {sections.map((s, i) => (
-                  <div
-                    key={i}
-                    className="rounded-lg bg-card p-5 ring-1 ring-border/5 md:p-7"
-                  >
+                  <div key={i} className="rounded-lg bg-card p-5 ring-1 ring-border/5 md:p-7">
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <h2 className="font-display text-lg md:text-xl text-foreground">
                         {s.heading}
                       </h2>
-                      <Button variant="studio" size="studio"
-                        onClick={() =>
-                          copyText(`## ${s.heading}\n\n${s.body.trim()}`, `s-${i}`)
-                        }
+                      <Button
+                        variant="studio"
+                        size="studio"
+                        onClick={() => copyText(`## ${s.heading}\n\n${s.body.trim()}`, `s-${i}`)}
                         className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
                         {copiedKey === `s-${i}` ? (
@@ -556,9 +544,7 @@ function RaketaPage() {
                       </Button>
                     </div>
                     <article className="prose prose-neutral max-w-none prose-headings:font-display prose-h3:text-base prose-p:text-secondary-foreground prose-table:text-sm">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {s.body.trim()}
-                      </ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{s.body.trim()}</ReactMarkdown>
                     </article>
                   </div>
                 ))}
@@ -594,13 +580,7 @@ function Field({
   );
 }
 
-function AnalysisCard({
-  title,
-  page,
-}: {
-  title: string;
-  page: RaketaAnalysis["own"];
-}) {
+function AnalysisCard({ title, page }: { title: string; page: RaketaAnalysis["own"] }) {
   return (
     <div className="rounded-lg bg-card p-5 ring-1 ring-border/5">
       <div className="mb-2 flex items-center justify-between gap-2">
@@ -627,9 +607,7 @@ function AnalysisCard({
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-md bg-background px-2.5 py-1.5">
-      <dt className="text-[10px] uppercase tracking-normalr text-muted-foreground">
-        {label}
-      </dt>
+      <dt className="text-[10px] uppercase tracking-normalr text-muted-foreground">{label}</dt>
       <dd className="text-sm font-medium text-foreground">{value}</dd>
     </div>
   );

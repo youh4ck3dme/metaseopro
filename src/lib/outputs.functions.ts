@@ -43,9 +43,7 @@ export const listOutputs = createServerFn({ method: "GET" })
   });
 
 export const getOutput = createServerFn({ method: "POST" })
-  .validator((input: unknown) =>
-    z.object({ id: z.string().uuid() }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const { supabase } = context;
@@ -60,16 +58,11 @@ export const getOutput = createServerFn({ method: "POST" })
   });
 
 export const deleteOutput = createServerFn({ method: "POST" })
-  .validator((input: unknown) =>
-    z.object({ id: z.string().uuid() }).parse(input),
-  )
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { error } = await supabase
-      .from("generated_outputs")
-      .delete()
-      .eq("id", data.id);
+    const { error } = await supabase.from("generated_outputs").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

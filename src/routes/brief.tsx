@@ -23,7 +23,11 @@ export const Route = createFileRoute("/brief")({
           "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh.",
       },
       { property: "og:title", content: "SEO Content Brief — SEO4WEB" },
-      { property: "og:description", content: "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh." },
+      {
+        property: "og:description",
+        content:
+          "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -58,7 +62,13 @@ function BriefPage() {
   const addCompetitor = () => {
     const c = competitorInput
       .split(/[\s,;]+/)
-      .map((s) => s.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, ""))
+      .map((s) =>
+        s
+          .trim()
+          .toLowerCase()
+          .replace(/^https?:\/\//, "")
+          .replace(/^www\./, ""),
+      )
       .map((s) => s.split("/")[0])
       .filter(Boolean);
     if (!c.length) return;
@@ -184,9 +194,9 @@ function BriefPage() {
                 Profesionálny SEO Content Brief
               </h1>
               <p className="mb-10 text-secondary-foreground text-pretty">
-                Zadaj tému a kontext. AI pripraví kompletný brief s kľúčovými slovami,
-                štruktúrou H1/H2/H3, FAQ, meta tagmi a CTA — pripravený pre copywritera
-                alebo priamo do Blog Writera.
+                Zadaj tému a kontext. AI pripraví kompletný brief s kľúčovými slovami, štruktúrou
+                H1/H2/H3, FAQ, meta tagmi a CTA — pripravený pre copywritera alebo priamo do Blog
+                Writera.
               </p>
             </div>
 
@@ -244,7 +254,9 @@ function BriefPage() {
                           className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pr-1 pl-3 text-sm text-secondary-foreground"
                         >
                           {d}
-                          <Button variant="studio" size="studio"
+                          <Button
+                            variant="studio"
+                            size="studio"
                             type="button"
                             onClick={() => setCompetitors((c) => c.filter((x) => x !== d))}
                             disabled={status === "streaming"}
@@ -298,7 +310,9 @@ function BriefPage() {
                       Streamovaný výstup
                     </span>
                   </div>
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={start}
                     disabled={status === "streaming" || topic.trim().length < 2}
                     className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
@@ -339,15 +353,17 @@ function BriefPage() {
                         <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           {status === "done"
                             ? saved
-                                ? "Hotovo · uložené do Histórie"
-                                : "Hotovo"
+                              ? "Hotovo · uložené do Histórie"
+                              : "Hotovo"
                             : "Pripravené"}
                         </span>
                       </>
                     )}
                   </div>
                   {status === "streaming" && (
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={stop}
                       className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
                     >
@@ -381,19 +397,25 @@ function BriefPage() {
 
       {status === "done" && brief && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10 max-w-[calc(100vw-1rem)]">
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={useForArticle}
             className="flex items-center gap-2 rounded-full bg-success py-2 pr-4 pl-3 text-sm font-medium text-primary-foreground hover:bg-success"
           >
             <FileText className="size-4" /> Vygenerovať článok z briefu
           </Button>
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={copy}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <Copy className="size-4" /> Kopírovať
           </Button>
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={download}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
