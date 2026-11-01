@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,12 +16,16 @@ import { saveOutput } from "@/lib/outputs.functions";
 export const Route = createFileRoute("/audit")({
   head: () => ({
     meta: [
-      { title: "SEO Audit — Písmo" },
+      { title: "SEO Audit — SEO4WEB" },
       {
         name: "description",
         content:
-          "Zadaj 1 až 5 domén. Písmo SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
+          "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
       },
+      { property: "og:title", content: "SEO Audit — SEO4WEB" },
+      { property: "og:description", content: "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuditPage,
@@ -142,7 +147,7 @@ function AuditPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pismo-seo-audit-${Date.now()}.md`;
+    a.download = `seo4web-seo-audit-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -151,7 +156,7 @@ function AuditPage() {
   const canRun = (domains.length > 0 || parseDomains(input).length > 0) && status !== "streaming";
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900 selection:bg-neutral-200">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground selection:bg-border">
       <Toaster />
       <AppHeader />
 
@@ -159,21 +164,21 @@ function AuditPage() {
         <section className="px-6">
           <div className="mx-auto max-w-screen-xl">
             <div className="max-w-[48ch]">
-              <h1 className="mb-6 font-serif text-5xl leading-tight text-balance text-neutral-950">
+              <h1 className="mb-6 font-display text-5xl leading-tight text-balance text-foreground">
                 Hĺbkový SEO audit konkurencie
               </h1>
-              <p className="mb-12 text-neutral-600 text-pretty">
+              <p className="mb-12 text-secondary-foreground text-pretty">
                 Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich
                 a navrhnem keyword príležitosti, kde môžeš konkurenciu predbehnúť.
               </p>
             </div>
 
-            <div className="rounded-[16px] bg-neutral-100/50 p-1.5 ring-1 ring-black/5">
-              <div className="rounded-[12px] bg-white p-6 shadow-sm">
+            <div className="rounded-lg bg-muted/50 p-1.5 ring-1 ring-border/5">
+              <div className="rounded-lg bg-card p-6 shadow-sm">
                 <div className="flex flex-col gap-4">
                   <label
                     htmlFor="domains"
-                    className="text-xs font-medium tracking-wider text-neutral-400 uppercase"
+                    className="text-xs font-medium tracking-normalr text-muted-foreground uppercase"
                   >
                     Domény ({domains.length}/5)
                   </label>
@@ -183,18 +188,18 @@ function AuditPage() {
                       {domains.map((d) => (
                         <span
                           key={d}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 py-1 pr-1 pl-3 text-sm text-neutral-700"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pr-1 pl-3 text-sm text-secondary-foreground"
                         >
                           {d}
-                          <button
+                          <Button variant="studio" size="studio"
                             type="button"
                             onClick={() => removeDomain(d)}
                             disabled={status === "streaming"}
-                            className="flex size-5 items-center justify-center rounded-full text-neutral-400 transition-colors hover:bg-neutral-200 hover:text-neutral-700 disabled:opacity-40"
+                            className="flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-border hover:text-secondary-foreground disabled:opacity-40"
                             aria-label={`Odstrániť ${d}`}
                           >
                             <X className="size-3" />
-                          </button>
+                          </Button>
                         </span>
                       ))}
                     </div>
@@ -214,7 +219,7 @@ function AuditPage() {
                     onBlur={addFromInput}
                     disabled={status === "streaming" || domains.length >= 5}
                     maxLength={500}
-                    className="w-full border-none bg-transparent text-lg placeholder:text-neutral-300 focus:ring-0 focus:outline-none disabled:opacity-60"
+                    className="w-full border-none bg-transparent text-lg placeholder:text-muted-foreground focus:ring-0 focus:outline-none disabled:opacity-60"
                     placeholder={
                       domains.length === 0
                         ? "Napríklad: konkurent.sk, priklad.com"
@@ -222,9 +227,9 @@ function AuditPage() {
                     }
                   />
 
-                  <div className="grid grid-cols-1 gap-3 border-t border-neutral-100 pt-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-3 border-t border-border pt-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-[10px] font-medium tracking-wider text-neutral-400 uppercase">
+                      <label className="block text-[10px] font-medium tracking-normalr text-muted-foreground uppercase">
                         Tvoja doména (voliteľné)
                       </label>
                       <input
@@ -234,18 +239,18 @@ function AuditPage() {
                         disabled={status === "streaming"}
                         maxLength={255}
                         placeholder="napr. mojweb.sk"
-                        className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] font-medium tracking-wider text-neutral-400 uppercase">
+                      <label className="block text-[10px] font-medium tracking-normalr text-muted-foreground uppercase">
                         Trh (Semrush database)
                       </label>
                       <select
                         value={database}
                         onChange={(e) => setDatabase(e.target.value)}
                         disabled={status === "streaming"}
-                        className="mt-1 w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                        className="mt-1 w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                       >
                         <option value="">Auto-detekcia podľa TLD</option>
                         <option value="sk">Slovensko (sk)</option>
@@ -260,24 +265,24 @@ function AuditPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                  <div className="flex items-center justify-between border-t border-border pt-4">
                     <div className="flex gap-2">
-                      <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                      <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                         Semrush
                       </span>
-                      <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                      <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                         Gemini 2.5 Pro
                       </span>
                     </div>
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={start}
                       disabled={!canRun}
-                      className="flex items-center gap-2 rounded-[8px] bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 ring-1 ring-neutral-900 transition-colors hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground ring-1 ring-ring transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {status === "streaming"
                         ? "Analyzujem..."
                         : "Spustiť analýzu"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -302,8 +307,8 @@ function AuditPage() {
                   <div className="flex items-center gap-2">
                     {status === "streaming" ? (
                       <>
-                        <div className="size-2 animate-pulse rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 animate-pulse rounded-full bg-success" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           {report
                             ? "Generuje sa..."
                             : "Zbieram dáta zo Semrush..."}
@@ -311,40 +316,40 @@ function AuditPage() {
                       </>
                     ) : (
                       <>
-                        <div className="size-2 rounded-full bg-neutral-300" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 rounded-full bg-border" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           {status === "done" ? "Dokončené" : "Pripravené"}
                         </span>
                       </>
                     )}
                   </div>
                   {status === "streaming" && (
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={stop}
-                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-neutral-500 transition-colors hover:bg-neutral-100"
+                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
                     >
                       <Square className="size-3" />
                       Zastaviť
-                    </button>
+                    </Button>
                   )}
                 </div>
 
-                <div className="min-h-[800px] rounded-[12px] bg-white p-8 shadow-sm ring-1 ring-black/5 md:p-12">
+                <div className="min-h-[800px] rounded-lg bg-card p-8 shadow-sm ring-1 ring-border/5 md:p-12">
                   {report ? (
-                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-serif prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-12 prose-h3:text-lg prose-p:text-neutral-700 prose-p:leading-relaxed prose-p:text-pretty prose-strong:text-neutral-900 prose-a:text-neutral-900 prose-table:text-sm">
+                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-12 prose-h3:text-lg prose-p:text-secondary-foreground prose-p:leading-relaxed prose-p:text-pretty prose-strong:text-foreground prose-a:text-foreground prose-table:text-sm">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {report}
                       </ReactMarkdown>
                       {status === "streaming" && (
-                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-neutral-900 align-middle" />
+                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                       )}
                     </article>
                   ) : (
                     <div className="space-y-3">
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-100" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
                     </div>
                   )}
                 </div>
@@ -355,29 +360,29 @@ function AuditPage() {
       </main>
 
       {status === "done" && report && (
-        <div className="fixed bottom-8 left-1/2 flex -translate-x-1/2 gap-2 rounded-full bg-neutral-900 p-2 text-neutral-50 shadow-2xl ring-1 ring-black/10">
-          <button
+        <div className="fixed bottom-4 left-1/2 flex flex-wrap justify-center max-w-[calc(100vw-1rem)] -translate-x-1/2 gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10">
+          <Button variant="studio" size="studio"
             onClick={start}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-primary"
           >
             <RotateCcw className="size-4" />
             Regenerovať
-          </button>
-          <div className="my-1 w-px bg-neutral-700" />
-          <button
+          </Button>
+          <div className="my-1 w-px bg-foreground" />
+          <Button variant="studio" size="studio"
             onClick={copy}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-primary"
           >
             <Copy className="size-4" />
             Kopírovať
-          </button>
-          <button
+          </Button>
+          <Button variant="studio" size="studio"
             onClick={download}
-            className="flex items-center gap-2 rounded-full bg-neutral-50 py-2 pr-4 pl-3 text-sm font-medium text-neutral-900 transition-colors hover:bg-white"
+            className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground transition-colors hover:bg-card"
           >
             <ArrowDown className="size-4" />
             Stiahnuť .md
-          </button>
+          </Button>
         </div>
       )}
     </div>

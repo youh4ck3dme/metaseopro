@@ -148,7 +148,7 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
       redirect: "follow",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (compatible; PismoSEOBot/1.0; +https://pismo.sk)",
+          "Mozilla/5.0 (compatible; SEO4WEBBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
     });

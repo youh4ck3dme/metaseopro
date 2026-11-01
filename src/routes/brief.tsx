@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,12 +16,16 @@ import { saveOutput } from "@/lib/outputs.functions";
 export const Route = createFileRoute("/brief")({
   head: () => ({
     meta: [
-      { title: "SEO Content Brief — Písmo" },
+      { title: "SEO Content Brief — SEO4WEB" },
       {
         name: "description",
         content:
           "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh.",
       },
+      { property: "og:title", content: "SEO Content Brief — SEO4WEB" },
+      { property: "og:description", content: "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: BriefPage,
@@ -140,7 +145,7 @@ function BriefPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pismo-brief-${Date.now()}.md`;
+    a.download = `seo4web-brief-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -158,7 +163,7 @@ function BriefPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-neutral-500">
+      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-muted-foreground">
         Načítavam…
       </div>
     );
@@ -167,7 +172,7 @@ function BriefPage() {
   const showOutput = status !== "idle" || brief.length > 0;
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground">
       <Toaster />
       <AppHeader />
 
@@ -175,18 +180,18 @@ function BriefPage() {
         <section className="px-6">
           <div className="mx-auto max-w-screen-xl">
             <div className="max-w-[48ch]">
-              <h1 className="mb-6 font-serif text-4xl md:text-5xl leading-tight text-balance">
+              <h1 className="mb-6 font-display text-4xl md:text-5xl leading-tight text-balance">
                 Profesionálny SEO Content Brief
               </h1>
-              <p className="mb-10 text-neutral-600 text-pretty">
+              <p className="mb-10 text-secondary-foreground text-pretty">
                 Zadaj tému a kontext. AI pripraví kompletný brief s kľúčovými slovami,
                 štruktúrou H1/H2/H3, FAQ, meta tagmi a CTA — pripravený pre copywritera
                 alebo priamo do Blog Writera.
               </p>
             </div>
 
-            <div className="rounded-[16px] bg-neutral-100/50 p-1.5 ring-1 ring-black/5">
-              <div className="rounded-[12px] bg-white p-6 shadow-sm space-y-5">
+            <div className="rounded-lg bg-muted/50 p-1.5 ring-1 ring-border/5">
+              <div className="rounded-lg bg-card p-6 shadow-sm space-y-5">
                 <Field
                   label="Hlavná téma / keyword *"
                   hint='Napr. "lokálne SEO pre reštaurácie v Bratislave".'
@@ -196,7 +201,7 @@ function BriefPage() {
                     onChange={(e) => setTopic(e.target.value)}
                     disabled={status === "streaming"}
                     maxLength={300}
-                    className="w-full border-none bg-transparent text-lg placeholder:text-neutral-300 focus:outline-none"
+                    className="w-full border-none bg-transparent text-lg placeholder:text-muted-foreground focus:outline-none"
                     placeholder="Hlavné keyword alebo téma"
                   />
                 </Field>
@@ -210,7 +215,7 @@ function BriefPage() {
                     onChange={(e) => setDomain(e.target.value)}
                     disabled={status === "streaming"}
                     maxLength={255}
-                    className="w-full border-none bg-transparent text-base placeholder:text-neutral-300 focus:outline-none"
+                    className="w-full border-none bg-transparent text-base placeholder:text-muted-foreground focus:outline-none"
                     placeholder="napr. mojweb.sk"
                   />
                 </Field>
@@ -222,7 +227,7 @@ function BriefPage() {
                     disabled={status === "streaming"}
                     rows={2}
                     maxLength={500}
-                    className="w-full resize-none border-none bg-transparent text-base placeholder:text-neutral-300 focus:outline-none"
+                    className="w-full resize-none border-none bg-transparent text-base placeholder:text-muted-foreground focus:outline-none"
                     placeholder="napr. majitelia malých e-shopov, 30–45 r., začiatočníci v SEO"
                   />
                 </Field>
@@ -236,18 +241,18 @@ function BriefPage() {
                       {competitors.map((d) => (
                         <span
                           key={d}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-neutral-100 py-1 pr-1 pl-3 text-sm text-neutral-700"
+                          className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pr-1 pl-3 text-sm text-secondary-foreground"
                         >
                           {d}
-                          <button
+                          <Button variant="studio" size="studio"
                             type="button"
                             onClick={() => setCompetitors((c) => c.filter((x) => x !== d))}
                             disabled={status === "streaming"}
-                            className="flex size-5 items-center justify-center rounded-full text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700 disabled:opacity-40"
+                            className="flex size-5 items-center justify-center rounded-full text-muted-foreground hover:bg-border hover:text-secondary-foreground disabled:opacity-40"
                             aria-label={`Odstrániť ${d}`}
                           >
                             <X className="size-3" />
-                          </button>
+                          </Button>
                         </span>
                       ))}
                     </div>
@@ -263,7 +268,7 @@ function BriefPage() {
                     }}
                     onBlur={addCompetitor}
                     disabled={status === "streaming" || competitors.length >= 5}
-                    className="w-full border-none bg-transparent text-base placeholder:text-neutral-300 focus:outline-none disabled:opacity-60"
+                    className="w-full border-none bg-transparent text-base placeholder:text-muted-foreground focus:outline-none disabled:opacity-60"
                     placeholder="napr. konkurent.sk"
                   />
                 </Field>
@@ -273,7 +278,7 @@ function BriefPage() {
                     value={goal}
                     onChange={(e) => setGoal(e.target.value as Goal)}
                     disabled={status === "streaming"}
-                    className="w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-neutral-900"
+                    className="w-full rounded-md border border-border bg-card px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
                   >
                     <option value="">— vyber cieľ —</option>
                     <option value="traffic">Organická návštevnosť</option>
@@ -284,22 +289,22 @@ function BriefPage() {
                   </select>
                 </Field>
 
-                <div className="flex items-center justify-between border-t border-neutral-100 pt-4">
+                <div className="flex items-center justify-between border-t border-border pt-4">
                   <div className="flex gap-2">
-                    <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                    <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                       {language}
                     </span>
-                    <span className="rounded bg-neutral-100 px-2 py-1 text-[10px] text-neutral-500">
+                    <span className="rounded bg-muted px-2 py-1 text-[10px] text-muted-foreground">
                       Streamovaný výstup
                     </span>
                   </div>
-                  <button
+                  <Button variant="studio" size="studio"
                     onClick={start}
                     disabled={status === "streaming" || topic.trim().length < 2}
-                    className="flex items-center gap-2 rounded-[8px] bg-neutral-900 px-3 py-2 text-sm font-medium text-neutral-50 hover:bg-neutral-800 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {status === "streaming" ? "Generujem brief..." : "Vygenerovať brief"}
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -323,15 +328,15 @@ function BriefPage() {
                   <div className="flex items-center gap-2">
                     {status === "streaming" ? (
                       <>
-                        <div className="size-2 animate-pulse rounded-full bg-emerald-500" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 animate-pulse rounded-full bg-success" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           Generuje sa…
                         </span>
                       </>
                     ) : (
                       <>
-                        <div className="size-2 rounded-full bg-neutral-300" />
-                        <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                        <div className="size-2 rounded-full bg-border" />
+                        <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                           {status === "done"
                             ? saved
                                 ? "Hotovo · uložené do Histórie"
@@ -342,29 +347,29 @@ function BriefPage() {
                     )}
                   </div>
                   {status === "streaming" && (
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={stop}
-                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-neutral-500 hover:bg-neutral-100"
+                      className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
                     >
                       <Square className="size-3" /> Zastaviť
-                    </button>
+                    </Button>
                   )}
                 </div>
 
-                <div className="min-h-[600px] rounded-[12px] bg-white p-6 shadow-sm ring-1 ring-black/5 md:p-10">
+                <div className="min-h-[600px] rounded-lg bg-card p-6 shadow-sm ring-1 ring-border/5 md:p-10">
                   {brief ? (
-                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-serif prose-h1:text-3xl prose-h2:text-xl prose-h2:font-medium prose-h2:mt-10 prose-h3:text-base prose-p:text-neutral-700 prose-li:text-neutral-700">
+                    <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-3xl prose-h2:text-xl prose-h2:font-medium prose-h2:mt-10 prose-h3:text-base prose-p:text-secondary-foreground prose-li:text-secondary-foreground">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>{brief}</ReactMarkdown>
                       {status === "streaming" && (
-                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-neutral-900 align-middle" />
+                        <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                       )}
                     </article>
                   ) : (
                     <div className="space-y-3">
-                      <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-                      <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-100" />
+                      <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                      <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
                     </div>
                   )}
                 </div>
@@ -375,27 +380,27 @@ function BriefPage() {
       </main>
 
       {status === "done" && brief && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-neutral-900 p-2 text-neutral-50 shadow-2xl ring-1 ring-black/10 max-w-[calc(100vw-1rem)]">
-          <button
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-wrap justify-center gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10 max-w-[calc(100vw-1rem)]">
+          <Button variant="studio" size="studio"
             onClick={useForArticle}
-            className="flex items-center gap-2 rounded-full bg-emerald-500 py-2 pr-4 pl-3 text-sm font-medium text-white hover:bg-emerald-600"
+            className="flex items-center gap-2 rounded-full bg-success py-2 pr-4 pl-3 text-sm font-medium text-primary-foreground hover:bg-success"
           >
             <FileText className="size-4" /> Vygenerovať článok z briefu
-          </button>
-          <button
+          </Button>
+          <Button variant="studio" size="studio"
             onClick={copy}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <Copy className="size-4" /> Kopírovať
-          </button>
-          <button
+          </Button>
+          <Button variant="studio" size="studio"
             onClick={download}
-            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-neutral-800"
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
             <ArrowDown className="size-4" /> .md
-          </button>
+          </Button>
           {saved && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-neutral-800 px-3 py-2 text-xs text-neutral-300">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-primary px-3 py-2 text-xs text-muted-foreground">
               <Save className="size-3" /> v Histórii
             </span>
           )}
@@ -416,10 +421,10 @@ function Field({
 }) {
   return (
     <div>
-      <label className="text-xs font-medium tracking-wider text-neutral-400 uppercase">
+      <label className="text-xs font-medium tracking-normalr text-muted-foreground uppercase">
         {label}
       </label>
-      {hint && <p className="mt-1 text-xs text-neutral-400">{hint}</p>}
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
       <div className="mt-2">{children}</div>
     </div>
   );

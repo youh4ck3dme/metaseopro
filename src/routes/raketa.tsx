@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -32,11 +33,11 @@ import {
 export const Route = createFileRoute("/raketa")({
   head: () => ({
     meta: [
-      { title: "SEO Raketa — automatický SEO workflow | Písmo" },
+      { title: "SEO Raketa — automatický SEO workflow | SEO4WEB" },
       {
         name: "description",
         content:
-          "Zadaj web a konkurenciu. Písmo zanalyzuje obsah, nájde SEO medzery a vygeneruje audit, článok, brief alebo 30-dňový content plán.",
+          "Zadaj web a konkurenciu. SEO4WEB zanalyzuje obsah, nájde SEO medzery a vygeneruje audit, článok, brief alebo 30-dňový content plán.",
       },
       { property: "og:title", content: "SEO Raketa — automatický SEO workflow" },
       {
@@ -44,6 +45,8 @@ export const Route = createFileRoute("/raketa")({
         content:
           "Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit, článok, brief alebo content plán.",
       },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: RaketaPage,
@@ -133,7 +136,7 @@ function RaketaPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `pismo-raketa-${output}-${Date.now()}.md`;
+    a.download = `seo4web-raketa-${output}-${Date.now()}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -291,35 +294,35 @@ function RaketaPage() {
 
   if (loading || !user) {
     return (
-      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-neutral-500">
+      <div className="min-h-screen bg-page-bg flex items-center justify-center text-sm text-muted-foreground">
         Načítavam…
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-page-bg font-sans text-neutral-900">
+    <div className="min-h-screen bg-page-bg font-sans text-foreground">
       <Toaster />
       <AppHeader />
 
       <main className="px-6 pb-28">
         <div className="mx-auto max-w-screen-xl">
           {/* Hero input card */}
-          <div className="rounded-[20px] bg-neutral-900 p-1.5 shadow-xl">
-            <div className="rounded-[15px] bg-white p-6 md:p-10">
+          <div className="tool-workspace">
+            <div className="py-6 md:py-8">
               <div className="mb-6 flex items-center gap-3">
-                <div className="flex size-10 items-center justify-center rounded-[10px] bg-neutral-900 text-neutral-50">
+                <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                   <Rocket className="size-5" />
                 </div>
-                <span className="rounded-full bg-neutral-100 px-3 py-1 text-[10px] font-medium tracking-widest text-neutral-500 uppercase">
+                <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium tracking-normalst text-muted-foreground uppercase">
                   Automatický SEO workflow
                 </span>
               </div>
 
-              <h1 className="mb-3 font-serif text-3xl md:text-5xl leading-tight text-balance text-neutral-950">
+              <h1 className="mb-3 font-display text-3xl md:text-5xl leading-tight text-balance text-foreground">
                 Zadaj web. My odpálime SEO raketu.
               </h1>
-              <p className="mb-8 max-w-[60ch] text-base md:text-lg text-neutral-600 text-pretty">
+              <p className="mb-8 max-w-[60ch] text-base md:text-lg text-secondary-foreground text-pretty">
                 Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit,
                 článok, brief alebo content plán.
               </p>
@@ -331,7 +334,7 @@ function RaketaPage() {
                     onChange={(e) => setOwnUrl(e.target.value)}
                     disabled={running}
                     placeholder="https://tvojweb.sk"
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                   />
                 </Field>
                 <Field label="URL konkurencie (voliteľné)" error={errors.competitorUrl}>
@@ -340,7 +343,7 @@ function RaketaPage() {
                     onChange={(e) => setCompetitorUrl(e.target.value)}
                     disabled={running}
                     placeholder="https://konkurencia.sk"
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                   />
                 </Field>
                 <Field label="Cieľový keyword / téma" error={errors.keyword} required>
@@ -350,7 +353,7 @@ function RaketaPage() {
                     disabled={running}
                     maxLength={200}
                     placeholder="napr. lokálne SEO Bratislava"
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                   />
                 </Field>
                 <Field label="Jazyk">
@@ -358,7 +361,7 @@ function RaketaPage() {
                     value={language}
                     onChange={(e) => setLanguage(e.target.value as RaketaLanguage)}
                     disabled={running}
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60"
                   >
                     {RAKETA_LANGUAGES.map((l) => (
                       <option key={l} value={l}>
@@ -372,7 +375,7 @@ function RaketaPage() {
                     value={output}
                     onChange={(e) => setOutput(e.target.value as RaketaOutput)}
                     disabled={running}
-                    className="w-full rounded-[10px] border border-neutral-200 bg-white px-3.5 py-2.5 text-sm focus:border-neutral-900 focus:outline-none disabled:opacity-60 md:col-span-1"
+                    className="w-full rounded-lg border border-border bg-card px-3.5 py-2.5 text-sm focus:border-border focus:outline-none disabled:opacity-60 md:col-span-1"
                   >
                     {RAKETA_OUTPUTS.map((o) => (
                       <option key={o} value={o}>
@@ -383,19 +386,19 @@ function RaketaPage() {
                 </Field>
                 <div className="flex items-end">
                   {running ? (
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={stop}
-                      className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-neutral-100 px-4 py-2.5 text-sm font-medium text-neutral-700 hover:bg-neutral-200"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm font-medium text-secondary-foreground hover:bg-border"
                     >
                       <Square className="size-4" /> Zastaviť
-                    </button>
+                    </Button>
                   ) : (
-                    <button
+                    <Button variant="studio" size="studio"
                       onClick={launch}
-                      className="flex w-full items-center justify-center gap-2 rounded-[10px] bg-neutral-900 px-4 py-2.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                     >
                       <Rocket className="size-4" /> Odpáliť raketu
-                    </button>
+                    </Button>
                   )}
                 </div>
               </div>
@@ -404,7 +407,7 @@ function RaketaPage() {
 
           {/* Progress */}
           {(running || phase === "ready") && (
-            <div className="mt-6 rounded-[14px] bg-white p-4 ring-1 ring-black/5">
+            <div className="mt-6 rounded-lg bg-card p-4 ring-1 ring-border/5">
               <ol className="flex flex-wrap items-center gap-x-2 gap-y-2">
                 {PHASE_STEPS.map((step, i) => {
                   const activeIndex = PHASE_STEPS.findIndex((s) => s.key === phase);
@@ -416,10 +419,10 @@ function RaketaPage() {
                         className={
                           "flex size-6 items-center justify-center rounded-full text-[11px] font-semibold " +
                           (done
-                            ? "bg-emerald-500 text-white"
+                            ? "bg-success text-primary-foreground"
                             : active
-                              ? "bg-neutral-900 text-white"
-                              : "bg-neutral-100 text-neutral-400")
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground")
                         }
                       >
                         {done ? <Check className="size-3.5" /> : i + 1}
@@ -427,14 +430,14 @@ function RaketaPage() {
                       <span
                         className={
                           "text-xs font-medium " +
-                          (done || active ? "text-neutral-900" : "text-neutral-400")
+                          (done || active ? "text-foreground" : "text-muted-foreground")
                         }
                       >
                         {step.label}
                         {active && <span className="ml-1 animate-pulse">…</span>}
                       </span>
                       {i < PHASE_STEPS.length - 1 && (
-                        <span className="mx-1 hidden h-px w-6 bg-neutral-200 sm:block" />
+                        <span className="mx-1 hidden h-px w-6 bg-border sm:block" />
                       )}
                     </li>
                   );
@@ -445,15 +448,15 @@ function RaketaPage() {
 
           {/* Error state */}
           {phase === "error" && (
-            <div className="mt-6 rounded-[14px] bg-red-50 p-5 ring-1 ring-red-200">
-              <p className="text-sm font-medium text-red-800">Niečo sa pokazilo</p>
-              <p className="mt-1 text-sm text-red-700">{errorMsg}</p>
-              <button
+            <div className="mt-6 rounded-lg bg-danger-subtle p-5 ring-1 ring-danger-border">
+              <p className="text-sm font-medium text-danger-foreground">Niečo sa pokazilo</p>
+              <p className="mt-1 text-sm text-danger-foreground">{errorMsg}</p>
+              <Button variant="studio" size="studio"
                 onClick={launch}
-                className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700"
+                className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-danger px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-danger"
               >
                 <RotateCcw className="size-4" /> Skúsiť znova
-              </button>
+              </Button>
             </div>
           )}
 
@@ -471,20 +474,20 @@ function RaketaPage() {
           {phase === "generating" && (
             <div className="mt-6 space-y-4">
               {!result && (
-                <div className="rounded-[14px] bg-white p-6 ring-1 ring-black/5">
+                <div className="rounded-lg bg-card p-6 ring-1 ring-border/5">
                   <div className="space-y-3">
-                    <div className="h-4 w-1/3 animate-pulse rounded bg-neutral-100" />
-                    <div className="h-4 w-full animate-pulse rounded bg-neutral-100" />
-                    <div className="h-4 w-5/6 animate-pulse rounded bg-neutral-100" />
-                    <div className="h-4 w-4/6 animate-pulse rounded bg-neutral-100" />
+                    <div className="h-4 w-1/3 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-full animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-5/6 animate-pulse rounded bg-muted" />
+                    <div className="h-4 w-4/6 animate-pulse rounded bg-muted" />
                   </div>
                 </div>
               )}
               {result && (
-                <div className="rounded-[14px] bg-white p-6 ring-1 ring-black/5 md:p-8">
-                  <article className="prose prose-neutral max-w-[72ch] prose-headings:font-serif prose-h2:text-xl prose-h2:mt-8 prose-p:text-neutral-700">
+                <div className="rounded-lg bg-card p-6 ring-1 ring-border/5 md:p-8">
+                  <article className="prose prose-neutral max-w-[72ch] prose-headings:font-display prose-h2:text-xl prose-h2:mt-8 prose-p:text-secondary-foreground">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{result}</ReactMarkdown>
-                    <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-neutral-900 align-middle" />
+                    <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                   </article>
                 </div>
               )}
@@ -496,15 +499,15 @@ function RaketaPage() {
             <div className="mt-6">
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-emerald-500" />
-                  <span className="text-xs font-medium tracking-widest text-neutral-500 uppercase">
+                  <div className="size-2 rounded-full bg-success" />
+                  <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
                     Hotovo · uložené do Histórie
                   </span>
                 </div>
                 <div className="flex gap-2">
-                  <button
+                  <Button variant="studio" size="studio"
                     onClick={() => copyText(result, "all")}
-                    className="flex items-center gap-1.5 rounded-[8px] bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 ring-1 ring-black/10 hover:bg-neutral-50"
+                    className="flex items-center gap-1.5 rounded-[8px] bg-card px-3 py-1.5 text-sm font-medium text-secondary-foreground ring-1 ring-border/10 hover:bg-background"
                   >
                     {copiedKey === "all" ? (
                       <Check className="size-4" />
@@ -512,19 +515,19 @@ function RaketaPage() {
                       <Copy className="size-4" />
                     )}
                     Kopírovať všetko
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="studio" size="studio"
                     onClick={exportMarkdown}
-                    className="flex items-center gap-1.5 rounded-[8px] bg-neutral-900 px-3 py-1.5 text-sm font-medium text-neutral-50 hover:bg-neutral-800"
+                    className="flex items-center gap-1.5 rounded-[8px] bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                   >
                     <ArrowDown className="size-4" /> Export .md
-                  </button>
-                  <button
+                  </Button>
+                  <Button variant="studio" size="studio"
                     onClick={reset}
-                    className="flex items-center gap-1.5 rounded-[8px] bg-white px-3 py-1.5 text-sm font-medium text-neutral-700 ring-1 ring-black/10 hover:bg-neutral-50"
+                    className="flex items-center gap-1.5 rounded-[8px] bg-card px-3 py-1.5 text-sm font-medium text-secondary-foreground ring-1 ring-border/10 hover:bg-background"
                   >
                     <RotateCcw className="size-4" /> Nová raketa
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -532,17 +535,17 @@ function RaketaPage() {
                 {sections.map((s, i) => (
                   <div
                     key={i}
-                    className="rounded-[14px] bg-white p-5 ring-1 ring-black/5 md:p-7"
+                    className="rounded-lg bg-card p-5 ring-1 ring-border/5 md:p-7"
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
-                      <h2 className="font-serif text-lg md:text-xl text-neutral-950">
+                      <h2 className="font-display text-lg md:text-xl text-foreground">
                         {s.heading}
                       </h2>
-                      <button
+                      <Button variant="studio" size="studio"
                         onClick={() =>
                           copyText(`## ${s.heading}\n\n${s.body.trim()}`, `s-${i}`)
                         }
-                        className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                        className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
                       >
                         {copiedKey === `s-${i}` ? (
                           <Check className="size-3.5" />
@@ -550,9 +553,9 @@ function RaketaPage() {
                           <Copy className="size-3.5" />
                         )}
                         Kopírovať
-                      </button>
+                      </Button>
                     </div>
-                    <article className="prose prose-neutral max-w-none prose-headings:font-serif prose-h3:text-base prose-p:text-neutral-700 prose-table:text-sm">
+                    <article className="prose prose-neutral max-w-none prose-headings:font-display prose-h3:text-base prose-p:text-secondary-foreground prose-table:text-sm">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {s.body.trim()}
                       </ReactMarkdown>
@@ -581,12 +584,12 @@ function Field({
 }) {
   return (
     <div>
-      <label className="mb-1.5 block text-xs font-medium tracking-wider text-neutral-500 uppercase">
+      <label className="mb-1.5 block text-xs font-medium tracking-normalr text-muted-foreground uppercase">
         {label}
-        {required && <span className="ml-1 text-neutral-400">*</span>}
+        {required && <span className="ml-1 text-muted-foreground">*</span>}
       </label>
       {children}
-      {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-xs text-danger-foreground">{error}</p>}
     </div>
   );
 }
@@ -599,16 +602,16 @@ function AnalysisCard({
   page: RaketaAnalysis["own"];
 }) {
   return (
-    <div className="rounded-[14px] bg-white p-5 ring-1 ring-black/5">
+    <div className="rounded-lg bg-card p-5 ring-1 ring-border/5">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-sm font-medium text-neutral-900">{title}</p>
+        <p className="text-sm font-medium text-foreground">{title}</p>
         {page.estimated && (
-          <span className="rounded bg-amber-50 px-2 py-0.5 text-[10px] text-amber-700 ring-1 ring-amber-200">
+          <span className="rounded bg-warning-subtle px-2 py-0.5 text-[10px] text-warning-foreground ring-1 ring-warning-border">
             Odhad
           </span>
         )}
       </div>
-      <p className="truncate text-xs text-neutral-400">{page.url}</p>
+      <p className="truncate text-xs text-muted-foreground">{page.url}</p>
       <dl className="mt-3 grid grid-cols-2 gap-2 text-xs">
         <Stat label="Title" value={page.title ? "✓" : "chýba"} />
         <Stat label="Meta desc" value={page.metaDescription ? "✓" : "chýba"} />
@@ -616,18 +619,18 @@ function AnalysisCard({
         <Stat label="CTA" value={String(page.ctas.length)} />
         <Stat label="Slová" value={`~${page.wordCount}`} />
       </dl>
-      {page.note && <p className="mt-3 text-xs text-neutral-500">{page.note}</p>}
+      {page.note && <p className="mt-3 text-xs text-muted-foreground">{page.note}</p>}
     </div>
   );
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-neutral-50 px-2.5 py-1.5">
-      <dt className="text-[10px] uppercase tracking-wider text-neutral-400">
+    <div className="rounded-md bg-background px-2.5 py-1.5">
+      <dt className="text-[10px] uppercase tracking-normalr text-muted-foreground">
         {label}
       </dt>
-      <dd className="text-sm font-medium text-neutral-900">{value}</dd>
+      <dd className="text-sm font-medium text-foreground">{value}</dd>
     </div>
   );
 }

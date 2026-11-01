@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -33,7 +34,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
 
@@ -72,26 +73,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
-      { title: "Písmo — AI SEO Command Center pre slovenský trh" },
-      { name: "description", content: "AI SEO nástroje v slovenčine: audit, brief, content plán a Blog Writer pre slovenský trh." },
-      { name: "author", content: "Písmo" },
-      { property: "og:title", content: "Písmo — AI SEO Command Center" },
-      { property: "og:description", content: "Audit, brief, content plán a SEO článok v jednom workflow." },
+      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { title: "SEO4WEB — SEO Command Center" },
+      { name: "description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
+      { property: "og:title", content: "SEO4WEB — SEO Command Center" },
+      { property: "og:description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Generates long-form, SEO-optimized blog" },
-      { name: "twitter:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
+      { name: "twitter:title", content: "SEO4WEB — SEO Command Center" },
+      { name: "twitter:description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
     ],
     links: [
+      { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap",
       },
       {
         rel: "stylesheet",
