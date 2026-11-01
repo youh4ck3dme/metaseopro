@@ -75,13 +75,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "SEO4WEB — SEO Command Center" },
-      { name: "description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
+      {
+        name: "description",
+        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+      },
       { property: "og:title", content: "SEO4WEB — SEO Command Center" },
-      { property: "og:description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
+      {
+        property: "og:description",
+        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:title", content: "SEO4WEB — SEO Command Center" },
-      { name: "twitter:description", content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste." },
+      {
+        name: "twitter:description",
+        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+      },
     ],
     links: [
       { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
@@ -116,7 +125,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
     </html>
   );
 }
-
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
