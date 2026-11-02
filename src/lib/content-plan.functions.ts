@@ -1,7 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const InputSchema = z.object({
   niche: z.string().min(2).max(500),
@@ -18,6 +17,7 @@ const MS_PER_DAY = 24 * 60 * 60 * 1000;
 export const checkContentPlanAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId } = context;
     const { data, error } = await supabaseAdmin
       .from("content_plan_usage")
@@ -46,8 +46,9 @@ export const checkContentPlanAccess = createServerFn({ method: "GET" })
  */
 export const generateContentPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { userId } = context;
 
     // Atomic gate: try to claim the free window by inserting the usage row.
