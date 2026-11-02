@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Fragment, useEffect, useMemo, useState } from "react";
-import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Copy, FileText, Minus, Sparkles, Trash2 } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, ChevronDown, ChevronRight, Copy, FileText, Loader2, Minus, Plus, RefreshCw, Sparkles, Trash2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -82,6 +83,15 @@ function DashboardPage() {
   const [site, setSite] = useState("");
   const [aId, setAId] = useState("");
   const [bId, setBId] = useState("");
+  const [scanOpen, setScanOpen] = useState(false);
+  const [properties, setProperties] = useState<string[]>([]);
+  const [selectedProperty, setSelectedProperty] = useState("");
+  const [propertiesBusy, setPropertiesBusy] = useState(false);
+  const [propertiesError, setPropertiesError] = useState("");
+  const [propertiesRetry, setPropertiesRetry] = useState(0);
+  const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState("");
+  const [scanStage, setScanStage] = useState("");
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", search: { redirect: "/dashboard" } });
@@ -110,6 +120,99 @@ function DashboardPage() {
     setAId(siteSnaps[1]?.id ?? siteSnaps[0]?.id ?? "");
   }, [siteSnaps]);
 
+  const showPropertyPicker = scanOpen || (!busy && snaps.length === 0);
+  useEffect(() => {
+    if (!user || !showPropertyPicker) return;
+    let cancelled = false;
+    setPropertiesBusy(true);
+    setPropertiesError("");
+    (async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Prihlás sa znova a skús to ešte raz.");
+        const response = await fetch("/api/decay-gsc-properties", {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        const result = await response.json();
+        if (!response.ok || result.status === "error") throw new Error(result.error || "Weby sa nepodarilo načítať.");
+        if (result.status === "not_connected") throw new Error("Google Search Console nie je pripojený.");
+        const list: string[] = (result.properties ?? []).map((p: { siteUrl: string }) => p.siteUrl);
+        if (cancelled) return;
+        setProperties(list);
+        setSelectedProperty((current) => list.includes(current) ? current : list[0] ?? "");
+        if (!list.length) setPropertiesError("Pripojený Google účet nemá žiadne overené weby.");
+      } catch (error) {
+        if (!cancelled) {
+          setProperties([]);
+          setSelectedProperty("");
+          setPropertiesError(error instanceof Error ? error.message : "Weby sa nepodarilo načítať.");
+        }
+      } finally {
+        if (!cancelled) setPropertiesBusy(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user, showPropertyPicker, propertiesRetry]);
+
+  const runScan = async () => {
+    if (scanning || propertiesBusy || !properties.includes(selectedProperty)) return;
+    setScanning(true);
+    setScanError("");
+    setScanStage("Analyzujem dáta zo Search Console…");
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error("Prihlás sa znova a skús to ešte raz.");
+      const response = await fetch("/api/decay-analyze", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ mode: "live", scenario: "local", siteUrl: selectedProperty }),
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || "Analýza sa nepodarila. Skús to znova.");
+      if (!result.snapshotId) throw new Error("Analýza prebehla, ale výsledok sa neuložil. Skús sken znova.");
+      setScanStage("Načítavam uložené výsledky…");
+      const { data, error } = await supabase.from("seo_snapshots")
+        .select("id, site_url, type, created_at, metrics_summary, raw_data")
+        .eq("id", result.snapshotId).single();
+      if (error || !data) throw new Error("Výsledok je uložený, ale nepodarilo sa ho načítať. Obnov Dashboard.");
+      const saved = data as unknown as Snapshot;
+      setSnaps((current) => [saved, ...current.filter((s) => s.id !== saved.id)]);
+      setSite(saved.site_url);
+      setScanOpen(false);
+      toast.success("Sken je uložený. Dashboard bol aktualizovaný.");
+    } catch (error) {
+      setScanError(error instanceof Error ? error.message : "Analýza sa nepodarila.");
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const propertyPicker = (
+    <div className="space-y-4">
+      {propertiesBusy ? (
+        <p role="status" className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin motion-reduce:animate-none" />Načítavam overené weby…</p>
+      ) : propertiesError ? (
+        <div className="space-y-3">
+          <p role="alert" className="text-sm text-danger-foreground">{propertiesError}</p>
+          <Button variant="outline" onClick={() => setPropertiesRetry((n) => n + 1)}><RefreshCw />Skúsiť znova</Button>
+        </div>
+      ) : (
+        <label className="block space-y-2 text-left text-sm">
+          <span className="font-medium">Overený web v Search Console</span>
+          <select aria-label="Overený web v Search Console" value={selectedProperty} disabled={scanning} onChange={(e) => { setSelectedProperty(e.target.value); setScanError(""); }} className="w-full min-w-0 rounded-lg border border-border bg-card px-3 py-2">
+            {properties.map((url) => <option key={url} value={url}>{url}</option>)}
+          </select>
+        </label>
+      )}
+      {scanError && <p role="alert" className="text-left text-sm text-danger-foreground">{scanError}</p>}
+      <Button disabled={scanning || propertiesBusy || !selectedProperty || !!propertiesError} onClick={runScan} className="w-full sm:w-auto">
+        {scanning ? <Loader2 className="animate-spin motion-reduce:animate-none" /> : <RefreshCw />}
+        {scanning ? "Prebieha sken…" : "Spustiť sken"}
+      </Button>
+      {scanning && <p role="status" aria-live="polite" className="text-sm text-muted-foreground">{scanStage}</p>}
+    </div>
+  );
+
   const latest = siteSnaps[0];
   const m = latest?.metrics_summary ?? {};
   const a = siteSnaps.find((s) => s.id === aId);
@@ -131,22 +234,30 @@ function DashboardPage() {
             <p className="text-xs uppercase tracking-normalst text-muted-foreground">SEO veliace centrum</p>
             <h1 className="mt-1 text-3xl font-semibold tracking-normal md:text-4xl">Dashboard</h1>
           </div>
+          <div className="flex w-full min-w-0 flex-wrap items-center gap-2 sm:w-auto">
           {sites.length > 0 && (
-            <select value={site} onChange={(e) => setSite(e.target.value)} className="rounded-[8px] border border-border bg-card px-3 py-2 text-sm">
+            <select aria-label="Vybraný web" value={site} onChange={(e) => setSite(e.target.value)} className="min-w-0 max-w-full rounded-[8px] border border-border bg-card px-3 py-2 text-sm">
               {sites.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           )}
+          <Button variant="outline" disabled={busy || scanning} onClick={() => { setScanError(""); setScanOpen(true); }}><Plus />Analyzovať ďalší web</Button>
+          </div>
         </div>
+
+        <Dialog open={scanOpen} onOpenChange={(open) => { if (!scanning) setScanOpen(open); }}>
+          <DialogContent className="max-w-[calc(100%-2rem)] sm:max-w-lg" aria-describedby={undefined} onEscapeKeyDown={(e) => { if (scanning) e.preventDefault(); }} onPointerDownOutside={(e) => { if (scanning) e.preventDefault(); }}>
+            <DialogHeader><DialogTitle>Analyzovať ďalší web</DialogTitle></DialogHeader>
+            {scanOpen && propertyPicker}
+          </DialogContent>
+        </Dialog>
 
         {busy ? (
           <p className="mt-10 text-sm text-muted-foreground">Načítavam…</p>
         ) : !latest ? (
-          <div className="mt-10 rounded-lg bg-card p-8 text-center ring-1 ring-border/5">
+          <section className="mx-auto mt-10 max-w-lg space-y-5 py-8">
             <p className="text-secondary-foreground">Zatiaľ nemáš žiadne uložené snapshoty.</p>
-            <Link to="/decay" className="mt-4 inline-block rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground">
-              Spustiť live analýzu v Decay Radar
-            </Link>
-          </div>
+            {!scanOpen && propertyPicker}
+          </section>
         ) : (
           <>
             {/* KPI */}
