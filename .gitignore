@@ -7,24 +7,43 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-.output
-.vinxi
+# Dependencies
+node_modules/
+
+# Build & Runtime Outputs
+dist/
+dist-ssr/
+.output/
+.vinxi/
 .tanstack/**
-.nitro
+.nitro/
+
+# Environment files & Local Secrets
+# NOTE: .env contains public Lovable/Supabase config needed by Lovable web client and SSR.
+# Never commit private keys to .env! Use .env.local for local secret overrides.
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 *.local
 
-# Wrangler / Cloudflare
+# Wrangler / Cloudflare Workers
 .wrangler/
 .dev.vars
+.dev.vars.*
+!.dev.vars.example
 
-# Editor directories and files
+# Test Coverage
+coverage/
+*.lcov
+
+# Editor & OS files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
