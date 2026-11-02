@@ -1,4 +1,6 @@
 # SEO4WEB visual refresh
+- [x] Add verified website selection and live scanning directly to Dashboard, including its empty state.
+- [ ] Verify a live Dashboard scan and saved results end-to-end — blocked by unavailable requesting-user session.
 - [x] Rename visible branding, metadata and downloads.
 - [x] Apply Outfit/Figtree, semantic colors and polished shared controls.
 - [x] Refresh navigation and sign-in page; refine motion and small-screen layouts.
