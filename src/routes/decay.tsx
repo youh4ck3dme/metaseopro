@@ -509,6 +509,19 @@ function DecayPage() {
                 )}
               </div>
 
+              {!dataset.demo && (
+                <dl aria-label="Porovnávané obdobia GSC" className="mb-4 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Aktuálne obdobie (90 dní)</dt>
+                    <dd className="font-medium text-foreground">{dataset.periodNow}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Predchádzajúce obdobie (90 dní)</dt>
+                    <dd className="font-medium text-foreground">{dataset.periodPrev}</dd>
+                  </div>
+                </dl>
+              )}
+
               <div className="overflow-x-auto rounded-lg bg-card ring-1 ring-border/5">
                 <table className="w-full min-w-[720px] text-sm">
                   <thead>

@@ -267,7 +267,17 @@ function DashboardPage() {
               <Kpi label="Priem. pozícia" value={(m.avgPositionNow ?? 0).toFixed(1)} delta={<Delta invert value={Number(((m.avgPositionNow ?? 0) - (m.avgPositionPrev ?? 0)).toFixed(1))} />} />
               <Kpi label="Health index" value={`${healthIndex(m)}/100`} delta={<span className="text-muted-foreground">{m.critical ?? 0} kritických · {m.declining ?? 0} klesá</span>} />
             </section>
-            <p className="mt-2 text-xs text-muted-foreground">Posledný snapshot: {fmtDate(latest.created_at)} · porovnanie s predošlým 90-dňovým obdobím</p>
+            <p className="mt-2 text-xs text-muted-foreground">Posledný snapshot: {fmtDate(latest.created_at)}</p>
+            <dl aria-label="Porovnávané obdobia GSC" className="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+              <div>
+                <dt className="text-xs text-muted-foreground">Aktuálne obdobie (90 dní)</dt>
+                <dd className="font-medium text-foreground">{latest.raw_data?.periodNow || "Dátumy nie sú dostupné"}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-muted-foreground">Predchádzajúce obdobie (90 dní)</dt>
+                <dd className="font-medium text-foreground">{latest.raw_data?.periodPrev || "Dátumy nie sú dostupné"}</dd>
+              </div>
+            </dl>
 
             {user && <OpportunityRadar snap={latest} userId={user.id} />}
             <Explorer snap={latest} />
