@@ -7,8 +7,7 @@ import {
   DEMO_SCENARIOS,
 } from "./decay-demo";
 import {
-  LIVE_PERIOD_NOW,
-  LIVE_PERIOD_PREV,
+  getLivePeriods,
   assertVerifiedProperty,
   fetchLiveDecayRows,
 } from "./gsc.server";
@@ -79,7 +78,8 @@ export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
  */
 export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   const verified = await assertVerifiedProperty(siteUrl);
-  const rows = (await fetchLiveDecayRows(verified))
+  const periods = getLivePeriods();
+  const rows = (await fetchLiveDecayRows(verified, 12, periods))
     .map(scoreRow)
     .sort((a, b) => {
       const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
@@ -92,8 +92,8 @@ export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
     scenario: "blog",
     siteUrl: verified,
     scenarioLabel: verified,
-    periodPrev: LIVE_PERIOD_PREV,
-    periodNow: LIVE_PERIOD_NOW,
+    periodPrev: periods.prev,
+    periodNow: periods.now,
     rows,
     note:
       rows.length === 0
