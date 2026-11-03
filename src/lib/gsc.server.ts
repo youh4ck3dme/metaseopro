@@ -140,9 +140,9 @@ export async function fetchLiveDecayRows(
         clicksPrev: Math.round(prev?.clicks ?? 0),
         impressionsNow: Math.round(r?.impressions ?? 0),
         impressionsPrev: Math.round(prev?.impressions ?? 0),
-        // 100 denotes an unobserved current rank, never position zero (best rank).
-        positionNow: Number((r?.position ?? 100).toFixed(1)),
-        positionPrev: Number((prev?.position ?? r?.position ?? 100).toFixed(1)),
+        // Zero is the existing contract's missing-data value, not a measured rank.
+        positionNow: Number((r?.position ?? 0).toFixed(1)),
+        positionPrev: Number((prev?.position ?? r?.position ?? 0).toFixed(1)),
       };
     })
     // Only pages with meaningful prior traffic can meaningfully decay.
@@ -177,8 +177,8 @@ export async function fetchLiveDecayRows(
            query: key.slice(0, 300),
            clicksNow: Math.round(q?.clicks ?? 0),
           clicksPrev: Math.round(p?.clicks ?? 0),
-           positionNow: Number((q?.position ?? 100).toFixed(1)),
-           positionPrev: Number((p?.position ?? q?.position ?? 100).toFixed(1)),
+           positionNow: Number((q?.position ?? 0).toFixed(1)),
+           positionPrev: Number((p?.position ?? q?.position ?? 0).toFixed(1)),
         };
        }).sort((a, b) => (a.clicksNow - a.clicksPrev) - (b.clicksNow - b.clicksPrev)).slice(0, 5);
     } catch (e) {

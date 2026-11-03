@@ -26,7 +26,9 @@ function scoreRow(row: DecayRow): ScoredDecayRow {
       ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100)
       : 0;
   // Positive positionDelta = worse (higher number = lower rank).
-  const positionDelta = Number((row.positionNow - row.positionPrev).toFixed(1));
+  const positionDelta = row.positionNow > 0 && row.positionPrev > 0
+    ? Number((row.positionNow - row.positionPrev).toFixed(1))
+    : 0;
 
   // Decay score: 0 (healthy) .. 100 (severe decay). Driven by click loss,
   // amplified by ranking loss. Growth clamps toward 0.
