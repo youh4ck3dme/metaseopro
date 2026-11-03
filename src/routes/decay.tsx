@@ -160,7 +160,7 @@ function DecayPage() {
         );
         if (res.ok && json.status === "ok" && list.length > 0) {
           setProperties(list);
-          setSiteUrl(list[0] ?? "");
+          setSiteUrl((current) => list.includes(current) ? current : (list[0] ?? ""));
           setGscStatus("ok");
         } else {
           setGscStatus("unavailable");
@@ -187,7 +187,12 @@ function DecayPage() {
         .limit(1)
         .maybeSingle();
       if (cancelled || !data?.raw_data) return;
-      setDataset((prev) => prev ?? (data.raw_data as unknown as DecayDataset));
+      const restored = data.raw_data as unknown as DecayDataset;
+      setDataset((prev) => prev ?? restored);
+      if (!restored.demo) {
+        setMode("live");
+        setSiteUrl(restored.siteUrl);
+      }
       setPhase((p) => (p === "idle" ? "ready" : p));
     })();
     return () => {
