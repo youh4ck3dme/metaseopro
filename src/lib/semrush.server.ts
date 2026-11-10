@@ -1,5 +1,6 @@
-// Server-only helpers for the Semrush connector gateway.
+// Server-only helpers for the Semrush connector gateway with intelligent caching.
 // .server.ts suffix blocks this file from client bundles.
+import { createClient } from "@supabase/supabase-js";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/semrush";
 
@@ -43,7 +44,7 @@ async function semrushGet(path: string, params: Record<string, string | number>)
   }
   if (!res.ok) {
     const msg = json?.error || `Semrush API zlyhalo (${res.status}): ${text.slice(0, 200)}`;
-    if (typeof msg === "string" && msg.includes("ERROR 134")) {
+    if (typeof msg === "string" && (msg.includes("ERROR 134") || res.status === 429)) {
       throw new SemrushError("Vyčerpaný Semrush limit. Skús to neskôr alebo upgraduj plán.", 429);
     }
     throw new SemrushError(msg, res.status);
@@ -89,8 +90,95 @@ export type DomainSnapshot = {
   anchors: Array<Record<string, string>>;
   topRefDomains: Array<Record<string, string>>;
   errors: string[];
+  cached?: boolean;
+  cachedAt?: string;
+  stale?: boolean;
+  warning?: string;
 };
 
+// -----------------------------------------------------------------------------
+// L1 In-Memory Cache (Edge isolate speedup) & L2 Supabase persistent store
+// -----------------------------------------------------------------------------
+
+type CacheEntry = {
+  snapshot: DomainSnapshot;
+  updatedAt: string;
+  expiresAt: number; // timestamp in ms
+};
+
+const memoryCache = new Map<string, CacheEntry>();
+
+export function clearSemrushMemoryCache(): void {
+  memoryCache.clear();
+}
+
+function getSupabaseServerClient() {
+  const url = process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key, {
+    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+  });
+}
+
+async function readFromSupabaseCache(
+  domain: string,
+  database: string,
+): Promise<{ snapshot: DomainSnapshot; updatedAt: string; expiresAt: string } | null> {
+  const supabase = getSupabaseServerClient();
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase
+      .from("semrush_domain_cache" as never)
+      .select("snapshot_data, updated_at, expires_at")
+      .eq("domain", domain)
+      .eq("database", database)
+      .maybeSingle();
+
+    if (error || !data) return null;
+    const row = data as unknown as {
+      snapshot_data: DomainSnapshot;
+      updated_at: string;
+      expires_at: string;
+    };
+    return {
+      snapshot: row.snapshot_data,
+      updatedAt: row.updated_at,
+      expiresAt: row.expires_at,
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function saveToSupabaseCache(
+  domain: string,
+  database: string,
+  snapshot: DomainSnapshot,
+  now: Date,
+  expiresAt: Date,
+): Promise<void> {
+  const supabase = getSupabaseServerClient();
+  if (!supabase) return;
+  try {
+    await supabase.from("semrush_domain_cache" as never).upsert(
+      {
+        domain,
+        database,
+        snapshot_data: snapshot as never,
+        updated_at: now.toISOString(),
+        expires_at: expiresAt.toISOString(),
+      } as never,
+      { onConflict: "domain,database" },
+    );
+  } catch (e) {
+    console.error("semrush_domain_cache save error:", e);
+  }
+}
+
+/**
+ * Raw live API call to Semrush.
+ */
 export async function getDomainSnapshot(
   domain: string,
   databaseOverride?: string,
@@ -128,6 +216,26 @@ export async function getDomainSnapshot(
       }),
     ]);
 
+  const reasons = [overviewRes, keywordsRes, backlinksRes, anchorsRes, refDomainsRes]
+    .filter((r): r is PromiseRejectedResult => r.status === "rejected")
+    .map((r) => r.reason);
+
+  const rateLimitReason = reasons.find(
+    (reason) =>
+      (reason instanceof SemrushError && reason.status === 429) ||
+      (reason instanceof Error &&
+        (reason.message.includes("429") ||
+          reason.message.includes("ERROR 134") ||
+          reason.message.includes("Vyčerpaný Semrush limit"))),
+  );
+
+  if (rateLimitReason) {
+    if (rateLimitReason instanceof SemrushError) {
+      throw rateLimitReason;
+    }
+    throw new SemrushError((rateLimitReason as Error).message || "Semrush limit prekročený", 429);
+  }
+
   const overviewRows = overviewRes.status === "fulfilled" ? rowsToObjects(overviewRes.value) : [];
   if (overviewRes.status === "rejected") {
     errors.push(`domain_ranks: ${(overviewRes.reason as Error).message ?? "fail"}`);
@@ -158,4 +266,95 @@ export async function getDomainSnapshot(
     topRefDomains,
     errors,
   };
+}
+
+/**
+ * Intelligent Semrush cache with 7-day TTL and circuit breaker for 429 quota exhaustion.
+ * - If valid cached data exists: returns immediately without calling Semrush.
+ * - If cache expired or absent: fetches live data and saves to DB.
+ * - If Semrush returns 429 / ERROR 134: returns stale cached data with warning rather than crashing.
+ */
+export async function getCachedDomainSnapshot(
+  domain: string,
+  databaseOverride?: string,
+): Promise<DomainSnapshot> {
+  const normDomain = domain.trim().toLowerCase();
+  const normDb = (
+    databaseOverride && databaseOverride.length > 0 ? databaseOverride : pickDatabase(normDomain)
+  ).toLowerCase();
+  const cacheKey = `${normDomain}:${normDb}`;
+  const now = Date.now();
+
+  let staleCandidate: { snapshot: DomainSnapshot; updatedAt: string } | null = null;
+
+  // 1. Check L1 Memory Cache
+  const l1 = memoryCache.get(cacheKey);
+  if (l1) {
+    if (l1.expiresAt > now) {
+      return {
+        ...l1.snapshot,
+        cached: true,
+        cachedAt: l1.updatedAt,
+      };
+    }
+    staleCandidate = { snapshot: l1.snapshot, updatedAt: l1.updatedAt };
+  }
+
+  // 2. Check L2 Supabase Persistent Cache
+  const l2 = await readFromSupabaseCache(normDomain, normDb);
+  if (l2) {
+    const expiresAtMs = new Date(l2.expiresAt).getTime();
+    memoryCache.set(cacheKey, {
+      snapshot: l2.snapshot,
+      updatedAt: l2.updatedAt,
+      expiresAt: expiresAtMs,
+    });
+    if (expiresAtMs > now) {
+      return {
+        ...l2.snapshot,
+        cached: true,
+        cachedAt: l2.updatedAt,
+      };
+    }
+    staleCandidate = { snapshot: l2.snapshot, updatedAt: l2.updatedAt };
+  }
+
+  // 3. Fallback on Live API with Circuit Breaker
+  try {
+    const live = await getDomainSnapshot(normDomain, normDb);
+    const nowDate = new Date();
+    const expiresAtDate = new Date(nowDate.getTime() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    memoryCache.set(cacheKey, {
+      snapshot: live,
+      updatedAt: nowDate.toISOString(),
+      expiresAt: expiresAtDate.getTime(),
+    });
+
+    await saveToSupabaseCache(normDomain, normDb, live, nowDate, expiresAtDate);
+
+    return {
+      ...live,
+      cached: false,
+      cachedAt: nowDate.toISOString(),
+    };
+  } catch (err) {
+    const isRateLimit =
+      (err instanceof SemrushError && err.status === 429) ||
+      (err instanceof Error &&
+        (err.message.includes("429") ||
+          err.message.includes("ERROR 134") ||
+          err.message.includes("Vyčerpaný Semrush limit")));
+
+    if (isRateLimit && staleCandidate) {
+      return {
+        ...staleCandidate.snapshot,
+        cached: true,
+        cachedAt: staleCandidate.updatedAt,
+        stale: true,
+        warning: "Zobrazené archivované dáta kvôli vyťaženiu API",
+      };
+    }
+    throw err;
+  }
 }

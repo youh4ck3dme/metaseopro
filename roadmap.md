@@ -8,10 +8,11 @@
 - [x] Paralelizované dopytovanie v Content Decay Radare (`concurrency: 4`) pre elimináciu timeoutov.
 - [x] 100% priechodnosť testovacej suity (6 testovacích súborov, 32 unit testov) a nulové TypeScript chyby.
 
-## 2. Výkon & Zníženie API nákladov (Fáza 2 🔄)
-- [ ] 7-dňová perzistentná cache pre Semrush audity v Supabase (`semrush_domain_cache`).
-- [ ] Predchádzanie prekročeniu kvóty Semrush API (`ERROR 134`).
-- [ ] Snapshotovanie výsledkov auditu pre okamžité znovunačítanie.
+## 2. Výkon & Zníženie API nákladov (Hotovo ✅)
+- [x] 7-dňová perzistentná cache pre Semrush audity v Supabase (`semrush_domain_cache`).
+- [x] Predchádzanie prekročeniu kvóty Semrush API (`ERROR 134`) a automatický návrat stale dát.
+- [x] L1 pamäťová cache pre okamžité znovunačítanie v rámci edge izolátu.
+- [x] 100% priechodnosť testovacej suity (7 testovacích súborov, 35 unit testov).
 
 ## 3. Monetizácia & Slovenský B2B Onboarding (Fáza 3 🔄)
 - [ ] 3-stupňová cenotvorba (Štart 39 €, Pro 89 €, Agency Whitelabel 249 €).

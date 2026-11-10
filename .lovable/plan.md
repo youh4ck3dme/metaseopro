@@ -19,9 +19,10 @@
   - Plná podpora všetkých krajských a okresných miest SR v `LOCATIONS`.
   - Odstránený hardkód Bratislavy; dynamická validácia podľa zámeru dopytu a e-shopových potrieb.
   - Kalibrovaný výpočet pixelových šírok fontu Arial (`textPixelWidth`) s precíznym zohľadnením úzkych a širokých znakov s diakritikou (`í`, `ĺ`, `ť`, `Á`, `Č`, `Ď`...).
-- **Technická integrita:**
+- **Technická integrita & Caching:**
   - TypeScript kontrola (`tsc --noEmit` = 0 chýb).
-  - Vitest automatické testy (`bunx vitest run` = 6 súborov, 32/32 testov úspešných).
+  - Vitest automatické testy (`bunx vitest run` = 7 súborov, 35/35 testov úspešných).
+  - Semrush L1/L2 medzipamäťové vrstvenie (`semrush_domain_cache` v Supabase s expiráciou 7 dní) a Circuit Breaker pre chyby 429 / ERROR 134.
   - Tailwind CSS v4 s Lightning CSS a sémantickými OKLCH tokenmi v `src/styles.css`.
   - TanStack Start v1 (React 19 + SSR + Vite 8).
   - Supabase PostgreSQL s Row Level Security (RLS) a zabezpečenými JWT server endpointmi.
