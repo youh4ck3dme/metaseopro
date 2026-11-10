@@ -100,7 +100,11 @@ export interface ExecutiveReportData {
 /**
  * Calculates SEO Health Index (0-100) from decay counts and pages.
  */
-export function calculateHealthIndex(totalPages: number, critical: number, declining: number): number {
+export function calculateHealthIndex(
+  totalPages: number,
+  critical: number,
+  declining: number,
+): number {
   if (!totalPages || totalPages <= 0) return 100;
   const weightedBad = critical * 1.0 + declining * 0.5;
   const ratio = weightedBad / totalPages;
@@ -116,7 +120,10 @@ export function formatDomainDisplayName(siteUrl: string): string {
     const u = new URL(raw.startsWith("http") ? raw : `https://${raw}`);
     return u.hostname.replace(/^www\./i, "");
   } catch {
-    return siteUrl.replace(/^sc-domain:/i, "").replace(/^https?:\/\//i, "").replace(/^www\./i, "");
+    return siteUrl
+      .replace(/^sc-domain:/i, "")
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "");
   }
 }
 
@@ -154,7 +161,8 @@ export function buildExecutiveReportData(params: {
   const primaryColor = agencyProfile?.primary_color?.trim() || DEFAULT_AGENCY_PROFILE.primary_color;
   const logoUrl = agencyProfile?.logo_url?.trim() || null;
   const contactEmail = agencyProfile?.contact_email?.trim() || DEFAULT_AGENCY_PROFILE.contact_email;
-  const footerText = agencyProfile?.report_footer_text?.trim() || DEFAULT_AGENCY_PROFILE.report_footer_text;
+  const footerText =
+    agencyProfile?.report_footer_text?.trim() || DEFAULT_AGENCY_PROFILE.report_footer_text;
 
   const domain = formatDomainDisplayName(siteUrl);
   const rows: ScoredDecayRow[] = dataset?.rows ?? [];
@@ -164,15 +172,23 @@ export function buildExecutiveReportData(params: {
   const clicksNow = summary?.clicksNow ?? rows.reduce((acc, r) => acc + (r.clicksNow || 0), 0);
   const clicksPrev = summary?.clicksPrev ?? rows.reduce((acc, r) => acc + (r.clicksPrev || 0), 0);
   const clicksDelta = clicksNow - clicksPrev;
-  const clicksDeltaPct = clicksPrev > 0 ? ((clicksNow - clicksPrev) / clicksPrev) * 100 : clicksNow > 0 ? 100 : 0;
+  const clicksDeltaPct =
+    clicksPrev > 0 ? ((clicksNow - clicksPrev) / clicksPrev) * 100 : clicksNow > 0 ? 100 : 0;
 
-  const impressionsNow = summary?.impressionsNow ?? rows.reduce((acc, r) => acc + (r.impressionsNow || 0), 0);
-  const impressionsPrev = summary?.impressionsPrev ?? rows.reduce((acc, r) => acc + (r.impressionsPrev || 0), 0);
+  const impressionsNow =
+    summary?.impressionsNow ?? rows.reduce((acc, r) => acc + (r.impressionsNow || 0), 0);
+  const impressionsPrev =
+    summary?.impressionsPrev ?? rows.reduce((acc, r) => acc + (r.impressionsPrev || 0), 0);
   const impressionsDelta = impressionsNow - impressionsPrev;
-  const impressionsDeltaPct = impressionsPrev > 0 ? ((impressionsNow - impressionsPrev) / impressionsPrev) * 100 : 0;
+  const impressionsDeltaPct =
+    impressionsPrev > 0 ? ((impressionsNow - impressionsPrev) / impressionsPrev) * 100 : 0;
 
-  const avgPositionNow = summary?.avgPositionNow ?? (rows.length > 0 ? rows.reduce((acc, r) => acc + (r.positionNow || 0), 0) / rows.length : 0);
-  const avgPositionPrev = summary?.avgPositionPrev ?? (rows.length > 0 ? rows.reduce((acc, r) => acc + (r.positionPrev || 0), 0) / rows.length : 0);
+  const avgPositionNow =
+    summary?.avgPositionNow ??
+    (rows.length > 0 ? rows.reduce((acc, r) => acc + (r.positionNow || 0), 0) / rows.length : 0);
+  const avgPositionPrev =
+    summary?.avgPositionPrev ??
+    (rows.length > 0 ? rows.reduce((acc, r) => acc + (r.positionPrev || 0), 0) / rows.length : 0);
   // Negative delta in position means rank improved (e.g. 12 -> 8 is -4 position, which is +4 positions better)
   const avgPositionDelta = avgPositionNow - avgPositionPrev;
 
@@ -233,12 +249,18 @@ export function buildExecutiveReportData(params: {
   }
 
   // Sort by clicksDelta desc, then positionDelta desc
-  winners.sort((a, b) => (b.clicksDelta !== a.clicksDelta ? b.clicksDelta - a.clicksDelta : b.positionDelta - a.positionDelta));
+  winners.sort((a, b) =>
+    b.clicksDelta !== a.clicksDelta
+      ? b.clicksDelta - a.clicksDelta
+      : b.positionDelta - a.positionDelta,
+  );
   const topWinners = winners.slice(0, 5);
 
   // If no specific query winners exist in mock/sparse data, generate representative winners from rows
   if (topWinners.length === 0 && rows.length > 0) {
-    const sortedRows = [...rows].sort((a, b) => (b.clicksNow - b.clicksPrev) - (a.clicksNow - a.clicksPrev));
+    const sortedRows = [...rows].sort(
+      (a, b) => b.clicksNow - b.clicksPrev - (a.clicksNow - a.clicksPrev),
+    );
     for (const r of sortedRows.slice(0, 5)) {
       const topQ = r.topQueries?.[0]?.query || "organické hľadanie";
       topWinners.push({
@@ -263,7 +285,8 @@ export function buildExecutiveReportData(params: {
       const ctr = r.impressionsNow > 0 ? (r.clicksNow / r.impressionsNow) * 100 : 0;
       let action = "Optimalizovať Title & Meta popis pre zvýšenie CTR";
       if (r.positionNow <= 7) {
-        action = "Pridať 2 interné prelinkovania s presným anchor textom z autoritatívnych podstránok";
+        action =
+          "Pridať 2 interné prelinkovania s presným anchor textom z autoritatívnych podstránok";
       } else if (r.positionNow <= 11) {
         action = "Aktualizovať obsah a pridať FAQ sekciu pre pokrytie PAA (People Also Ask)";
       }
@@ -292,7 +315,8 @@ export function buildExecutiveReportData(params: {
     implemented_at: e.implemented_at,
     target_queries: e.target_queries ?? [],
     changes: e.changes ?? "On-page úprava meta dát a štruktúry obsahu",
-    status: e.status === "published" || e.status === "approved" ? "Aktívne / Nasadené" : "V príprave",
+    status:
+      e.status === "published" || e.status === "approved" ? "Aktívne / Nasadené" : "V príprave",
     baselineClicks: e.baseline?.clicks,
     baselinePosition: e.baseline?.position,
   }));
@@ -315,7 +339,7 @@ export function buildExecutiveReportData(params: {
         target_queries: ["cenník", "ponuka služieb"],
         changes: "Doplnenie štruktúrovaných FAQ schém a sémantického interného prelinkovania.",
         status: "Aktívne / Nasadené",
-      }
+      },
     );
   }
 

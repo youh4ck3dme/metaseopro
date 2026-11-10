@@ -277,7 +277,9 @@ export async function fetchLiveDecayRows(
         try {
           const path = new URL(r.url).pathname.replace(/\/$/, "");
           title =
-            path === "" ? "Domovská stránka" : (path.split("/").pop() ?? path).replace(/[-_]/g, " ");
+            path === ""
+              ? "Domovská stránka"
+              : (path.split("/").pop() ?? path).replace(/[-_]/g, " ");
         } catch {
           title = r.url;
         }

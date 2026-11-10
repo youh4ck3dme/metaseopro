@@ -61,9 +61,12 @@ describe("opportunity engine", () => {
     expect(warningsEshop).not.toContain("Chýba lokalita (Bratislava).");
 
     // Regional service with Kosice
-    const warningsKosice = titleWarnings("Autoservis a diagnostika vozidiel Košice – cenník služieb", {
-      primary: "autoservis kosice",
-    });
+    const warningsKosice = titleWarnings(
+      "Autoservis a diagnostika vozidiel Košice – cenník služieb",
+      {
+        primary: "autoservis kosice",
+      },
+    );
     expect(warningsKosice).not.toContain("Chýba lokalita (Bratislava).");
     expect(warningsKosice).not.toContain("Chýba lokalita (Kosice).");
   });

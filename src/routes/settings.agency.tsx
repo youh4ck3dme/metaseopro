@@ -23,10 +23,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  DEFAULT_AGENCY_PROFILE,
-  type AgencyProfile,
-} from "@/lib/agency";
+import { DEFAULT_AGENCY_PROFILE, type AgencyProfile } from "@/lib/agency";
 import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
 
@@ -63,7 +60,9 @@ function AgencySettingsPage() {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_AGENCY_PROFILE.primary_color);
   const [contactEmail, setContactEmail] = useState(DEFAULT_AGENCY_PROFILE.contact_email || "");
-  const [reportFooterText, setReportFooterText] = useState(DEFAULT_AGENCY_PROFILE.report_footer_text || "");
+  const [reportFooterText, setReportFooterText] = useState(
+    DEFAULT_AGENCY_PROFILE.report_footer_text || "",
+  );
 
   const [saving, setSaving] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -74,6 +73,7 @@ function AgencySettingsPage() {
   // Load existing profile and subscription
   useEffect(() => {
     if (!user) return;
+    const currentUserId = user.id;
     let active = true;
 
     async function fetchData() {
@@ -81,13 +81,13 @@ function AgencySettingsPage() {
       try {
         // 1. Fetch user subscription
         const { data: sub } = await supabase
-          .from("subscriptions" as any)
+          .from("subscriptions" as never)
           .select("plan, status")
-          .eq("user_id", user?.id)
+          .eq("user_id", currentUserId)
           .maybeSingle();
 
         if (active && sub) {
-          const p = (sub as any).plan;
+          const p = (sub as { plan?: string } | null)?.plan;
           if (p === "agency" || p === "pro" || p === "free") {
             setUserPlan(p);
           }
@@ -95,9 +95,9 @@ function AgencySettingsPage() {
 
         // 2. Fetch agency profile
         const { data: profile } = await supabase
-          .from("agency_profiles" as any)
+          .from("agency_profiles" as never)
           .select("*")
-          .eq("user_id", user?.id)
+          .eq("user_id", currentUserId)
           .maybeSingle();
 
         if (active && profile) {
@@ -106,7 +106,9 @@ function AgencySettingsPage() {
           setLogoUrl(prof.logo_url || "");
           setPrimaryColor(prof.primary_color || DEFAULT_AGENCY_PROFILE.primary_color);
           setContactEmail(prof.contact_email || user?.email || "");
-          setReportFooterText(prof.report_footer_text || DEFAULT_AGENCY_PROFILE.report_footer_text || "");
+          setReportFooterText(
+            prof.report_footer_text || DEFAULT_AGENCY_PROFILE.report_footer_text || "",
+          );
         } else if (active && user?.email) {
           setContactEmail(user.email);
         }
@@ -149,8 +151,8 @@ function AgencySettingsPage() {
       };
 
       const { error } = await supabase
-        .from("agency_profiles" as any)
-        .upsert(payload, { onConflict: "user_id" });
+        .from("agency_profiles" as never)
+        .upsert(payload as never, { onConflict: "user_id" });
 
       if (error) {
         throw error;
@@ -190,7 +192,8 @@ function AgencySettingsPage() {
               Nastavenia agentúry & Branding
             </h1>
             <p className="mt-1.5 text-sm text-muted-foreground max-w-2xl">
-              Prispôsobte si vzhľad mesačných SEO reportov pre vašich klientov. Každý exportovaný PDF report bude niesť logo, kontakty a farby vašej agentúry bez loga SEO4WEB.
+              Prispôsobte si vzhľad mesačných SEO reportov pre vašich klientov. Každý exportovaný
+              PDF report bude niesť logo, kontakty a farby vašej agentúry bez loga SEO4WEB.
             </p>
           </div>
 
@@ -210,7 +213,11 @@ function AgencySettingsPage() {
               className="gap-1.5 text-xs font-semibold text-white shadow-sm"
               style={{ backgroundColor: primaryColor }}
             >
-              {saving ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+              {saving ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Check className="size-3.5" />
+              )}
               Uložiť branding
             </Button>
           </div>
@@ -224,10 +231,13 @@ function AgencySettingsPage() {
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                   Váš aktuálny balík: {userPlan.toUpperCase()}
                 </span>
-                <span className="text-xs text-muted-foreground">· Whitelabel PDF je funkcia balíka Agency</span>
+                <span className="text-xs text-muted-foreground">
+                  · Whitelabel PDF je funkcia balíka Agency
+                </span>
               </div>
               <p className="text-sm font-medium text-foreground">
-                Získajte neobmedzené klientske PDF reporty s vlastným logom a neobmedzený počet sledovaných webov.
+                Získajte neobmedzené klientske PDF reporty s vlastným logom a neobmedzený počet
+                sledovaných webov.
               </p>
             </div>
             <Button
@@ -254,7 +264,8 @@ function AgencySettingsPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="agencyName" className="text-xs font-medium">
-                    Názov marketingovej / SEO agentúry <span className="text-danger-foreground">*</span>
+                    Názov marketingovej / SEO agentúry{" "}
+                    <span className="text-danger-foreground">*</span>
                   </Label>
                   <Input
                     id="agencyName"
@@ -264,7 +275,8 @@ function AgencySettingsPage() {
                     required
                   />
                   <p className="text-[11px] text-muted-foreground">
-                    Tento názov bude uvedený na titulnej strane a v záhlaví každého vygenerovaného PDF reportu.
+                    Tento názov bude uvedený na titulnej strane a v záhlaví každého vygenerovaného
+                    PDF reportu.
                   </p>
                 </div>
 
@@ -282,7 +294,8 @@ function AgencySettingsPage() {
                     />
                   </div>
                   <p className="text-[11px] text-muted-foreground">
-                    Odporúčaný formát: horizontálne logo s transparentným pozadím na svetlom podklade.
+                    Odporúčaný formát: horizontálne logo s transparentným pozadím na svetlom
+                    podklade.
                   </p>
                 </div>
 
@@ -408,7 +421,11 @@ function AgencySettingsPage() {
                 <div className="flex items-center justify-between border-b pb-3">
                   <div className="flex items-center gap-2">
                     {logoUrl ? (
-                      <img src={logoUrl} alt={agencyName} className="h-7 max-w-[100px] object-contain" />
+                      <img
+                        src={logoUrl}
+                        alt={agencyName}
+                        className="h-7 max-w-[100px] object-contain"
+                      />
                     ) : (
                       <div
                         className="flex size-7 items-center justify-center rounded font-bold text-white text-[11px]"
@@ -418,8 +435,12 @@ function AgencySettingsPage() {
                       </div>
                     )}
                     <div>
-                      <div className="font-bold text-foreground text-xs leading-none">{agencyName}</div>
-                      <div className="text-[10px] text-muted-foreground mt-0.5">{contactEmail || "info@agentura.sk"}</div>
+                      <div className="font-bold text-foreground text-xs leading-none">
+                        {agencyName}
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-0.5">
+                        {contactEmail || "info@agentura.sk"}
+                      </div>
                     </div>
                   </div>
                   <span className="text-[10px] text-muted-foreground">90-dňový audit</span>
@@ -461,7 +482,9 @@ function AgencySettingsPage() {
 
                 {/* Footer preview snippet */}
                 <div className="border-t pt-3 text-[10px] text-center text-muted-foreground">
-                  <p className="italic">{reportFooterText || DEFAULT_AGENCY_PROFILE.report_footer_text}</p>
+                  <p className="italic">
+                    {reportFooterText || DEFAULT_AGENCY_PROFILE.report_footer_text}
+                  </p>
                 </div>
               </div>
 

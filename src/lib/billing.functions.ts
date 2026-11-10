@@ -61,7 +61,8 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
     // Fallback URL builder
     const fallbackOrigin = process.env.SITE_URL || "https://seo4web.lovable.app";
     const successUrl =
-      data.successUrl || `${fallbackOrigin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+      data.successUrl ||
+      `${fallbackOrigin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`;
     const cancelUrl = data.cancelUrl || `${fallbackOrigin}/dashboard?payment=cancelled`;
 
     // If Stripe is not yet configured with secret key, return a mock checkout session in dev/demo

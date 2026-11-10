@@ -38,9 +38,7 @@ export async function forwardToSlovakInvoicing(
   const amountTotal = (session.amount_total ?? 3900) / 100;
   const currency = (session.currency ?? "eur").toUpperCase();
 
-  const isReverseCharge = Boolean(
-    metadata.icDph && !metadata.icDph.toUpperCase().startsWith("SK"),
-  );
+  const isReverseCharge = Boolean(metadata.icDph && !metadata.icDph.toUpperCase().startsWith("SK"));
 
   const invoiceData = {
     Invoice: {
@@ -108,10 +106,15 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
         if (!stripe || !webhookSecret) {
-          console.warn("Stripe webhook received but STRIPE_SECRET_KEY or WEBHOOK_SECRET is missing.");
-          return new Response(JSON.stringify({ received: true, note: "Stripe keys not configured" }), {
-            headers: { "Content-Type": "application/json" },
-          });
+          console.warn(
+            "Stripe webhook received but STRIPE_SECRET_KEY or WEBHOOK_SECRET is missing.",
+          );
+          return new Response(
+            JSON.stringify({ received: true, note: "Stripe keys not configured" }),
+            {
+              headers: { "Content-Type": "application/json" },
+            },
+          );
         }
 
         const signature = request.headers.get("stripe-signature");

@@ -1,10 +1,5 @@
 import { Fragment, useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Printer,
@@ -59,7 +54,17 @@ export function ClientReportModal({
   summary,
 }: ClientReportModalProps) {
   const [agency, setAgency] = useState<AgencyProfile>(DEFAULT_AGENCY_PROFILE);
-  const [experiments, setExperiments] = useState<any[]>([]);
+  const [experiments, setExperiments] = useState<
+    Array<{
+      id: string;
+      page_url: string;
+      implemented_at: string;
+      target_queries?: string[];
+      changes?: string;
+      status?: string;
+      baseline?: { clicks?: number; position?: number };
+    }>
+  >([]);
   const [loading, setLoading] = useState(false);
 
   // Load agency profile and experiments
@@ -77,7 +82,7 @@ export function ClientReportModal({
         if (user) {
           // 1. Fetch agency profile
           const { data: profile } = await supabase
-            .from("agency_profiles" as any)
+            .from("agency_profiles" as never)
             .select("*")
             .eq("user_id", user.id)
             .maybeSingle();
@@ -95,7 +100,7 @@ export function ClientReportModal({
             .limit(10);
 
           if (active && exps) {
-            setExperiments(exps);
+            setExperiments(exps as never);
           }
         }
       } catch (err) {
@@ -142,7 +147,9 @@ export function ClientReportModal({
                 Mesačný SEO Report pre klienta
               </DialogTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
-                Branding agentúry: <span className="font-medium text-foreground">{report.agency.name}</span> · Web: {report.client.domain}
+                Branding agentúry:{" "}
+                <span className="font-medium text-foreground">{report.agency.name}</span> · Web:{" "}
+                {report.client.domain}
               </p>
             </div>
           </div>
@@ -217,7 +224,10 @@ export function ClientReportModal({
                     <span>90-dňové porovnávacie obdobie</span>
                   </div>
                   <p className="mt-2 text-xs text-muted-foreground print:text-gray-500">
-                    Vygenerované: <span className="font-medium text-foreground print:text-black">{report.client.generatedAt}</span>
+                    Vygenerované:{" "}
+                    <span className="font-medium text-foreground print:text-black">
+                      {report.client.generatedAt}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -246,7 +256,8 @@ export function ClientReportModal({
                       SEO Health Index
                     </div>
                     <div className="text-2xl font-black">
-                      {report.executiveSummary.healthIndex} <span className="text-sm font-normal opacity-80">/ 100</span>
+                      {report.executiveSummary.healthIndex}{" "}
+                      <span className="text-sm font-normal opacity-80">/ 100</span>
                     </div>
                     <div className="text-[11px] font-medium opacity-90">
                       Stav: {report.executiveSummary.healthStatus}
@@ -260,7 +271,9 @@ export function ClientReportModal({
             <section className="py-8 border-b border-border/80 print:py-6">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="size-5" style={{ color: report.agency.primaryColor }} />
-                <h3 className="text-lg font-bold tracking-tight">Výkonnostný sumár (Executive Summary)</h3>
+                <h3 className="text-lg font-bold tracking-tight">
+                  Výkonnostný sumár (Executive Summary)
+                </h3>
               </div>
 
               <p className="text-sm leading-relaxed text-muted-foreground print:text-gray-700 mb-6 bg-muted/40 p-4 rounded-lg border border-border/40 print:bg-gray-50">
@@ -270,20 +283,24 @@ export function ClientReportModal({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Organické kliknutia */}
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm print:bg-white print:border-gray-200">
-                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">Organické kliky</div>
+                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">
+                    Organické kliky
+                  </div>
                   <div className="mt-1.5 text-2xl font-bold tracking-tight">
                     {fmt(report.executiveSummary.clicksNow)}
                   </div>
                   <div className="mt-1.5 flex items-center gap-1 text-xs font-semibold">
                     {report.executiveSummary.clicksDelta >= 0 ? (
                       <span className="flex items-center text-success-foreground">
-                        <ArrowUpRight className="size-3.5" />
-                        +{fmt(report.executiveSummary.clicksDelta)} ({report.executiveSummary.clicksDeltaPct.toFixed(1)}%)
+                        <ArrowUpRight className="size-3.5" />+
+                        {fmt(report.executiveSummary.clicksDelta)} (
+                        {report.executiveSummary.clicksDeltaPct.toFixed(1)}%)
                       </span>
                     ) : (
                       <span className="flex items-center text-danger-foreground">
                         <ArrowDownRight className="size-3.5" />
-                        {fmt(report.executiveSummary.clicksDelta)} ({report.executiveSummary.clicksDeltaPct.toFixed(1)}%)
+                        {fmt(report.executiveSummary.clicksDelta)} (
+                        {report.executiveSummary.clicksDeltaPct.toFixed(1)}%)
                       </span>
                     )}
                   </div>
@@ -291,20 +308,24 @@ export function ClientReportModal({
 
                 {/* Impresie */}
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm print:bg-white print:border-gray-200">
-                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">Zobrazenia (Impresie)</div>
+                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">
+                    Zobrazenia (Impresie)
+                  </div>
                   <div className="mt-1.5 text-2xl font-bold tracking-tight">
                     {fmt(report.executiveSummary.impressionsNow)}
                   </div>
                   <div className="mt-1.5 flex items-center gap-1 text-xs font-semibold">
                     {report.executiveSummary.impressionsDelta >= 0 ? (
                       <span className="flex items-center text-success-foreground">
-                        <ArrowUpRight className="size-3.5" />
-                        +{fmt(report.executiveSummary.impressionsDelta)} ({report.executiveSummary.impressionsDeltaPct.toFixed(1)}%)
+                        <ArrowUpRight className="size-3.5" />+
+                        {fmt(report.executiveSummary.impressionsDelta)} (
+                        {report.executiveSummary.impressionsDeltaPct.toFixed(1)}%)
                       </span>
                     ) : (
                       <span className="flex items-center text-danger-foreground">
                         <ArrowDownRight className="size-3.5" />
-                        {fmt(report.executiveSummary.impressionsDelta)} ({report.executiveSummary.impressionsDeltaPct.toFixed(1)}%)
+                        {fmt(report.executiveSummary.impressionsDelta)} (
+                        {report.executiveSummary.impressionsDeltaPct.toFixed(1)}%)
                       </span>
                     )}
                   </div>
@@ -312,7 +333,9 @@ export function ClientReportModal({
 
                 {/* Priemerná pozícia */}
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm print:bg-white print:border-gray-200">
-                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">Priemerná pozícia</div>
+                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">
+                    Priemerná pozícia
+                  </div>
                   <div className="mt-1.5 text-2xl font-bold tracking-tight">
                     {report.executiveSummary.avgPositionNow.toFixed(1)}
                   </div>
@@ -324,8 +347,8 @@ export function ClientReportModal({
                       </span>
                     ) : report.executiveSummary.avgPositionDelta > 0 ? (
                       <span className="flex items-center text-danger-foreground">
-                        <ArrowDownRight className="size-3.5" />
-                        +{report.executiveSummary.avgPositionDelta.toFixed(1)} pokles
+                        <ArrowDownRight className="size-3.5" />+
+                        {report.executiveSummary.avgPositionDelta.toFixed(1)} pokles
                       </span>
                     ) : (
                       <span className="text-muted-foreground">stabilná pozícia</span>
@@ -335,7 +358,9 @@ export function ClientReportModal({
 
                 {/* Počet URL */}
                 <div className="rounded-xl border border-border bg-card p-4 shadow-sm print:bg-white print:border-gray-200">
-                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">Analyzované URL</div>
+                  <div className="text-xs text-muted-foreground print:text-gray-500 font-medium">
+                    Analyzované URL
+                  </div>
                   <div className="mt-1.5 text-2xl font-bold tracking-tight">
                     {report.executiveSummary.totalPages}
                   </div>
@@ -351,7 +376,9 @@ export function ClientReportModal({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Sparkles className="size-5" style={{ color: report.agency.primaryColor }} />
-                  <h3 className="text-lg font-bold tracking-tight">Top víťazi mesiaca (Rastúce výrazy & URL)</h3>
+                  <h3 className="text-lg font-bold tracking-tight">
+                    Top víťazi mesiaca (Rastúce výrazy & URL)
+                  </h3>
                 </div>
                 <span className="text-xs text-muted-foreground print:text-gray-500">
                   Najväčší nárast organických kliknutí
@@ -359,7 +386,9 @@ export function ClientReportModal({
               </div>
 
               {report.topWinners.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-3">Zatiaľ nie sú zaznamenané výrazné skoky v klikoch.</p>
+                <p className="text-sm text-muted-foreground py-3">
+                  Zatiaľ nie sú zaznamenané výrazné skoky v klikoch.
+                </p>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border/80 print:border-gray-200">
                   <table className="w-full text-left text-sm">
@@ -376,13 +405,17 @@ export function ClientReportModal({
                       {report.topWinners.map((w, idx) => (
                         <tr key={idx} className="hover:bg-muted/20 print:hover:bg-transparent">
                           <td className="py-2.5 px-3.5">
-                            <div className="font-semibold text-foreground print:text-black">{w.query}</div>
+                            <div className="font-semibold text-foreground print:text-black">
+                              {w.query}
+                            </div>
                             <div className="text-xs text-muted-foreground truncate max-w-sm print:text-gray-600">
                               {w.url.replace(/^https?:\/\/[^/]+/i, "")}
                             </div>
                           </td>
                           <td className="py-2.5 px-3.5 text-right font-bold">{fmt(w.clicksNow)}</td>
-                          <td className="py-2.5 px-3.5 text-right text-muted-foreground print:text-gray-500">{fmt(w.clicksPrev)}</td>
+                          <td className="py-2.5 px-3.5 text-right text-muted-foreground print:text-gray-500">
+                            {fmt(w.clicksPrev)}
+                          </td>
                           <td className="py-2.5 px-3.5 text-right font-semibold text-success-foreground">
                             +{fmt(w.clicksDelta)}
                           </td>
@@ -407,7 +440,9 @@ export function ClientReportModal({
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <Target className="size-5" style={{ color: report.agency.primaryColor }} />
-                  <h3 className="text-lg font-bold tracking-tight">Odhalené príležitosti (Striking Distance — pozície 4–15)</h3>
+                  <h3 className="text-lg font-bold tracking-tight">
+                    Odhalené príležitosti (Striking Distance — pozície 4–15)
+                  </h3>
                 </div>
                 <span className="text-xs text-muted-foreground print:text-gray-500">
                   Vysoké zobrazenia s potenciálom rýchleho skoku
@@ -415,7 +450,9 @@ export function ClientReportModal({
               </div>
 
               {report.opportunities.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-3">Žiadne dopyty v Striking Distance nevyžadujú okamžitý zásah.</p>
+                <p className="text-sm text-muted-foreground py-3">
+                  Žiadne dopyty v Striking Distance nevyžadujú okamžitý zásah.
+                </p>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border/80 print:border-gray-200">
                   <table className="w-full text-left text-sm">
@@ -432,7 +469,9 @@ export function ClientReportModal({
                       {report.opportunities.map((o, idx) => (
                         <tr key={idx} className="hover:bg-muted/20 print:hover:bg-transparent">
                           <td className="py-2.5 px-3.5">
-                            <div className="font-semibold text-foreground print:text-black">{o.query}</div>
+                            <div className="font-semibold text-foreground print:text-black">
+                              {o.query}
+                            </div>
                             <div className="text-xs text-muted-foreground truncate max-w-xs print:text-gray-600">
                               {o.url.replace(/^https?:\/\/[^/]+/i, "")}
                             </div>
@@ -442,7 +481,9 @@ export function ClientReportModal({
                               {o.position.toFixed(1)}
                             </span>
                           </td>
-                          <td className="py-2.5 px-3.5 text-right font-medium">{fmt(o.impressions)}</td>
+                          <td className="py-2.5 px-3.5 text-right font-medium">
+                            {fmt(o.impressions)}
+                          </td>
                           <td className="py-2.5 px-3.5 text-right font-bold text-success-foreground">
                             {o.potentialGrowth}
                           </td>
@@ -461,7 +502,9 @@ export function ClientReportModal({
             <section className="py-8 border-b border-border/80 print:py-6 break-inside-avoid">
               <div className="flex items-center gap-2 mb-4">
                 <CheckCircle2 className="size-5" style={{ color: report.agency.primaryColor }} />
-                <h3 className="text-lg font-bold tracking-tight">Realizované optimalizácie v sledovanom období</h3>
+                <h3 className="text-lg font-bold tracking-tight">
+                  Realizované optimalizácie v sledovanom období
+                </h3>
               </div>
 
               <div className="space-y-3">
@@ -501,7 +544,9 @@ export function ClientReportModal({
             <section className="py-8 border-b border-border/80 print:py-6 break-inside-avoid">
               <div className="flex items-center gap-2 mb-4">
                 <Layers className="size-5" style={{ color: report.agency.primaryColor }} />
-                <h3 className="text-lg font-bold tracking-tight">Strategické odporúčania a akčný plán na ďalší mesiac</h3>
+                <h3 className="text-lg font-bold tracking-tight">
+                  Strategické odporúčania a akčný plán na ďalší mesiac
+                </h3>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -511,7 +556,9 @@ export function ClientReportModal({
                     className="rounded-lg border border-border/70 p-4 bg-muted/20 print:bg-white print:border-gray-200 space-y-1.5"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="font-bold text-sm text-foreground print:text-black">{rec.title}</h4>
+                      <h4 className="font-bold text-sm text-foreground print:text-black">
+                        {rec.title}
+                      </h4>
                       <span
                         className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded text-white"
                         style={{ backgroundColor: report.agency.primaryColor }}
@@ -536,10 +583,14 @@ export function ClientReportModal({
                 {report.agency.footerText}
               </p>
               <p className="mt-1">
-                Otázky a konzultácie k reportu: <span className="font-semibold text-foreground print:text-black">{report.agency.contactEmail}</span>
+                Otázky a konzultácie k reportu:{" "}
+                <span className="font-semibold text-foreground print:text-black">
+                  {report.agency.contactEmail}
+                </span>
               </p>
               <p className="mt-2 text-[10px] opacity-75">
-                Tento dokument je dôverný a určený výhradne pre klienta {report.client.domain}. Všetky práva vyhradené © {new Date().getFullYear()} {report.agency.name}.
+                Tento dokument je dôverný a určený výhradne pre klienta {report.client.domain}.
+                Všetky práva vyhradené © {new Date().getFullYear()} {report.agency.name}.
               </p>
             </footer>
           </article>

@@ -374,10 +374,7 @@ function DashboardPage() {
                 Mesačný PDF Report
               </Button>
             )}
-            <Button
-              onClick={() => setPaywallOpen(true)}
-              className="gap-1.5 font-medium shadow-sm"
-            >
+            <Button onClick={() => setPaywallOpen(true)} className="gap-1.5 font-medium shadow-sm">
               <Sparkles className="size-4" />
               Aktivovať Pro (39 €)
             </Button>

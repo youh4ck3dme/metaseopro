@@ -1,9 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  clearSemrushMemoryCache,
-  getCachedDomainSnapshot,
-  SemrushError,
-} from "./semrush.server";
+import { clearSemrushMemoryCache, getCachedDomainSnapshot, SemrushError } from "./semrush.server";
 
 describe("Semrush intelligent cache & quota protection", () => {
   beforeEach(() => {

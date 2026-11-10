@@ -39,17 +39,20 @@ bun run build
 Projekt je prepojený s GitHub repozitárom [`youh4ck3dme/metaseopro`](https://github.com/youh4ck3dme/metaseopro) na hlavnej vetve `main` a cloudovým prostredím **Lovable Cloud**. Pre bezproblémovú synchronizáciu bez konfliktov a rozdvojených vetiev striktne dodržuj tento **trojkrokový workflow**:
 
 ### 1. Pred začiatkom práce vždy stiahnuť zmeny (z Lovable / GitHubu)
+
 ```bash
 git pull --rebase origin main
 ```
 
 ### 2. Po úpravách overiť integritu a funkčnosť
+
 ```bash
 bunx vitest run
 bun run tsc --noEmit
 ```
 
 ### 3. Zcommitovať zmeny s GPG podpisom a poslať do main
+
 ```bash
 git add .
 git commit -m "feat/fix: stručný a výstižný popis zmeny"
@@ -79,18 +82,18 @@ git push origin main
 
 ## 📂 Prehľad modulov a routovacej štruktúry
 
-| Cesta | Modul | Kľúčová funkcionalita |
-| :--- | :--- | :--- |
-| `/` | **Blog Writer + SERP Lab** | Tvorba dlhých SEO článkov z kľúčových slov alebo tém; živý Google SERP náhľad (desktop 600px / mobil 520px) s presnou slovenskou diakritikou; A/B/C varianty meta titulkov a popisov; sémantická kontrola pokrytia entít; Schema.org `Article` / `FAQPage` JSON-LD. |
-| `/dashboard` | **SEO Dashboard** | Centrálny prehľad KPI (kliky, impresie, priemerná pozícia, Health index); Opportunity Radar; CTR Booster; zoznam stránok a dopytov; živé skenovanie overených webov zo Search Console. |
-| `/decay` | **Content Decay Radar** | Automatická detekcia podstránok s prepadom návštevnosti (porovnanie dvoch 90-dňových periód s concurrency 4); decay skóre; mapa obnovy hľadaných výrazov; generovanie AI refresh plánu jedným klikom; demo aj live režim. |
-| `/audit` | **SEO Audit domén** | Hĺbková konkurenčná analýza 1–5 domén cez Semrush API; identifikácia content gapu, quick wins a 30/60/90-dňového akčného plánu. |
-| `/plan` | **30-dňový obsahový plán** | Generovanie štruktúrovanej publikačnej stratégie s pillar/cluster architektúrou a search intentom; freemium ochrana (1. deň zadarmo). |
-| `/brief` | **SEO Brief pre copywritera** | Kompletné zadanie pre tvorbu obsahu: analýza SERPu, presná hierarchia H1–H3, LSI kľúčové slová a E-E-A-T signály. |
-| `/raketa` | **SEO Raketa** | On-page inšpekcia URL v reálnom čase, bezpečné serverové načítanie HTML, porovnanie s konkurentom, technické skóre a AI odporúčania na opravu. |
-| `/history` | **História generovaní** | Centrálne úložisko všetkých vytvorených auditov, článkov, briefov a plánov s možnosťou filtrovania, kopírovania a exportu. |
-| `/settings/agency` | **Whitelabel Branding & Agentúra** | Kompletné prispôsobenie identity agentúry (logo, primárna farba, kontaktný e-mail, pätička) pre automatické mesačné SEO reporty pre klientov. |
-| `/login` | **Autentifikácia** | Bezpečné prihlásenie a registrácia používateľov cez e-mail s heslom alebo Google OAuth prostredníctvom Supabase Auth. |
+| Cesta              | Modul                              | Kľúčová funkcionalita                                                                                                                                                                                                                                               |
+| :----------------- | :--------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/`                | **Blog Writer + SERP Lab**         | Tvorba dlhých SEO článkov z kľúčových slov alebo tém; živý Google SERP náhľad (desktop 600px / mobil 520px) s presnou slovenskou diakritikou; A/B/C varianty meta titulkov a popisov; sémantická kontrola pokrytia entít; Schema.org `Article` / `FAQPage` JSON-LD. |
+| `/dashboard`       | **SEO Dashboard**                  | Centrálny prehľad KPI (kliky, impresie, priemerná pozícia, Health index); Opportunity Radar; CTR Booster; zoznam stránok a dopytov; živé skenovanie overených webov zo Search Console.                                                                              |
+| `/decay`           | **Content Decay Radar**            | Automatická detekcia podstránok s prepadom návštevnosti (porovnanie dvoch 90-dňových periód s concurrency 4); decay skóre; mapa obnovy hľadaných výrazov; generovanie AI refresh plánu jedným klikom; demo aj live režim.                                           |
+| `/audit`           | **SEO Audit domén**                | Hĺbková konkurenčná analýza 1–5 domén cez Semrush API; identifikácia content gapu, quick wins a 30/60/90-dňového akčného plánu.                                                                                                                                     |
+| `/plan`            | **30-dňový obsahový plán**         | Generovanie štruktúrovanej publikačnej stratégie s pillar/cluster architektúrou a search intentom; freemium ochrana (1. deň zadarmo).                                                                                                                               |
+| `/brief`           | **SEO Brief pre copywritera**      | Kompletné zadanie pre tvorbu obsahu: analýza SERPu, presná hierarchia H1–H3, LSI kľúčové slová a E-E-A-T signály.                                                                                                                                                   |
+| `/raketa`          | **SEO Raketa**                     | On-page inšpekcia URL v reálnom čase, bezpečné serverové načítanie HTML, porovnanie s konkurentom, technické skóre a AI odporúčania na opravu.                                                                                                                      |
+| `/history`         | **História generovaní**            | Centrálne úložisko všetkých vytvorených auditov, článkov, briefov a plánov s možnosťou filtrovania, kopírovania a exportu.                                                                                                                                          |
+| `/settings/agency` | **Whitelabel Branding & Agentúra** | Kompletné prispôsobenie identity agentúry (logo, primárna farba, kontaktný e-mail, pätička) pre automatické mesačné SEO reporty pre klientov.                                                                                                                       |
+| `/login`           | **Autentifikácia**                 | Bezpečné prihlásenie a registrácia používateľov cez e-mail s heslom alebo Google OAuth prostredníctvom Supabase Auth.                                                                                                                                               |
 
 ---
 
@@ -100,7 +103,7 @@ Mozgom vyhodnocovania SEO príležitostí je modul [`src/lib/opportunity.ts`](fi
 
 1. **Celoslovenská geografická inteligencia (Žiadne hardkódovanie):**
    - Databáza `LOCATIONS` zahŕňa **všetky krajské a okresné mestá Slovenska** (Bratislava, Košice, Prešov, Žilina, Nitra, Banská Bystrica, Trnava, Martin, Poprad, Trenčín, Prievidza a ďalšie).
-   - E-shopy a celoslovenské služby nie sú umelo nútené uvádzať Bratislavu. Ak používateľ alebo dopyt definuje konkrétnu lokalitu (napr. *„autoservis košice“*), systém striktne overí prítomnosť daného mesta.
+   - E-shopy a celoslovenské služby nie sú umelo nútené uvádzať Bratislavu. Ak používateľ alebo dopyt definuje konkrétnu lokalitu (napr. _„autoservis košice“_), systém striktne overí prítomnosť daného mesta.
 2. **Presná kalkulácia pixelovej šírky SERP Snippetov:**
    - Funkcia `textPixelWidth()` používa kalibrovanú proporcionálnu tabuľku glyphov pre font Arial (Desktop 20px / Snippet 14px).
    - Plná podpora znakov slovenskej abecedy vrátane diakritiky:
@@ -109,10 +112,10 @@ Mozgom vyhodnocovania SEO príležitostí je modul [`src/lib/opportunity.ts`](fi
      - Široké znaky (`m`, `w`, `M`, `W`, `@`): 15px–16px.
    - Zaručuje 99%+ zhodu s reálnym orezaním titulkov a meta popisov v slovenskom Google.
 3. **Kategorizácia príležitostí:**
-   - *Quick win* (vysoký potenciál pri malom posune pozície).
-   - *Striking distance* (pozície 4–15 s vysokými impresiami).
-   - *Zero clicks* (výrazné impresie bez prekliku – nutnosť optimalizácie CTR).
-   - *Protect winner* (pozície v TOP 3 vyžadujúce ochranu pred konkurenciou).
+   - _Quick win_ (vysoký potenciál pri malom posune pozície).
+   - _Striking distance_ (pozície 4–15 s vysokými impresiami).
+   - _Zero clicks_ (výrazné impresie bez prekliku – nutnosť optimalizácie CTR).
+   - _Protect winner_ (pozície v TOP 3 vyžadujúce ochranu pred konkurenciou).
 4. **Detekcia keyword kanibalizácie & interného prelinkovania:**
    - Detekuje konflikt dvoch podstránok súťažiacich o rovnaký dopyt alebo podobný URL slug.
    - Navrhuje cielené anchor texty a logické prelinkovanie z autoritatívnych stránok na konverzné landing pages.
@@ -127,19 +130,23 @@ Mozgom vyhodnocovania SEO príležitostí je modul [`src/lib/opportunity.ts`](fi
 Platforma spracováva dôverné dáta o návštevnosti firiem, preto implementuje striktné bezpečnostné pravidlá:
 
 ### 1. Multi-Tenant GSC Izolácia (`src/lib/gsc.server.ts`)
+
 - **Prevencia úniku dát:** Každá požiadavka na `/api/decay-gsc-properties` a `/api/decay-analyze` striktne overuje vlastníctvo a autorizáciu používateľa (`listUserVerifiedProperties`, `assertUserPropertyAccess`).
 - Bežní používatelia vidia **výhradne svoje vlastné autorizované weby**. Prístup ku kmeňovým doménam správcu je pre cudzích používateľov zablokovaný (`403 Forbidden`).
 - Administrátori sú konfigurovaní cez bezpečné premenné `ADMIN_EMAILS` a `ADMIN_USER_IDS`.
 
 ### 2. Pamäťovo bezpečný Rate Limiting na Edge (`src/lib/rate-limit.server.ts`)
+
 - Cloudflare Workers bežia v efemérnych izolátoch s limitom 128 MB RAM.
 - Rate limiter obsahuje **LRU auto-pruning** s horným stropom `MAX_BUCKETS = 2000`, ktorý pri dosiahnutí limitu automaticky vymaže expirované záznamy a chráni worker pred memory leakom.
 - Funkcia `checkCompositeRateLimit()` kombinuje overenie `userId` a reálnej klientskej IP získanej z hlavičiek (`cf-connecting-ip`, `x-real-ip`).
 
 ### 3. Zrýchlenie a odolnosť voči timeoutom
+
 - Skenovanie dopytov v Decay Radare využíva **paralelné dávkovanie (concurrency: 4)** namiesto pomalého sekvenčného cyklu, čím sa čas skenovania skrátil z 18 sekúnd na cca 4 sekundy.
 
 ### 4. Inteligentné Semrush Caching vrstvenie & Circuit Breaker (`src/lib/semrush.server.ts`)
+
 - **Databázová cache tabuľka (`semrush_domain_cache`):** Ukladá kompletné snapshoty (organické kľúčové slová, spätné odkazy, konkurenti) s TTL 7 dní.
 - **Quota Protection & Circuit Breaker:** Pri chybe 429 alebo vyčerpaní Semrush kreditov (ERROR 134) systém automaticky degraduje a servuje starší uložený snapshot s príznakom `stale: true`, čím predchádza pádom aplikácie pre používateľov.
 
@@ -186,13 +193,14 @@ SEO4WEB obsahuje vstavaný **Whitelabel Report Engine** (`src/lib/agency.ts`, `s
 
 Projekt striktne oddeľuje verejné konfigurácie od privátnych tajných kľúčov:
 
-| Súbor | Účel | V Gite? |
-| :--- | :--- | :--- |
-| `.env` | Verejné frontend & SSR premenné (`VITE_SUPABASE_*`, `SUPABASE_*`) | **ÁNO** (sledovaný) |
-| `.env.example` | Kompletná šablóna premenných s podrobným popisom | **ÁNO** (sledovaný) |
-| `.env.local` | Lokálne prepisy a privátne API kľúče pre offline vývoj | **NIE** (v `.gitignore`) |
+| Súbor          | Účel                                                              | V Gite?                  |
+| :------------- | :---------------------------------------------------------------- | :----------------------- |
+| `.env`         | Verejné frontend & SSR premenné (`VITE_SUPABASE_*`, `SUPABASE_*`) | **ÁNO** (sledovaný)      |
+| `.env.example` | Kompletná šablóna premenných s podrobným popisom                  | **ÁNO** (sledovaný)      |
+| `.env.local`   | Lokálne prepisy a privátne API kľúče pre offline vývoj            | **NIE** (v `.gitignore`) |
 
 ### Verejné premenné (`.env`):
+
 ```env
 VITE_SUPABASE_PROJECT_ID=pwftbssvdbjoblmhdeax
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_HXyJkq0uW4KXylZnSwiAjg_k4dFbYYS
@@ -204,6 +212,7 @@ SUPABASE_URL=https://pwftbssvdbjoblmhdeax.supabase.co
 ```
 
 ### Tajné kľúče (Secrets):
+
 Privátne kľúče (`LOVABLE_API_KEY`, `SEMRUSH_API_KEY`, `GOOGLE_SEARCH_CONSOLE_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `ADMIN_EMAILS`) sú spravované výhradne v **Lovable Cloud Secrets** a v prostredí Cloudflare Workers. **Nikdy ich nevkladaj do `.env` ani do git commitov!**
 
 ---
@@ -227,12 +236,12 @@ Privátne kľúče (`LOVABLE_API_KEY`, `SEMRUSH_API_KEY`, `GOOGLE_SEARCH_CONSOLE
 
 SEO4WEB je stavaný pre dosiahnutie obratu **9 000 €+ mesačne (MRR)** prostredníctvom troch cielených B2B úrovní:
 
-| Úroveň | Cena / mesiac | Cieľová skupina | Funkcionalita | Potrebný počet klientov |
-| :--- | :--- | :--- | :--- | :--- |
-| **Štart** | **39 €** | Malé firemné weby, blogeri, freelanceri | 1 doména, mesačný Decay Radar, 5 AI SEO článkov, SERP Lab | 35 klientov (~1 365 €) |
-| **Pro** | **89 €** | Rastúce e-shopy, lokálne firmy | 3 domény, týždenný Decay Radar, neobmedzený SERP Lab, Opportunity Engine, CTR Booster | 40 klientov (~3 560 €) |
-| **Agency Whitelabel** | **249 €** | Digitálne a SEO agentúry | 15 domén, Whitelabel PDF reporty s logom agentúry na 1 klik, prioritné API, multi-user prístup | 17 agentúr (~4 233 €) |
-| **SPOLU** | — | — | — | **92 klientov = 9 158 € / mesiac** |
+| Úroveň                | Cena / mesiac | Cieľová skupina                         | Funkcionalita                                                                                  | Potrebný počet klientov            |
+| :-------------------- | :------------ | :-------------------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------------------- |
+| **Štart**             | **39 €**      | Malé firemné weby, blogeri, freelanceri | 1 doména, mesačný Decay Radar, 5 AI SEO článkov, SERP Lab                                      | 35 klientov (~1 365 €)             |
+| **Pro**               | **89 €**      | Rastúce e-shopy, lokálne firmy          | 3 domény, týždenný Decay Radar, neobmedzený SERP Lab, Opportunity Engine, CTR Booster          | 40 klientov (~3 560 €)             |
+| **Agency Whitelabel** | **249 €**     | Digitálne a SEO agentúry                | 15 domén, Whitelabel PDF reporty s logom agentúry na 1 klik, prioritné API, multi-user prístup | 17 agentúr (~4 233 €)              |
+| **SPOLU**             | —             | —                                       | —                                                                                              | **92 klientov = 9 158 € / mesiac** |
 
 ---
 

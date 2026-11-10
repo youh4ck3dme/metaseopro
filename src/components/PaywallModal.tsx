@@ -154,13 +154,17 @@ export function PaywallModal({
               className="text-xs text-primary font-medium hover:underline flex items-center gap-1"
             >
               <ShieldCheck className="size-3.5" />
-              {showBilling ? "Skryť firemné fakturačné údaje" : "Zadať firemné údaje (IČO, DIČ pre faktúru)"}
+              {showBilling
+                ? "Skryť firemné fakturačné údaje"
+                : "Zadať firemné údaje (IČO, DIČ pre faktúru)"}
             </button>
 
             {showBilling && (
               <div className="mt-3 space-y-3 rounded-lg border p-3.5 bg-background">
                 <div>
-                  <Label htmlFor="companyName" className="text-xs">Názov firmy / SZČO</Label>
+                  <Label htmlFor="companyName" className="text-xs">
+                    Názov firmy / SZČO
+                  </Label>
                   <Input
                     id="companyName"
                     placeholder="napr. Moja Firma s.r.o."
@@ -171,7 +175,9 @@ export function PaywallModal({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <Label htmlFor="ico" className="text-xs">IČO</Label>
+                    <Label htmlFor="ico" className="text-xs">
+                      IČO
+                    </Label>
                     <Input
                       id="ico"
                       placeholder="8 číslic (napr. 35763469)"
@@ -181,7 +187,9 @@ export function PaywallModal({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="dic" className="text-xs">DIČ</Label>
+                    <Label htmlFor="dic" className="text-xs">
+                      DIČ
+                    </Label>
                     <Input
                       id="dic"
                       placeholder="10 číslic (napr. 2020273893)"
@@ -192,7 +200,9 @@ export function PaywallModal({
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="icDph" className="text-xs">IČ DPH (nepovinné, pre platcov)</Label>
+                  <Label htmlFor="icDph" className="text-xs">
+                    IČ DPH (nepovinné, pre platcov)
+                  </Label>
                   <Input
                     id="icDph"
                     placeholder="SK2020273893"

@@ -141,7 +141,8 @@ export function validateCompanyBilling(data: {
   }
 
   if (data.dic && !isValidDIC(data.dic)) {
-    errors.dic = "Neplatné DIČ (musí mať 10 číslic, začínať na 10, 20 alebo 21 a byť deliteľné 11).";
+    errors.dic =
+      "Neplatné DIČ (musí mať 10 číslic, začínať na 10, 20 alebo 21 a byť deliteľné 11).";
   }
 
   if (data.icDph && !isValidICDPH(data.icDph)) {

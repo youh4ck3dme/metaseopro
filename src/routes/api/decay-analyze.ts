@@ -66,7 +66,10 @@ export const Route = createFileRoute("/api/decay-analyze")({
             } catch (e) {
               const msg = (e as Error).message;
               if (msg === "GSC_USER_UNAUTHORIZED_FOR_PROPERTY")
-                return err(403, "K tejto Search Console doméne nemáte oprávnenie. Pripojte si vlastnú Search Console.");
+                return err(
+                  403,
+                  "K tejto Search Console doméne nemáte oprávnenie. Pripojte si vlastnú Search Console.",
+                );
               if (msg === "GSC_PROPERTY_NOT_VERIFIED")
                 return err(403, "Táto property nie je overená pre pripojený účet.");
               if (msg === "GSC_FORBIDDEN")

@@ -734,8 +734,7 @@ export function titleWarnings(
     .map((x) => x.slice(0, 5));
 
   const hasIntentOrStem =
-    intentWords.some((k) => t.includes(k)) ||
-    primaryStems.some((s) => t.includes(s));
+    intentWords.some((k) => t.includes(k)) || primaryStems.some((s) => t.includes(s));
 
   if (!hasIntentOrStem) w.push("Title nevyjadruje zámer dopytu.");
 

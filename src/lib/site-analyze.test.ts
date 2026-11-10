@@ -16,9 +16,7 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
   describe("normalizeUrl", () => {
     it("prepends https:// when protocol is missing", () => {
       expect(normalizeUrl("seo4web.sk")).toBe("https://seo4web.sk/");
-      expect(normalizeUrl("subdomain.example.com/path")).toBe(
-        "https://subdomain.example.com/path",
-      );
+      expect(normalizeUrl("subdomain.example.com/path")).toBe("https://subdomain.example.com/path");
     });
 
     it("preserves valid http and https URLs", () => {
@@ -197,7 +195,11 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         });
       });
 
-      const result = await runAnalysis("https://mojweb.sk", "https://konkurent.sk", "seo bratislava");
+      const result = await runAnalysis(
+        "https://mojweb.sk",
+        "https://konkurent.sk",
+        "seo bratislava",
+      );
 
       expect(result.own.url).toBe("https://mojweb.sk/");
       expect(result.competitor).not.toBeNull();

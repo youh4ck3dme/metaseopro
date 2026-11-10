@@ -34,9 +34,7 @@ describe("Decay Radar Analysis (Unit & Regression)", () => {
 
       // clicksDeltaPct calculation verification
       if (row.clicksPrev > 0) {
-        const expectedDelta = Math.round(
-          ((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100,
-        );
+        const expectedDelta = Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100);
         expect(row.clicksDeltaPct).toBe(expectedDelta);
       }
 
