@@ -13,6 +13,7 @@ const NAV = [
   { to: "/plan", label: "Content Plan" },
   { to: "/brief", label: "SEO Brief" },
   { to: "/history", label: "História" },
+  { to: "/settings/agency", label: "Agentúra" },
 ] as const;
 
 export function AppHeader() {

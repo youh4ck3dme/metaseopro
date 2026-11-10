@@ -28,6 +28,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
 import { PaywallModal } from "@/components/PaywallModal";
+import { ClientReportModal } from "@/components/ClientReportModal";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -138,6 +139,7 @@ function DashboardPage() {
   const [scanError, setScanError] = useState("");
   const [scanStage, setScanStage] = useState("");
   const [paywallOpen, setPaywallOpen] = useState(false);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", search: { redirect: "/dashboard" } });
@@ -362,6 +364,16 @@ function DashboardPage() {
               <Plus />
               Analyzovať ďalší web
             </Button>
+            {latest && (
+              <Button
+                variant="outline"
+                onClick={() => setReportModalOpen(true)}
+                className="gap-1.5 font-medium shadow-sm"
+              >
+                <FileText className="size-4 text-primary" />
+                Mesačný PDF Report
+              </Button>
+            )}
             <Button
               onClick={() => setPaywallOpen(true)}
               className="gap-1.5 font-medium shadow-sm"
@@ -523,6 +535,14 @@ function DashboardPage() {
         onOpenChange={setPaywallOpen}
         title="Odomknite neobmedzený počet webov s balíkom Pro"
         description="Bezplatný plán umožňuje sledovanie 1 webu. S balíkom Pro (39 € / mes.) získate sledovanie až 5 webov, neobmedzený Decay Radar a WordPress exporty."
+      />
+
+      <ClientReportModal
+        open={reportModalOpen}
+        onOpenChange={setReportModalOpen}
+        siteUrl={site || latest?.site_url || ""}
+        dataset={latest?.raw_data}
+        summary={m}
       />
     </div>
   );

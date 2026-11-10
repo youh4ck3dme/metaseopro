@@ -27,6 +27,7 @@ import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-ar
 import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
 import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
+import { Route as SettingsAgencyRouteImport } from './routes/settings.agency'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -119,6 +120,11 @@ const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
   path: '/api/raketa-generate',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsAgencyRoute = SettingsAgencyRouteImport.update({
+  id: '/settings/agency',
+  path: '/settings/agency',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/settings/agency': typeof SettingsAgencyRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -165,6 +172,7 @@ export interface FileRoutesByTo {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/settings/agency': typeof SettingsAgencyRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
+  '/settings/agency': typeof SettingsAgencyRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
@@ -210,6 +219,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/settings/agency'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -231,6 +241,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/settings/agency'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
+    | '/settings/agency'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -274,6 +286,7 @@ export interface RootRouteChildren {
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
   ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
+  SettingsAgencyRoute: typeof SettingsAgencyRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
@@ -405,6 +418,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiRaketaGenerateRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/agency': {
+      id: '/settings/agency'
+      path: '/settings/agency'
+      fullPath: '/settings/agency'
+      preLoaderRoute: typeof SettingsAgencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -434,6 +454,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
   ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
+  SettingsAgencyRoute: SettingsAgencyRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport

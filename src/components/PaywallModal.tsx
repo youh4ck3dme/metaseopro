@@ -21,6 +21,7 @@ interface PaywallModalProps {
   title?: string;
   description?: string;
   feature?: string;
+  plan?: "pro" | "agency";
 }
 
 export function PaywallModal({
@@ -29,6 +30,7 @@ export function PaywallModal({
   title = "Odomknite neobmedzený SEO Audit s balíkom Pro",
   description = "Bezplatný plán umožňuje analýzu maximálne 3 URL adries. Upgradujte na Pro a získajte kompletný audit bez obmedzení.",
   feature = "Neobmedzený audit a exporty",
+  plan = "pro",
 }: PaywallModalProps) {
   const [loading, setLoading] = useState(false);
   const [showBilling, setShowBilling] = useState(false);
@@ -37,6 +39,7 @@ export function PaywallModal({
   const [dic, setDic] = useState("");
   const [icDph, setIcDph] = useState("");
 
+  const isAgency = plan === "agency";
   const startCheckout = useServerFn(createCheckoutSession);
 
   const handleUpgrade = async () => {
@@ -60,7 +63,7 @@ export function PaywallModal({
     try {
       const res = await startCheckout({
         data: {
-          plan: "pro",
+          plan,
           companyName: companyName.trim() || undefined,
           ico: ico.trim() || undefined,
           dic: dic.trim() || undefined,
@@ -86,7 +89,9 @@ export function PaywallModal({
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-1">
             <Sparkles className="size-4" />
-            <span>SEO4WEB Pro (39 € / mesiac)</span>
+            <span>
+              {isAgency ? "SEO4WEB Agency (89 € / mesiac)" : "SEO4WEB Pro (39 € / mesiac)"}
+            </span>
           </div>
           <DialogTitle className="text-xl font-bold tracking-tight">{title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground pt-1">
@@ -97,25 +102,48 @@ export function PaywallModal({
         <div className="space-y-4 py-2">
           <div className="rounded-xl border bg-muted/30 p-4 space-y-2.5">
             <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              V balíku Pro získate:
+              {isAgency ? "V balíku Agency získate:" : "V balíku Pro získate:"}
             </div>
             <div className="grid gap-2 text-sm">
-              <div className="flex items-center gap-2">
-                <Check className="size-4 text-success-foreground shrink-0" />
-                <span>Neobmedzená analýza URL a domén (žiadny limit 3 URL)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="size-4 text-success-foreground shrink-0" />
-                <span>Plný Content Decay Radar so živými dátami z Google Search Console</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="size-4 text-success-foreground shrink-0" />
-                <span>Generovanie 30-dňových obsahových plánov a WordPress exporty</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Check className="size-4 text-success-foreground shrink-0" />
-                <span>Slovenská faktúra s odpočtom DPH alebo prenosom daňovej povinnosti</span>
-              </div>
+              {isAgency ? (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Whitelabel mesačné PDF reporty s logom vašej agentúry</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Neobmedzený počet sledovaných klientskych webov a projektov</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Sledovanie konkurencie a prioritné AI SEO generovanie</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Fakturácia so slovenským IČO a odpočtom DPH pre agentúru</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Neobmedzená analýza URL a domén (žiadny limit 3 URL)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Plný Content Decay Radar so živými dátami z Google Search Console</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Generovanie 30-dňových obsahových plánov a WordPress exporty</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Check className="size-4 text-success-foreground shrink-0" />
+                    <span>Slovenská faktúra s odpočtom DPH alebo prenosom daňovej povinnosti</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

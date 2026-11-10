@@ -22,7 +22,7 @@ bun install
 bun dev
 # Aplikácia beží na http://localhost:8080 (alebo http://127.0.0.1:8080)
 
-# 4. Spustenie celej testovacej suity (43 testov v 8 suitách)
+# 4. Spustenie celej testovacej suity (46 testov v 9 suitách)
 bunx vitest run
 
 # 5. Typová kontrola kódu (Zero TypeScript Errors)
@@ -89,6 +89,7 @@ git push origin main
 | `/brief` | **SEO Brief pre copywritera** | Kompletné zadanie pre tvorbu obsahu: analýza SERPu, presná hierarchia H1–H3, LSI kľúčové slová a E-E-A-T signály. |
 | `/raketa` | **SEO Raketa** | On-page inšpekcia URL v reálnom čase, bezpečné serverové načítanie HTML, porovnanie s konkurentom, technické skóre a AI odporúčania na opravu. |
 | `/history` | **História generovaní** | Centrálne úložisko všetkých vytvorených auditov, článkov, briefov a plánov s možnosťou filtrovania, kopírovania a exportu. |
+| `/settings/agency` | **Whitelabel Branding & Agentúra** | Kompletné prispôsobenie identity agentúry (logo, primárna farba, kontaktný e-mail, pätička) pre automatické mesačné SEO reporty pre klientov. |
 | `/login` | **Autentifikácia** | Bezpečné prihlásenie a registrácia používateľov cez e-mail s heslom alebo Google OAuth prostredníctvom Supabase Auth. |
 
 ---
@@ -158,6 +159,26 @@ Projekt obsahuje kompletnú integráciu Stripe Checkout a Webhookov optimalizova
   - `isValidICDPH()`: Predpona `SK` + platný formát DIČ.
 - **Paywall brány & UX:** Modál `<PaywallModal />` na trasách `/dashboard` (limit webov), `/decay` (limit URL) a `/audit` (limit domén a WordPress export).
 - **Stripe Webhook (`/api/public/stripe-webhook`):** Spracúva `checkout.session.completed`, `customer.subscription.updated` a `customer.subscription.deleted`, aktualizuje tabuľku `subscriptions` v Supabase a pripravuje dáta pre automatickú fakturáciu v SuperFaktúra / Fakturoid (20% DPH vs. Reverse Charge).
+
+---
+
+## 🏢 Whitelabel Report Engine pre marketingové agentúry
+
+SEO4WEB obsahuje vstavaný **Whitelabel Report Engine** (`src/lib/agency.ts`, `src/components/ClientReportModal.tsx`, `src/routes/settings.agency.tsx`), ktorý umožňuje marketingovým a SEO agentúram vygenerovať reprezentatívny mesačný klientsky report vo formáte PDF na 1 klik:
+
+1. **Branding agentúry v Supabase (`agency_profiles`):**
+   - Vlastný názov agentúry, URL loga, primárna farba brandingu (HEX), kontaktný e-mail a text pätičky.
+   - Správa cez dedikované rozhranie `/settings/agency` so živým náhľadom.
+2. **Štruktúra klientskeho reportu:**
+   - **Titulné záhlavie:** Logo agentúry, sledovaná doména klienta, 90-dňové porovnávacie obdobie a súhrnný **SEO Health Index**.
+   - **Executive Summary:** Celkový rast klikov, impresií, priemernej pozície a indexovaných stránok s deltou v percentách a komentárom.
+   - **Top víťazi mesiaca:** 5 najviac rastúcich kľúčových výrazov a URL adries.
+   - **Opportunity Radar (Striking Distance):** Stránky a dopyty na pozíciách 4–15 s vysokými impresiami, kalkulovaným rastovým potenciálom a odporúčanou akciou.
+   - **Realizované optimalizácie:** Zoznam zaznamenaných on-page úprav a overených experimentov (`seo_experiments`).
+   - **Akčný plán na ďalší mesiac:** 4 prioritné kroky pre rast organiky klienta.
+3. **Print-Friendly CSS (`@media print`):**
+   - A4 formát na výšku, precízne stránkovanie (`page-break-inside: avoid; break-inside: avoid;`), potlačenie navigácie a tlačidiel.
+   - 100% Whitelabel — v tlači a vygenerovanom PDF nie je žiadna zmienka o SEO4WEB.
 
 ---
 
@@ -232,6 +253,7 @@ bunx vitest run
 # ✓ src/lib/decay-analyze.test.ts  — Skórovanie prepadov a kalkulácia decay metrík
 # ✓ src/lib/semrush.test.ts        — Semrush caching, TTL 7 dní, fallback a circuit breaker
 # ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH a predplatné
+# ✓ src/lib/agency.test.ts         — Whitelabel engine, health index, top víťazi a striking distance
 ```
 
 ---
