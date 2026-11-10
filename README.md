@@ -22,7 +22,7 @@ bun install
 bun dev
 # Aplikácia beží na http://localhost:8080 (alebo http://127.0.0.1:8080)
 
-# 4. Spustenie celej testovacej suity (32 testov)
+# 4. Spustenie celej testovacej suity (43 testov v 8 suitách)
 bunx vitest run
 
 # 5. Typová kontrola kódu (Zero TypeScript Errors)
@@ -138,6 +138,27 @@ Platforma spracováva dôverné dáta o návštevnosti firiem, preto implementuj
 ### 3. Zrýchlenie a odolnosť voči timeoutom
 - Skenovanie dopytov v Decay Radare využíva **paralelné dávkovanie (concurrency: 4)** namiesto pomalého sekvenčného cyklu, čím sa čas skenovania skrátil z 18 sekúnd na cca 4 sekundy.
 
+### 4. Inteligentné Semrush Caching vrstvenie & Circuit Breaker (`src/lib/semrush.server.ts`)
+- **Databázová cache tabuľka (`semrush_domain_cache`):** Ukladá kompletné snapshoty (organické kľúčové slová, spätné odkazy, konkurenti) s TTL 7 dní.
+- **Quota Protection & Circuit Breaker:** Pri chybe 429 alebo vyčerpaní Semrush kreditov (ERROR 134) systém automaticky degraduje a servuje starší uložený snapshot s príznakom `stale: true`, čím predchádza pádom aplikácie pre používateľov.
+
+---
+
+## 💳 B2B Predplatiteľský systém (Stripe) & Slovenská fakturácia
+
+Projekt obsahuje kompletnú integráciu Stripe Checkout a Webhookov optimalizovanú pre slovenský a český B2B trh (`src/lib/slovak-billing.ts`, `src/lib/billing.functions.ts`):
+
+- **Balíky predplatného:**
+  - **Free:** Max 1 projekt, audit do 3 URL, 1 snapshot mesačne.
+  - **Pro (39 € / mes.):** Max 5 projektov, neobmedzený Decay Radar, CTR Booster, 30-dňový Content Plan, exporty do WordPress.
+  - **Agency (89 € / mes.):** Neobmedzené projekty, sledovanie konkurencie, priorita generovania.
+- **Slovenská validácia firemných údajov:**
+  - `isValidICO()`: Vážený súčet váh `[8, 7, 6, 5, 4, 3, 2]` modulo 11 pre 8-miestne IČO.
+  - `isValidDIC()`: 10-miestne číslo začínajúce na 10, 20 alebo 21 deliteľné číslom 11.
+  - `isValidICDPH()`: Predpona `SK` + platný formát DIČ.
+- **Paywall brány & UX:** Modál `<PaywallModal />` na trasách `/dashboard` (limit webov), `/decay` (limit URL) a `/audit` (limit domén a WordPress export).
+- **Stripe Webhook (`/api/public/stripe-webhook`):** Spracúva `checkout.session.completed`, `customer.subscription.updated` a `customer.subscription.deleted`, aktualizuje tabuľku `subscriptions` v Supabase a pripravuje dáta pre automatickú fakturáciu v SuperFaktúra / Fakturoid (20% DPH vs. Reverse Charge).
+
 ---
 
 ## 🔐 Premenné prostredia (.env Best Practices)
@@ -202,13 +223,15 @@ Projekt udržiava 100% priechodnosť testovacej suity a nulovú toleranciu pre t
 # Spustenie všetkých testov
 bunx vitest run
 
-# Testovacie suity v projekte:
-# ✓ src/lib/rate-limit.test.ts   — LRU pamäťový limit, extrakcia IP, zložený rate limit
-# ✓ src/lib/gsc.test.ts          — 90-dňové periódy, multi-tenant izolácia domén
-# ✓ src/lib/site-analyze.test.ts — On-page HTML extrakcia, sémantické tagy, skórovanie
-# ✓ src/lib/decay-schema.test.ts — Zod validačné schémy a typová integrita
-# ✓ src/lib/opportunity.test.ts  — Search intent, celoslovenská lokalita, diakritika SERP
-# ✓ src/lib/decay-analyze.test.ts— Skórovanie prepadov a kalkulácia decay metrík
+# Testovacie suity v projekte (100% priechodnosť):
+# ✓ src/lib/rate-limit.test.ts     — LRU pamäťový limit, extrakcia IP, zložený rate limit
+# ✓ src/lib/gsc.test.ts            — 90-dňové periódy, multi-tenant izolácia domén
+# ✓ src/lib/site-analyze.test.ts   — On-page HTML extrakcia, sémantické tagy, skórovanie
+# ✓ src/lib/decay-schema.test.ts   — Zod validačné schémy a typová integrita
+# ✓ src/lib/opportunity.test.ts    — Search intent, celoslovenská lokalita, diakritika SERP
+# ✓ src/lib/decay-analyze.test.ts  — Skórovanie prepadov a kalkulácia decay metrík
+# ✓ src/lib/semrush.test.ts        — Semrush caching, TTL 7 dní, fallback a circuit breaker
+# ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH a predplatné
 ```
 
 ---

@@ -6,12 +6,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowDown, Copy, RotateCcw, Square, X } from "lucide-react";
+import { ArrowDown, Copy, RotateCcw, Sparkles, Square, X } from "lucide-react";
 import { streamSSE } from "@/lib/stream-sse";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
+import { PaywallModal } from "@/components/PaywallModal";
 
 export const Route = createFileRoute("/audit")({
   head: () => ({
@@ -45,6 +46,7 @@ function AuditPage() {
   const [yourDomain, setYourDomain] = useState<string>("");
   const [report, setReport] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
+  const [paywallOpen, setPaywallOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -80,6 +82,10 @@ function AuditPage() {
     const all = Array.from(new Set([...domains, ...parseDomains(input)])).slice(0, 5);
     if (all.length === 0) {
       toast.error("Zadaj aspoň jednu doménu.");
+      return;
+    }
+    if (all.length > 3) {
+      setPaywallOpen(true);
       return;
     }
     setDomains(all);
@@ -390,8 +396,24 @@ function AuditPage() {
             <ArrowDown className="size-4" />
             Stiahnuť .md
           </Button>
+          <Button
+            variant="studio"
+            size="studio"
+            onClick={() => setPaywallOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-primary/20 py-2 pr-4 pl-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/30"
+          >
+            <Sparkles className="size-4" />
+            WordPress Export (Pro)
+          </Button>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        title="Odomknite neobmedzený SEO Audit s balíkom Pro"
+        description="Bezplatný plán umožňuje analyzovať maximálne 3 domény a základný export. S balíkom Pro získate audit až 5 domén naraz, WordPress export a neobmedzené sledovanie."
+      />
     </div>
   );
 }

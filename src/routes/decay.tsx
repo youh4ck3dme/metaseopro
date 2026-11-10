@@ -26,6 +26,7 @@ import { streamSSE } from "@/lib/stream-sse";
 import { handoffToWriter } from "@/lib/refresh-handoff";
 import { saveOutput } from "@/lib/outputs.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { PaywallModal } from "@/components/PaywallModal";
 import {
   DECAY_LANGUAGES,
   DECAY_SCENARIOS,
@@ -128,6 +129,7 @@ function DecayPage() {
   const [plan, setPlan] = useState("");
   const [planLoading, setPlanLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -239,6 +241,13 @@ function DecayPage() {
 
   const generatePlan = async () => {
     if (!dataset || !selected) return;
+
+    const rowIndex = dataset.rows.findIndex((r) => r.url === selected.url);
+    if (rowIndex >= 3) {
+      setPaywallOpen(true);
+      return;
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -762,6 +771,13 @@ function DecayPage() {
           </div>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        title="Odomknite Decay Radar s balíkom Pro"
+        description="V bezplatnej verzii môžete generovať záchranný plán pre prvé 3 podstránky. Pre záchranu všetkých klesajúcich URL a WordPress export aktivujte balík Pro (39 € / mes.)."
+      />
     </div>
   );
 }

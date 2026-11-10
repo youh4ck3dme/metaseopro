@@ -27,6 +27,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
+import { PaywallModal } from "@/components/PaywallModal";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -136,6 +137,7 @@ function DashboardPage() {
   const [scanning, setScanning] = useState(false);
   const [scanError, setScanError] = useState("");
   const [scanStage, setScanStage] = useState("");
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", search: { redirect: "/dashboard" } });
@@ -349,12 +351,23 @@ function DashboardPage() {
               variant="outline"
               disabled={busy || scanning}
               onClick={() => {
+                if (sites.length >= 1) {
+                  setPaywallOpen(true);
+                  return;
+                }
                 setScanError("");
                 setScanOpen(true);
               }}
             >
               <Plus />
               Analyzovať ďalší web
+            </Button>
+            <Button
+              onClick={() => setPaywallOpen(true)}
+              className="gap-1.5 font-medium shadow-sm"
+            >
+              <Sparkles className="size-4" />
+              Aktivovať Pro (39 €)
             </Button>
           </div>
         </div>
@@ -504,6 +517,13 @@ function DashboardPage() {
           </>
         )}
       </main>
+
+      <PaywallModal
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        title="Odomknite neobmedzený počet webov s balíkom Pro"
+        description="Bezplatný plán umožňuje sledovanie 1 webu. S balíkom Pro (39 € / mes.) získate sledovanie až 5 webov, neobmedzený Decay Radar a WordPress exporty."
+      />
     </div>
   );
 }
