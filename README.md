@@ -22,7 +22,7 @@ bun install
 bun dev
 # Aplikácia beží na http://localhost:8080 (alebo http://127.0.0.1:8080)
 
-# 4. Spustenie celej testovacej suity (46 testov v 9 suitách)
+# 4. Spustenie celej testovacej suity (51 testov v 10 suitách)
 bunx vitest run
 
 # 5. Typová kontrola kódu (Zero TypeScript Errors)
@@ -254,6 +254,7 @@ bunx vitest run
 # ✓ src/lib/semrush.test.ts        — Semrush caching, TTL 7 dní, fallback a circuit breaker
 # ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH a predplatné
 # ✓ src/lib/agency.test.ts         — Whitelabel engine, health index, top víťazi a striking distance
+# ✓ src/lib/e2e-app.test.ts        — E2E dostupnosť všetkých trás, SSR markup, API ochrana a Stripe webhook
 ```
 
 ---
