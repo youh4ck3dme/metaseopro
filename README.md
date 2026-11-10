@@ -22,13 +22,16 @@ bun install
 bun dev
 # Aplikácia beží na http://localhost:8080 (alebo http://127.0.0.1:8080)
 
-# 4. Spustenie celej testovacej suity (51 testov v 10 suitách)
+# 4. Spustenie celej testovacej suity (57 testov v 11 suitách)
 bunx vitest run
 
-# 5. Typová kontrola kódu (Zero TypeScript Errors)
+# 5. Kontrola štýlu a kvality kódu (ESLint)
+bun run lint
+
+# 6. Typová kontrola kódu (Zero TypeScript Errors)
 bun run tsc --noEmit
 
-# 6. Produkčný build
+# 7. Produkčný build
 bun run build
 ```
 
@@ -250,10 +253,17 @@ SEO4WEB je stavaný pre dosiahnutie obratu **9 000 €+ mesačne (MRR)** prostre
 Projekt udržiava 100% priechodnosť testovacej suity a nulovú toleranciu pre typové chyby:
 
 ```bash
-# Spustenie všetkých testov
+# Spustenie všetkých unit a integračných testov (57 testov v 11 suitách)
 bunx vitest run
 
+# Spustenie statickej analýzy a lintingu kódu (ESLint)
+bun run lint
+
+# Kontrola typov TypeScriptu (Zero Errors)
+bun run tsc --noEmit
+
 # Testovacie suity v projekte (100% priechodnosť):
+# ✓ src/lib/integrity.test.ts      — Secret & env ochrana, TanStack Start .validator, RLS vo všetkých migráciách
 # ✓ src/lib/rate-limit.test.ts     — LRU pamäťový limit, extrakcia IP, zložený rate limit
 # ✓ src/lib/gsc.test.ts            — 90-dňové periódy, multi-tenant izolácia domén
 # ✓ src/lib/site-analyze.test.ts   — On-page HTML extrakcia, sémantické tagy, skórovanie

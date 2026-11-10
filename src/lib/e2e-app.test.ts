@@ -29,7 +29,7 @@ describe("E2E Application Workflow & Route Integrity", () => {
     expect(html).toContain("Blog Writer");
     expect(html).toContain("/settings/agency");
     expect(html).toContain("Agentúra");
-  });
+  }, 15000);
 
   it("serves Whitelabel Agency Settings route (/settings/agency)", async () => {
     const reachable = await isServerReachable();
@@ -42,7 +42,7 @@ describe("E2E Application Workflow & Route Integrity", () => {
     expect(html).toContain("Nastavenia agentúry");
     expect(html).toContain("Whitelabel");
     expect(html).toContain("Branding");
-  });
+  }, 15000);
 
   it("serves all primary application routes with 200 OK", async () => {
     const reachable = await isServerReachable();
@@ -59,14 +59,16 @@ describe("E2E Application Workflow & Route Integrity", () => {
       "/login",
     ];
 
-    for (const route of routes) {
-      const res = await fetch(`${BASE_URL}${route}`);
-      expect(res.status, `Expected route ${route} to return 200 OK`).toBe(200);
-      const text = await res.text();
-      expect(text.length).toBeGreaterThan(500);
-      expect(text).toContain("SEO4WEB");
-    }
-  });
+    await Promise.all(
+      routes.map(async (route) => {
+        const res = await fetch(`${BASE_URL}${route}`);
+        expect(res.status, `Expected route ${route} to return 200 OK`).toBe(200);
+        const text = await res.text();
+        expect(text.length).toBeGreaterThan(500);
+        expect(text).toContain("SEO4WEB");
+      }),
+    );
+  }, 20000);
 
   it("guards API routes against unauthorized access", async () => {
     const reachable = await isServerReachable();

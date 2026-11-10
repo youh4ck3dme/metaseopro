@@ -7,24 +7,63 @@
 - [x] Presná pixelová kalkulácia Google SERP náhľadov pre slovenskú diakritiku (`textPixelWidth`).
 - [x] Pamäťovo bezpečný Rate Limiter s LRU auto-pruningom a extrakciou klientskej IP na Cloudflare Workers.
 - [x] Paralelizované dopytovanie v Content Decay Radare (`concurrency: 4`) pre elimináciu timeoutov.
-- [x] 100% priechodnosť testovacej suity (6 testovacích súborov, 32 unit testov) a nulové TypeScript chyby.
+- [x] 100% priechodnosť testovacej suity a nulové TypeScript chyby.
 
 ## 2. Výkon & Zníženie API nákladov (Hotovo ✅)
 
 - [x] 7-dňová perzistentná cache pre Semrush audity v Supabase (`semrush_domain_cache`).
-- [x] Predchádzanie prekročeniu kvóty Semrush API (`ERROR 134`) a automatický návrat stale dát.
+- [x] Predchádzanie prekročeniu kvóty Semrush API (`ERROR 134`) a automatický circuit breaker / návrat stale dát.
 - [x] L1 pamäťová cache pre okamžité znovunačítanie v rámci edge izolátu.
-- [x] 100% priechodnosť testovacej suity (7 testovacích súborov, 35 unit testov).
+- [x] Automatizované testy pre TTL, write-through a fallback mechanizmy.
 
-## 3. Monetizácia & Slovenský B2B Onboarding (Fáza 3 🔄)
+## 3. Monetizácia & Slovenský B2B Onboarding (Hotovo ✅)
 
-- [ ] 3-stupňová cenotvorba (Štart 39 €, Pro 89 €, Agency Whitelabel 249 €).
-- [ ] Stripe Checkout s políčkami pre IČO, DIČ a IČ DPH (VIES validácia).
-- [ ] Automatizované vystavovanie riadnych slovenských daňových dokladov (SuperFaktúra webhook).
-- [ ] Paywall na hĺbkové audity a generovanie nad limit bezplatných výstupov.
+- [x] 3-stupňová cenotvorba (Free, Pro 39 € / mes., Agency 89 € / mes.) s presným vymedzením limitov.
+- [x] Supabase schéma pre predplatné (`subscriptions`) s RLS politikami.
+- [x] Slovenská a česká validácia firemných fakturačných údajov (`src/lib/slovak-billing.ts`):
+  - `isValidICO()` (vážený modulo 11 kontrolný algoritmus pre 8-miestne IČO)
+  - `isValidDIC()` (10-miestne číslo začínajúce na 10, 20 alebo 21 deliteľné 11)
+  - `isValidICDPH()` (predpona SK s formátom platného DIČ)
+- [x] Stripe Checkout serverová funkcia (`createCheckoutSessionServer`) s prenosom firemných metadát a daňových polí.
+- [x] Bezpečný Stripe Webhook (`/api/public/stripe-webhook`) s overením podpisov (`stripe-signature`), idempotenciou a prípravou pre SuperFaktúru (20% DPH vs. EU Reverse Charge).
+- [x] Vizuálne Paywall modály (`<PaywallModal />`) integrované na kľúčových trasách (`/dashboard`, `/decay`, `/audit`).
 
-## 4. Whitelabel Agency Engine (Fáza 4 🔄)
+## 4. Whitelabel Agency Engine & PDF Export (Hotovo ✅)
 
-- [ ] Serverový generátor klientskych PDF reportov (`/api/reports/whitelabel-pdf`).
-- [ ] Nahratie vlastného loga agentúry, firemných farieb a kontaktu na account manažéra.
-- [ ] Zdieľateľný odkaz na interaktívny bezbrandový webový report pre klienta.
+- [x] Supabase tabuľka `agency_profiles` s kompletnou RLS ochranou pre používateľov.
+- [x] Nastavenia identity agentúry na `/settings/agency`:
+  - Nahratie vlastného loga agentúry (URL / Storage).
+  - Výber primárnej farby brandingu (HEX).
+  - Kontaktné údaje a text pätičky.
+  - Živý náhľad hlavičky reportu.
+- [x] Profesionálny modál klientskeho reportu (`<ClientReportModal />`):
+  - Titulná strana s logom agentúry a 90-dňovým obdobím.
+  - Executive Summary s rastovými metrikami a celkovým SEO Health Indexom.
+  - Top víťazi mesiaca (rastúce kľúčové slová a URL).
+  - Opportunity Radar (Striking Distance pozície 4–15).
+  - Zrealizované overené optimalizácie (`seo_experiments`).
+  - Akčný plán na ďalší mesiac.
+- [x] Tlačové formátovanie (`@media print`):
+  - Automatické vygenerovanie čistého PDF na 1 kliknutie cez natívny tlačový dialóg prehliadača.
+  - Striktné stránkovanie A4 (`break-inside: avoid`).
+  - 100% Whitelabel vzhľad bez akýchkoľvek odkazov na SEO4WEB.
+
+## 5. Automatizované Testy Integrity & E2E (Hotovo ✅)
+
+- [x] **Integrita premenných & tajomstiev:** `.env` obsahuje len verejné frontend kľúče, žiadne privátne tokeny.
+- [x] **Git ochrana:** `.env.local` a `node_modules` sú v `.gitignore`.
+- [x] **Vzorová konfigurácia:** `.env.example` pokrýva všetky potrebné premenné.
+- [x] **Architektúra TanStack Start:** Všetky serverové funkcie využívajú výhradne `.validator()`.
+- [x] **Router integrita:** Žiadne nepovolené importy z `react-router-dom`.
+- [x] **Databázová bezpečnosť:** Každá tabuľka vo všetkých migráciách má zapnuté `ENABLE ROW LEVEL SECURITY`.
+- [x] **Kompletná testovacia sada:** 57 testov v 11 testovacích suitách (100% PASS).
+- [x] **Statická analýza & Linting:** 0 chýb v ESLint a TypeScript (`tsc --noEmit`).
+
+---
+
+## 6. Nasledujúce vylepšenia (Plánované 🚀)
+
+- [ ] **SuperFaktúra / Fakturoid API konektor:** Priame automatické vystavenie a odoslanie slovenskej faktúry na e-mail klienta po úspešnej Stripe platbe.
+- [ ] **Live VIES overenie IČ DPH:** Asynchrónne overovanie platnosti IČ DPH v reálnom čase voči databáze Európskej komisie (VIES API).
+- [ ] **Zdieľateľný zabezpečený webový report:** Generovanie unikátneho URL odkazu s voliteľnou ochranou heslom pre online náhľad reportu klientom.
+- [ ] **WordPress REST API exportér:** Automatické publikovanie a aktualizácia meta značiek priamo do Yoast / RankMath na klientovom webe.
