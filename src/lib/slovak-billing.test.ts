@@ -7,6 +7,7 @@ import {
   normalizeICDPH,
   normalizeICO,
   validateCompanyBilling,
+  verifyViesVat,
 } from "./slovak-billing";
 
 describe("Slovak & Czech B2B billing validator", () => {
@@ -103,6 +104,54 @@ describe("Slovak & Czech B2B billing validator", () => {
       expect(invalid.errors.ico).toBeDefined();
       expect(invalid.errors.dic).toBeDefined();
       expect(invalid.errors.icDph).toBeDefined();
+    });
+  });
+
+  describe("verifyViesVat (Live & Fallback)", () => {
+    it("returns valid result when VIES API confirms registered VAT payer", async () => {
+      const mockFetch: typeof fetch = async () =>
+        new Response(
+          JSON.stringify({
+            isValid: true,
+            name: "SLOVNAFT a.s.",
+            address: "Vlčie hrdlo 1, 824 12 Bratislava",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+
+      const result = await verifyViesVat("SK", "SK2020273893", mockFetch);
+      expect(result.valid).toBe(true);
+      expect(result.source).toBe("vies");
+      expect(result.name).toBe("SLOVNAFT a.s.");
+      expect(result.vatNumber).toBe("2020273893");
+    });
+
+    it("returns invalid result when VIES API returns isValid: false", async () => {
+      const mockFetch: typeof fetch = async () =>
+        new Response(JSON.stringify({ isValid: false }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        });
+
+      const result = await verifyViesVat("SK", "2020273893", mockFetch);
+      expect(result.valid).toBe(false);
+      expect(result.source).toBe("vies");
+    });
+
+    it("falls back to local syntax validation when VIES service fails or times out", async () => {
+      const failingFetch: typeof fetch = async () => {
+        throw new Error("Network timeout / VIES service unavailable");
+      };
+
+      // Valid SK DIČ format
+      const validFallback = await verifyViesVat("SK", "2020273893", failingFetch);
+      expect(validFallback.valid).toBe(true);
+      expect(validFallback.source).toBe("syntax_fallback");
+
+      // Invalid SK DIČ format
+      const invalidFallback = await verifyViesVat("SK", "123456", failingFetch);
+      expect(invalidFallback.valid).toBe(false);
+      expect(invalidFallback.source).toBe("syntax_fallback");
     });
   });
 });

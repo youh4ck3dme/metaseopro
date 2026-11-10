@@ -22,7 +22,7 @@ bun install
 bun dev
 # Aplikácia beží na http://localhost:8080 (alebo http://127.0.0.1:8080)
 
-# 4. Spustenie celej testovacej suity (57 testov v 11 suitách)
+# 4. Spustenie celej testovacej suity (61 testov v 11 suitách)
 bunx vitest run
 
 # 5. Kontrola štýlu a kvality kódu (ESLint)
@@ -253,7 +253,7 @@ SEO4WEB je stavaný pre dosiahnutie obratu **9 000 €+ mesačne (MRR)** prostre
 Projekt udržiava 100% priechodnosť testovacej suity a nulovú toleranciu pre typové chyby:
 
 ```bash
-# Spustenie všetkých unit a integračných testov (57 testov v 11 suitách)
+# Spustenie všetkých unit a integračných testov (61 testov v 11 suitách)
 bunx vitest run
 
 # Spustenie statickej analýzy a lintingu kódu (ESLint)
@@ -271,8 +271,8 @@ bun run tsc --noEmit
 # ✓ src/lib/opportunity.test.ts    — Search intent, celoslovenská lokalita, diakritika SERP
 # ✓ src/lib/decay-analyze.test.ts  — Skórovanie prepadov a kalkulácia decay metrík
 # ✓ src/lib/semrush.test.ts        — Semrush caching, TTL 7 dní, fallback a circuit breaker
-# ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH a predplatné
-# ✓ src/lib/agency.test.ts         — Whitelabel engine, health index, top víťazi a striking distance
+# ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH, Live EÚ VIES overenie
+# ✓ src/lib/agency.test.ts         — Whitelabel engine, health index, top víťazi, Striking Distance, zdieľateľné linky
 # ✓ src/lib/e2e-app.test.ts        — E2E dostupnosť všetkých trás, SSR markup, API ochrana a Stripe webhook
 ```
 

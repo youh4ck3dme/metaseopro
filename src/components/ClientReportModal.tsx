@@ -16,12 +16,16 @@ import {
   ExternalLink,
   Settings,
   Layers,
+  Share2,
+  Check,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   buildExecutiveReportData,
   formatDomainDisplayName,
+  generateShareableReportLink,
   type AgencyProfile,
   type ExecutiveReportData,
   DEFAULT_AGENCY_PROFILE,
@@ -124,8 +128,25 @@ export function ClientReportModal({
     agencyProfile: agency,
   });
 
+  const [copiedLink, setCopiedLink] = useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleCopyShareLink = async () => {
+    const link = generateShareableReportLink({
+      siteUrl,
+      agencyName: report.agency.name,
+    });
+    try {
+      await navigator.clipboard.writeText(link);
+      setCopiedLink(true);
+      toast.success("Odkaz na klientsky report bol skopírovaný do schránky!");
+      setTimeout(() => setCopiedLink(false), 2500);
+    } catch {
+      toast.error("Nepodarilo sa skopírovať odkaz.");
+    }
   };
 
   const fmt = (n: number) => new Intl.NumberFormat("sk-SK").format(Math.round(n));
@@ -155,6 +176,20 @@ export function ClientReportModal({
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              onClick={handleCopyShareLink}
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 text-xs"
+              title="Kopírovať odkaz na report"
+            >
+              {copiedLink ? (
+                <Check className="size-3.5 text-emerald-500" />
+              ) : (
+                <Share2 className="size-3.5" />
+              )}
+              {copiedLink ? "Skopírované" : "Zdieľať odkaz"}
+            </Button>
             <Button asChild variant="outline" size="sm" className="h-8 gap-1 text-xs">
               <Link to="/settings/agency" onClick={() => onOpenChange(false)}>
                 <Settings className="size-3.5" />

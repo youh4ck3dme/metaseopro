@@ -43,6 +43,7 @@
   - Opportunity Radar (Striking Distance pozície 4–15).
   - Zrealizované overené optimalizácie (`seo_experiments`).
   - Akčný plán na ďalší mesiac.
+  - **Zdieľateľný webový odkaz na report:** Generovanie URL-safe tokenov a kopírovanie odkazu priamo do schránky (`generateShareableReportLink`).
 - [x] Tlačové formátovanie (`@media print`):
   - Automatické vygenerovanie čistého PDF na 1 kliknutie cez natívny tlačový dialóg prehliadača.
   - Striktné stránkovanie A4 (`break-inside: avoid`).
@@ -56,14 +57,22 @@
 - [x] **Architektúra TanStack Start:** Všetky serverové funkcie využívajú výhradne `.validator()`.
 - [x] **Router integrita:** Žiadne nepovolené importy z `react-router-dom`.
 - [x] **Databázová bezpečnosť:** Každá tabuľka vo všetkých migráciách má zapnuté `ENABLE ROW LEVEL SECURITY`.
-- [x] **Kompletná testovacia sada:** 57 testov v 11 testovacích suitách (100% PASS).
+- [x] **Kompletná testovacia sada:** 61 testov v 11 testovacích suitách (100% PASS).
 - [x] **Statická analýza & Linting:** 0 chýb v ESLint a TypeScript (`tsc --noEmit`).
+
+## 6. AI System Prompts & FinTech Polish (Hotovo ✅)
+
+- [x] **EÚ VIES Overovač IČ DPH (`verifyViesVat`):** Reálny dopyt na VIES REST API Európskej komisie s graceful fallbackom pri výpadku.
+- [x] **AI Prompts Polish:**
+  - `ARTICLE_SYSTEM_PROMPT`: E-E-A-T štandardy, striktné vokalizované slovenské predložky (so/vo/ku/zo), Schema.org graph validita, anti-hallucination pravidlá.
+  - `AUDIT_SYSTEM_PROMPT`: Analýza lokálneho intentu, Semrush dáta bez halucinácií, E-E-A-T autorita.
+  - `BRIEF_SYSTEM_PROMPT`: Entity a LSI termíny, vylúčenie generickej vaty, copywriter checklist.
+  - `DECAY_SYSTEM_PROMPT`: Presný recovery plán pre stratené vyhľadávacie frázy.
+  - `RAKETA_SYSTEM_PROMPT` a `CONTENT_PLAN_SYSTEM_PROMPT`: Technická on-page hierarchia a 30-dňové klastrovanie.
 
 ---
 
-## 6. Nasledujúce vylepšenia (Plánované 🚀)
+## 7. Nasledujúce vylepšenia (Plánované 🚀)
 
 - [ ] **SuperFaktúra / Fakturoid API konektor:** Priame automatické vystavenie a odoslanie slovenskej faktúry na e-mail klienta po úspešnej Stripe platbe.
-- [ ] **Live VIES overenie IČ DPH:** Asynchrónne overovanie platnosti IČ DPH v reálnom čase voči databáze Európskej komisie (VIES API).
-- [ ] **Zdieľateľný zabezpečený webový report:** Generovanie unikátneho URL odkazu s voliteľnou ochranou heslom pre online náhľad reportu klientom.
 - [ ] **WordPress REST API exportér:** Automatické publikovanie a aktualizácia meta značiek priamo do Yoast / RankMath na klientovom webe.

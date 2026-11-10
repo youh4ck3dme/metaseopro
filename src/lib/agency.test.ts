@@ -4,6 +4,8 @@ import {
   formatDomainDisplayName,
   buildExecutiveReportData,
   DEFAULT_AGENCY_PROFILE,
+  encodeShareableReportToken,
+  generateShareableReportLink,
 } from "./agency";
 import type { DecayDataset, ScoredDecayRow } from "./decay-schema";
 
@@ -128,5 +130,28 @@ describe("Whitelabel Agency Engine", () => {
     // Recommendations exist
     expect(report.recommendations.length).toBeGreaterThan(0);
     expect(report.recommendations[0].priority).toBe("Vysoká");
+  });
+
+  it("encodes and generates URL-safe shareable client report links", () => {
+    const token = encodeShareableReportToken({
+      domain: "mojobchod.sk",
+      agencyName: "Apex Marketing",
+      timestamp: 1735689600000,
+    });
+
+    expect(typeof token).toBe("string");
+    expect(token.length).toBeGreaterThan(10);
+    // URL-safe (no +, /, or = characters)
+    expect(token).not.toMatch(/[+/=]/);
+
+    const link = generateShareableReportLink({
+      siteUrl: "sc-domain:mojobchod.sk",
+      agencyName: "Apex Marketing",
+      origin: "https://seo.vorkei.com",
+    });
+
+    expect(link).toContain(
+      "https://seo.vorkei.com/dashboard?client=mojobchod.sk&view=report&token=",
+    );
   });
 });

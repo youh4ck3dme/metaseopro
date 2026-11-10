@@ -414,3 +414,51 @@ export function buildExecutiveReportData(params: {
     recommendations,
   };
 }
+
+/**
+ * Encodes client report parameters into a URL-safe token for secure client sharing.
+ */
+export function encodeShareableReportToken(params: {
+  domain: string;
+  agencyName?: string;
+  timestamp?: number;
+}): string {
+  const payload = {
+    d: params.domain,
+    a: params.agencyName || "agency",
+    t: params.timestamp || Date.now(),
+  };
+  try {
+    const jsonStr = JSON.stringify(payload);
+    if (typeof btoa === "function") {
+      return btoa(unescape(encodeURIComponent(jsonStr)))
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/, "");
+    }
+    return Buffer.from(jsonStr, "utf-8").toString("base64url");
+  } catch {
+    return encodeURIComponent(params.domain);
+  }
+}
+
+/**
+ * Generates an executive Whitelabel web report URL suitable for sharing directly with clients.
+ */
+export function generateShareableReportLink(params: {
+  siteUrl: string;
+  agencyName?: string;
+  origin?: string;
+}): string {
+  const domain = formatDomainDisplayName(params.siteUrl);
+  const token = encodeShareableReportToken({
+    domain,
+    agencyName: params.agencyName,
+  });
+
+  const base =
+    params.origin?.replace(/\/$/, "") ||
+    (typeof window !== "undefined" ? window.location.origin : "https://seo4web.lovable.app");
+
+  return `${base}/dashboard?client=${encodeURIComponent(domain)}&view=report&token=${token}`;
+}

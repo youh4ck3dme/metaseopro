@@ -154,3 +154,99 @@ export function validateCompanyBilling(data: {
     errors,
   };
 }
+
+export interface ViesVerificationResult {
+  valid: boolean;
+  countryCode: string;
+  vatNumber: string;
+  name?: string;
+  address?: string;
+  source: "vies" | "syntax_fallback";
+  message?: string;
+}
+
+/**
+ * Verifies EU VAT number in real-time via the European Commission VIES REST API.
+ * Gracefully falls back to local syntax check if the VIES service is unreachable.
+ */
+export async function verifyViesVat(
+  rawCountryCode: string,
+  rawVatNumber: string,
+  fetchFn: typeof fetch = fetch,
+): Promise<ViesVerificationResult> {
+  const countryCode = rawCountryCode.trim().toUpperCase().slice(0, 2);
+  let vatNumber = rawVatNumber
+    .trim()
+    .toUpperCase()
+    .replace(/[\s.-]+/g, "");
+
+  // If vatNumber already starts with the countryCode, strip it
+  if (vatNumber.startsWith(countryCode)) {
+    vatNumber = vatNumber.slice(countryCode.length);
+  }
+
+  // Syntax check for Slovakia
+  if (countryCode === "SK") {
+    if (!isValidDIC(vatNumber)) {
+      return {
+        valid: false,
+        countryCode,
+        vatNumber,
+        source: "syntax_fallback",
+        message: "Neplatný formát IČ DPH pre Slovenskú republiku.",
+      };
+    }
+  }
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    const url = `https://ec.europa.eu/taxation_customs/vies/rest-api/ms/${encodeURIComponent(
+      countryCode,
+    )}/vat/${encodeURIComponent(vatNumber)}`;
+
+    const res = await fetchFn(url, {
+      method: "GET",
+      headers: { Accept: "application/json" },
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = (await res.json().catch(() => ({}))) as {
+        isValid?: boolean;
+        name?: string;
+        address?: string;
+      };
+
+      return {
+        valid: Boolean(data.isValid),
+        countryCode,
+        vatNumber,
+        name: data.name?.trim() || undefined,
+        address: data.address?.trim() || undefined,
+        source: "vies",
+        message: data.isValid
+          ? "IČ DPH je overené a platné v registri EÚ (VIES)."
+          : "IČ DPH nebolo nájdené v registri platcov DPH EÚ (VIES).",
+      };
+    }
+  } catch {
+    // VIES service is down or timed out - fall back to syntax validation
+  }
+
+  // Fallback for SK / CZ
+  const isSyntaxValid = countryCode === "SK" ? isValidDIC(vatNumber) : vatNumber.length >= 8;
+
+  return {
+    valid: isSyntaxValid,
+    countryCode,
+    vatNumber,
+    source: "syntax_fallback",
+    message: isSyntaxValid
+      ? "Formát IČ DPH je platný (VIES register je momentálne nedostupný)."
+      : "Neplatný formát IČ DPH.",
+  };
+}
