@@ -2,7 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 export type AuthResult =
-  | { ok: true; userId: string }
+  | { ok: true; userId: string; email?: string }
   | { ok: false; response: Response };
 
 function unauthorized(message = "Vyžaduje sa prihlásenie."): Response {
@@ -18,10 +18,10 @@ export async function requireUser(request: Request): Promise<AuthResult> {
   if (!url || !key) {
     return {
       ok: false,
-      response: new Response(
-        JSON.stringify({ error: "Server nie je správne nakonfigurovaný." }),
-        { status: 500, headers: { "Content-Type": "application/json" } },
-      ),
+      response: new Response(JSON.stringify({ error: "Server nie je správne nakonfigurovaný." }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }),
     };
   }
 
@@ -39,5 +39,9 @@ export async function requireUser(request: Request): Promise<AuthResult> {
   if (error || !data?.claims?.sub) {
     return { ok: false, response: unauthorized() };
   }
-  return { ok: true, userId: String(data.claims.sub) };
+  return {
+    ok: true,
+    userId: String(data.claims.sub),
+    email: typeof data.claims.email === "string" ? data.claims.email : undefined,
+  };
 }

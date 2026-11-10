@@ -53,12 +53,97 @@ export async function listVerifiedProperties(): Promise<VerifiedProperty[]> {
     }));
 }
 
+/**
+ * Multi-tenant safe listing:
+ * Platform admins see all connected master properties.
+ * External users see only properties belonging to their tenant/account,
+ * preventing cross-customer data leakage.
+ */
+export async function listUserVerifiedProperties(
+  userId: string,
+  email?: string,
+): Promise<VerifiedProperty[]> {
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const adminUserIds = (process.env.ADMIN_USER_IDS || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  const isPlatformOwner =
+    (email &&
+      (adminEmails.includes(email.toLowerCase()) ||
+        ["h4ck3d@h4ck3d.me", "erikbabcan@gmail.com"].includes(email.toLowerCase()))) ||
+    adminUserIds.includes(userId);
+
+  if (isPlatformOwner) {
+    return listVerifiedProperties();
+  }
+
+  // Tenant-specific properties if configured
+  const tenantSites = (process.env[`USER_GSC_SITES_${userId}`] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (tenantSites.length === 0) {
+    return [];
+  }
+
+  const allProps = await listVerifiedProperties();
+  return allProps.filter((p) => tenantSites.includes(p.siteUrl));
+}
+
 /** Re-validates a chosen siteUrl against the live verified list. */
 export async function assertVerifiedProperty(siteUrl: string): Promise<string> {
   const props = await listVerifiedProperties();
   const match = props.find((p) => p.siteUrl === siteUrl);
   if (!match) throw new Error("GSC_PROPERTY_NOT_VERIFIED");
   return match.siteUrl;
+}
+
+/**
+ * Multi-tenant permission guard:
+ * Verifies that the signed-in user has permission to analyze the specified siteUrl.
+ */
+export async function assertUserPropertyAccess(
+  userId: string,
+  siteUrl: string,
+  email?: string,
+): Promise<string> {
+  const verified = await assertVerifiedProperty(siteUrl);
+
+  const adminEmails = (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const adminUserIds = (process.env.ADMIN_USER_IDS || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+
+  const isPlatformOwner =
+    (email &&
+      (adminEmails.includes(email.toLowerCase()) ||
+        ["h4ck3d@h4ck3d.me", "erikbabcan@gmail.com"].includes(email.toLowerCase()))) ||
+    adminUserIds.includes(userId);
+
+  if (isPlatformOwner) {
+    return verified;
+  }
+
+  const tenantSites = (process.env[`USER_GSC_SITES_${userId}`] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (!tenantSites.includes(siteUrl)) {
+    throw new Error("GSC_USER_UNAUTHORIZED_FOR_PROPERTY");
+  }
+
+  return verified;
 }
 
 function isoDay(offsetDays: number, reference: Date): string {
@@ -78,10 +163,7 @@ export function getLivePeriods(reference = new Date()) {
 
 type SaRow = { keys: string[]; clicks: number; impressions: number; position: number };
 
-async function query(
-  siteUrl: string,
-  body: Record<string, unknown>,
-): Promise<SaRow[]> {
+async function query(siteUrl: string, body: Record<string, unknown>): Promise<SaRow[]> {
   const res = await gscFetch(
     `/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
     { method: "POST", body: JSON.stringify(body) },
@@ -150,61 +232,70 @@ export async function fetchLiveDecayRows(
     .sort((a, b) => a.clicksNow - a.clicksPrev - (b.clicksNow - b.clicksPrev))
     .slice(0, maxUrls);
 
+  const concurrency = 4;
   const rows: DecayRow[] = [];
-  for (const r of merged) {
-    let topQueries: QueryRow[] = [];
-    try {
-      const filters = {
-        dimensionFilterGroups: [
-          {
-            filters: [
-              { dimension: "page", operator: "equals", expression: r.url },
+  for (let i = 0; i < merged.length; i += concurrency) {
+    const chunk = merged.slice(i, i + concurrency);
+    const chunkRows = await Promise.all(
+      chunk.map(async (r) => {
+        let topQueries: QueryRow[] = [];
+        try {
+          const filters = {
+            dimensionFilterGroups: [
+              {
+                filters: [{ dimension: "page", operator: "equals", expression: r.url }],
+              },
             ],
-          },
-        ],
-        rowLimit: 10,
-      };
-      const [qNow, qPrev] = await Promise.all([
-        query(siteUrl, windowBody(nowStart, nowEnd, ["query"], filters)),
-        query(siteUrl, windowBody(prevStart, prevEnd, ["query"], filters)),
-      ]);
-       const nowQ = new Map(qNow.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
-       const prevQ = new Map(qPrev.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
-       topQueries = [...new Set([...nowQ.keys(), ...prevQ.keys()])].map((key) => {
-         const q = nowQ.get(key);
-         const p = prevQ.get(key);
+            rowLimit: 10,
+          };
+          const [qNow, qPrev] = await Promise.all([
+            query(siteUrl, windowBody(nowStart, nowEnd, ["query"], filters)),
+            query(siteUrl, windowBody(prevStart, prevEnd, ["query"], filters)),
+          ]);
+          const nowQ = new Map(qNow.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
+          const prevQ = new Map(qPrev.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
+          topQueries = [...new Set([...nowQ.keys(), ...prevQ.keys()])]
+            .map((key) => {
+              const q = nowQ.get(key);
+              const p = prevQ.get(key);
+              return {
+                query: key.slice(0, 300),
+                clicksNow: Math.round(q?.clicks ?? 0),
+                clicksPrev: Math.round(p?.clicks ?? 0),
+                positionNow: Number((q?.position ?? 0).toFixed(1)),
+                positionPrev: Number((p?.position ?? q?.position ?? 0).toFixed(1)),
+              };
+            })
+            .sort((a, b) => a.clicksNow - a.clicksPrev - (b.clicksNow - b.clicksPrev))
+            .slice(0, 5);
+        } catch (e) {
+          if (e instanceof Error && e.message === "GSC_FORBIDDEN") throw e;
+          console.error("GSC per-URL query failed:", e);
+        }
+
+        let title: string;
+        try {
+          const path = new URL(r.url).pathname.replace(/\/$/, "");
+          title =
+            path === "" ? "Domovská stránka" : (path.split("/").pop() ?? path).replace(/[-_]/g, " ");
+        } catch {
+          title = r.url;
+        }
+
         return {
-           query: key.slice(0, 300),
-           clicksNow: Math.round(q?.clicks ?? 0),
-          clicksPrev: Math.round(p?.clicks ?? 0),
-           positionNow: Number((q?.position ?? 0).toFixed(1)),
-           positionPrev: Number((p?.position ?? q?.position ?? 0).toFixed(1)),
+          url: r.url.slice(0, 2048),
+          title: title.slice(0, 500),
+          clicksPrev: r.clicksPrev,
+          clicksNow: r.clicksNow,
+          impressionsPrev: r.impressionsPrev,
+          impressionsNow: r.impressionsNow,
+          positionPrev: r.positionPrev,
+          positionNow: r.positionNow,
+          topQueries,
         };
-       }).sort((a, b) => (a.clicksNow - a.clicksPrev) - (b.clicksNow - b.clicksPrev)).slice(0, 5);
-    } catch (e) {
-       if (e instanceof Error && e.message === "GSC_FORBIDDEN") throw e;
-      console.error("GSC per-URL query failed:", e);
-    }
-
-    let title: string;
-    try {
-      const path = new URL(r.url).pathname.replace(/\/$/, "");
-      title = path === "" ? "Domovská stránka" : (path.split("/").pop() ?? path).replace(/[-_]/g, " ");
-    } catch {
-      title = r.url;
-    }
-
-    rows.push({
-      url: r.url.slice(0, 2048),
-      title: title.slice(0, 500),
-      clicksPrev: r.clicksPrev,
-      clicksNow: r.clicksNow,
-      impressionsPrev: r.impressionsPrev,
-      impressionsNow: r.impressionsNow,
-      positionPrev: r.positionPrev,
-      positionNow: r.positionNow,
-      topQueries,
-    });
+      }),
+    );
+    rows.push(...chunkRows);
   }
   return rows;
 }

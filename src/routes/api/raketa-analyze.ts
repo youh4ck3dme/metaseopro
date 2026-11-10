@@ -61,11 +61,7 @@ export const Route = createFileRoute("/api/raketa-analyze")({
             return err(400, "Neplatná URL konkurencie.");
           }
 
-          const analysis = await runAnalysis(
-            ownUrl,
-            competitorUrl || "",
-            parsed.data.keyword,
-          );
+          const analysis = await runAnalysis(ownUrl, competitorUrl || "", parsed.data.keyword);
 
           return new Response(JSON.stringify({ analysis }), {
             headers: { "Content-Type": "application/json" },

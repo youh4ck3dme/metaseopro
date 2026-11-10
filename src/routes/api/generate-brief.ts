@@ -12,10 +12,7 @@ const InputSchema = z.object({
   audience: z.string().trim().max(500).optional().default(""),
   language: z.string().trim().max(20).optional().default("Slovenčina (SK)"),
   competitors: z.array(z.string().trim().max(255)).max(5).optional().default([]),
-  goal: z
-    .enum(["traffic", "leads", "authority", "local", "sales", ""])
-    .optional()
-    .default(""),
+  goal: z.enum(["traffic", "leads", "authority", "local", "sales", ""]).optional().default(""),
 });
 
 function err(status: number, message: string): Response {
@@ -84,38 +81,32 @@ export const Route = createFileRoute("/api/generate-brief")({
             `Hlavná téma / keyword: ${input.topic}`,
             input.audience ? `Cieľové publikum: ${input.audience}` : "",
             `Jazyk obsahu: ${input.language}`,
-            input.competitors.length
-              ? `Konkurenti: ${input.competitors.join(", ")}`
-              : "",
+            input.competitors.length ? `Konkurenti: ${input.competitors.join(", ")}` : "",
             input.goal ? `Obchodný cieľ: ${goalLabel[input.goal]}` : "",
           ]
             .filter(Boolean)
             .join("\n");
 
-          const upstream = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
-                stream: true,
-                messages: [
-                  { role: "system", content: BRIEF_SYSTEM_PROMPT },
-                  { role: "user", content: userPrompt },
-                ],
-              }),
+          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              model: "google/gemini-3-flash-preview",
+              stream: true,
+              messages: [
+                { role: "system", content: BRIEF_SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+            }),
+          });
 
           if (!upstream.ok || !upstream.body) {
             if (upstream.status === 429)
               return err(429, "AI gateway je preťažený. Skús to o chvíľu.");
-            if (upstream.status === 402)
-              return err(402, "Vyčerpané AI kredity v workspace.");
+            if (upstream.status === 402) return err(402, "Vyčerpané AI kredity v workspace.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);
             return err(500, "Chyba AI gateway.");

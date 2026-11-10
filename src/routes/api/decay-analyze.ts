@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AnalyzeDecaySchema } from "@/lib/decay-schema";
 import { buildLiveDataset, runDecayAnalysis } from "@/lib/decay-analyze.server";
-import { isGscConfigured } from "@/lib/gsc.server";
+import { isGscConfigured, assertUserPropertyAccess } from "@/lib/gsc.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
 import { saveDecaySnapshot } from "@/lib/snapshots.server";
@@ -56,17 +56,17 @@ export const Route = createFileRoute("/api/decay-analyze")({
 
           let dataset;
           if (parsed.data.mode === "live") {
-            if (!parsed.data.siteUrl)
-              return err(400, "Vyber overenú Search Console property.");
+            if (!parsed.data.siteUrl) return err(400, "Vyber overenú Search Console property.");
             if (!isGscConfigured())
-              return err(
-                409,
-                "Google Search Console nie je pripojený. Použi demo režim.",
-              );
+              return err(409, "Google Search Console nie je pripojený. Použi demo režim.");
             try {
+              // Multi-tenant isolation: verify user has permissions for this specific property
+              await assertUserPropertyAccess(auth.userId, parsed.data.siteUrl, auth.email);
               dataset = await buildLiveDataset(parsed.data.siteUrl);
             } catch (e) {
               const msg = (e as Error).message;
+              if (msg === "GSC_USER_UNAUTHORIZED_FOR_PROPERTY")
+                return err(403, "K tejto Search Console doméne nemáte oprávnenie. Pripojte si vlastnú Search Console.");
               if (msg === "GSC_PROPERTY_NOT_VERIFIED")
                 return err(403, "Táto property nie je overená pre pripojený účet.");
               if (msg === "GSC_FORBIDDEN")

@@ -10,10 +10,7 @@ import { ArrowDown, Copy, RotateCcw, Lock } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
-import {
-  generateContentPlan,
-  checkContentPlanAccess,
-} from "@/lib/content-plan.functions";
+import { generateContentPlan, checkContentPlanAccess } from "@/lib/content-plan.functions";
 import { saveOutput } from "@/lib/outputs.functions";
 
 export const Route = createFileRoute("/plan")({
@@ -26,7 +23,11 @@ export const Route = createFileRoute("/plan")({
           "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné.",
       },
       { property: "og:title", content: "30-dňový Content Plan — SEO4WEB" },
-      { property: "og:description", content: "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné." },
+      {
+        property: "og:description",
+        content:
+          "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -60,7 +61,10 @@ function PlanPage() {
   }, [user, loading, navigate]);
 
   useEffect(() => {
-    if (user) checkAccess({}).then(setAccess).catch(() => {});
+    if (user)
+      checkAccess({})
+        .then(setAccess)
+        .catch(() => {});
   }, [user, checkAccess]);
 
   const run = async () => {
@@ -92,7 +96,11 @@ function PlanPage() {
       const msg = (e as Error).message ?? "Chyba";
       if (msg.includes("PAYMENT_REQUIRED")) {
         toast.error("Tvoj prvý deň zdarma sa skončil. Predplatné bude čoskoro dostupné.");
-        setAccess({ ...(access ?? { generationsCount: 0, firstUsedAt: null }), allowed: false, isFirstDay: false });
+        setAccess({
+          ...(access ?? { generationsCount: 0, firstUsedAt: null }),
+          allowed: false,
+          isFirstDay: false,
+        });
       } else {
         toast.error(msg);
       }
@@ -137,8 +145,8 @@ function PlanPage() {
                 30-dňový obsahový plán
               </h1>
               <p className="mb-8 text-secondary-foreground text-pretty">
-                Zadaj svoju niche a cieľ. AI vygeneruje kompletný SEO kalendár na 30 dní —
-                deň po dni, vrátane H1 nadpisov, kľúčových slov a CTA.
+                Zadaj svoju niche a cieľ. AI vygeneruje kompletný SEO kalendár na 30 dní — deň po
+                dni, vrátane H1 nadpisov, kľúčových slov a CTA.
               </p>
             </div>
 
@@ -205,7 +213,9 @@ function PlanPage() {
                   />
                 </div>
                 <div className="flex items-center justify-end border-t border-border pt-4">
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={run}
                     disabled={status === "generating" || (access ? !access.allowed : false)}
                     className="flex items-center gap-2 rounded-[8px] bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-60 disabled:cursor-not-allowed"
@@ -259,7 +269,9 @@ function PlanPage() {
 
       {status === "done" && plan && (
         <div className="fixed bottom-4 left-1/2 flex flex-wrap justify-center max-w-[calc(100vw-1rem)] -translate-x-1/2 gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10">
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={run}
             disabled={access ? !access.allowed : false}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary disabled:opacity-50"
@@ -267,10 +279,20 @@ function PlanPage() {
             <RotateCcw className="size-4" /> Regenerovať
           </Button>
           <div className="my-1 w-px bg-foreground" />
-          <Button variant="studio" size="studio" onClick={copy} className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary">
+          <Button
+            variant="studio"
+            size="studio"
+            onClick={copy}
+            className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
+          >
             <Copy className="size-4" /> Kopírovať
           </Button>
-          <Button variant="studio" size="studio" onClick={download} className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground hover:bg-card">
+          <Button
+            variant="studio"
+            size="studio"
+            onClick={download}
+            className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground hover:bg-card"
+          >
             <ArrowDown className="size-4" /> Stiahnuť .md
           </Button>
         </div>

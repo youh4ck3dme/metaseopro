@@ -1,6 +1,7 @@
 # Stav projektu SEO4WEB (Aktuálny stav & Plán)
 
 ## ✅ Dokončené a plne funkčné (Overené)
+
 - **Kompletný modulárny systém:**
   - `/` — Blog Writer + SERP Lab (generovanie SEO článkov, SERP náhľad, A/B/C varianty titulkov a meta popisov, Schema.org JSON-LD).
   - `/dashboard` — SEO Dashboard (Opportunity Radar, CTR Booster, KPI metriky, snapshoty, live skenovanie overených webov).
@@ -20,6 +21,7 @@
   - Obojsmerná synchronizácia GitHub ↔ Lovable na vetve `main`.
 
 ## 🔄 Nasledujúce kroky & Vylepšenia
+
 1. End-to-end overenie živých Search Console a Semrush dát pre prihlásených používateľov s aktívnymi kľúčmi.
 2. Rozšírenie automatických testov pre `decay-analyze.server.ts` a `site-analyze.server.ts`.
 3. Priebežné sledovanie a vyhodnocovanie experimentov v tabuľke `seo_experiments`.

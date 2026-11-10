@@ -122,10 +122,102 @@ export function norm(s: string): string {
 
 // ---------- Intent ----------
 
-const PRICING = ["cennik", "cena", "ceny", "kolko stoji", "naklady", "price", "lacne", "lacny", "lacna"];
-const SERVICE = ["sluzba", "sluzby", "stahovanie", "stahovacia", "vypratavanie", "odvoz", "montaz", "demontaz", "upratovanie", "preprava"];
+const PRICING = [
+  "cennik",
+  "cena",
+  "ceny",
+  "kolko stoji",
+  "naklady",
+  "price",
+  "lacne",
+  "lacny",
+  "lacna",
+];
+const SERVICE = [
+  "sluzba",
+  "sluzby",
+  "stahovanie",
+  "stahovacia",
+  "vypratavanie",
+  "odvoz",
+  "montaz",
+  "demontaz",
+  "instalacia",
+  "upratovanie",
+  "cistenie",
+  "tepovanie",
+  "preprava",
+  "doprava",
+  "oprava",
+  "servis",
+  "prenajom",
+  "pozicovna",
+  "rekonstrukcia",
+  "tvorba webu",
+  "vyroba",
+  "uctovnictvo",
+  "advokat",
+  "notar",
+  "kadernictvo",
+];
 const INFO = ["ako ", "preco", "co je", "navod", "tipy", "checklist", "kedy", "pripravit"];
-const LOCATIONS = ["bratislava", "petrzalka", "ruzinov", "nove mesto", "karlova ves", "dubravka", "stare mesto", "senec", "pezinok", "malacky"];
+const LOCATIONS = [
+  // Bratislava a mestské časti
+  "bratislava",
+  "petrzalka",
+  "ruzinov",
+  "nove mesto",
+  "karlova ves",
+  "dubravka",
+  "stare mesto",
+  "senec",
+  "pezinok",
+  "malacky",
+  // Krajské a veľké mestá celého Slovenska
+  "kosice",
+  "presov",
+  "zilina",
+  "nitra",
+  "banska bystrica",
+  "trnava",
+  "trencin",
+  "martin",
+  "poprad",
+  "prievidza",
+  "zvolen",
+  "povazska bystrica",
+  "nove zamky",
+  "michalovce",
+  "spisska nova ves",
+  "komarno",
+  "levice",
+  "humenne",
+  "bardejov",
+  "liptovsky mikulas",
+  "piestany",
+  "ruzomberok",
+  "topolcany",
+  "lucenec",
+  "cadca",
+  "dubnica",
+  "rimavska sobota",
+  "partizanske",
+  "sala",
+  "dunajska streda",
+  "vranov",
+  "trebisov",
+  "snina",
+  "senica",
+  "roznava",
+  "dolny kubin",
+  "kezmarok",
+  "puchov",
+  "skalica",
+  "brezno",
+  "ziar nad hronom",
+  "svidnik",
+  "slovensko",
+];
 
 export function classifyIntent(query: string, brandTerms: string[] = []): Intent {
   const q = norm(query);
@@ -166,7 +258,8 @@ export function recommendPageType(url: string, intent: Intent): PageType {
   const p = norm(pathOf(url).replace(/[/-]/g, " "));
   if (p === "") return "homepage";
   if (/(kontakt|formular)/.test(p)) return "contact_page";
-  if (/(ochrana sukromia|cookies|gdpr|obchodne podmienky|category)/.test(p)) return "legal_or_utility";
+  if (/(ochrana sukromia|cookies|gdpr|obchodne podmienky|category)/.test(p))
+    return "legal_or_utility";
   if (/(cennik|cena|ceny)/.test(p)) return "pricing_landing";
   if (intent === "COMMERCIAL") return "pricing_landing";
   if (intent === "INFORMATIONAL") return "informational_article";
@@ -206,19 +299,41 @@ export function scorePage(p: OppPage, brandTerms: string[] = []): ScoredOpp {
   const pageType = recommendPageType(p.url, intent);
   const topQ = [...p.queries].sort((a, b) => b.impressions - a.impressions)[0];
   const qImpr = p.queries.reduce((a, q) => a + q.impressions, 0);
-  const brandImpr = p.queries.filter((q) => isBranded(q.query, brandTerms)).reduce((a, q) => a + q.impressions, 0);
+  const brandImpr = p.queries
+    .filter((q) => isBranded(q.query, brandTerms))
+    .reduce((a, q) => a + q.impressions, 0);
   const deltaPosition = p.positionPrev > 0 ? Number((p.position - p.positionPrev).toFixed(1)) : 0;
-  const imprGrowth = p.impressionsPrev > 0 ? (p.impressions - p.impressionsPrev) / p.impressionsPrev : p.impressions > 0 ? 1 : 0;
+  const imprGrowth =
+    p.impressionsPrev > 0
+      ? (p.impressions - p.impressionsPrev) / p.impressionsPrev
+      : p.impressions > 0
+        ? 1
+        : 0;
 
   // ---- score components (0..1) ----
   const sImpr = Math.min(1, Math.log10(1 + p.impressions) / 3); // 1000 impr ≈ 1
   const ctrGap = exp > 0 ? Math.max(0, (exp - c) / exp) : 0;
   const sPos =
-    p.position >= 4 && p.position <= 20 ? 1 : p.position > 20 && p.position <= 40 ? 0.5 : p.position > 40 ? 0.25 : 0.3;
+    p.position >= 4 && p.position <= 20
+      ? 1
+      : p.position > 20 && p.position <= 40
+        ? 0.5
+        : p.position > 40
+          ? 0.25
+          : 0.3;
   const sGrowth = Math.max(0, Math.min(1, imprGrowth));
-  const sIntent = COMMERCIAL_INTENTS.includes(intent) || pageType === "pricing_landing" || pageType === "service_landing" ? 1 : intent === "MIXED" ? 0.5 : 0.3;
+  const sIntent =
+    COMMERCIAL_INTENTS.includes(intent) ||
+    pageType === "pricing_landing" ||
+    pageType === "service_landing"
+      ? 1
+      : intent === "MIXED"
+        ? 0.5
+        : 0.3;
   const sEvidence = Math.min(1, p.queries.length / 5);
-  let score = 100 * (0.3 * sImpr + 0.2 * ctrGap + 0.2 * sPos + 0.1 * sGrowth + 0.15 * sIntent + 0.05 * sEvidence);
+  let score =
+    100 *
+    (0.3 * sImpr + 0.2 * ctrGap + 0.2 * sPos + 0.1 * sGrowth + 0.15 * sIntent + 0.05 * sEvidence);
   if (pageType === "legal_or_utility") score *= 0.2;
 
   // ---- categories ----
@@ -232,14 +347,16 @@ export function scorePage(p: OppPage, brandTerms: string[] = []): ScoredOpp {
   if (p.impressions >= 50 && p.position <= 15 && c < exp * 0.5) cats.push("CTR_PROBLEM");
   if (p.clicksPrev >= 5 && p.clicks < p.clicksPrev * 0.7) cats.push("DECAYING");
   else if (p.impressionsPrev > 0 && imprGrowth >= 0.3 && p.impressions >= 30) cats.push("GROWING");
-  if (p.position > 20 && p.queries.length >= 3 && COMMERCIAL_INTENTS.includes(intent)) cats.push("CONTENT_GAP");
+  if (p.position > 20 && p.queries.length >= 3 && COMMERCIAL_INTENTS.includes(intent))
+    cats.push("CONTENT_GAP");
 
   // ---- UI state ----
   let state: UiState;
   if (pageType === "legal_or_utility") state = "Good";
   else if (p.impressions < 20 && p.clicks === 0) state = "Needs data";
   else if (winner) state = "Protected";
-  else if (cats.includes("HIGH_IMPRESSIONS_ZERO_CLICKS") || cats.includes("DECAYING")) state = "Critical";
+  else if (cats.includes("HIGH_IMPRESSIONS_ZERO_CLICKS") || cats.includes("DECAYING"))
+    state = "Critical";
   else if (cats.length > 0) state = "Opportunity";
   else state = "Good";
 
@@ -278,10 +395,14 @@ export function recommendAction(cats: Category[], pageType: PageType, p: OppPage
     return "Prepísať title + meta pre zámer dopytu a doplniť chýbajúci obsah nad zlomom.";
   if (cats.includes("CTR_PROBLEM")) return "Testovať nový title a meta popis (SERP Lab).";
   if (cats.includes("QUICK_WIN")) return "Doladiť title/H1 a doplniť sekcie pre sekundárne dopyty.";
-  if (cats.includes("STRIKING_DISTANCE")) return "Rozšíriť obsah o chýbajúce entity a pridať 2–3 kontextové interné odkazy.";
-  if (cats.includes("DECAYING")) return "Aktualizovať obsah, overiť indexáciu a konkurenciu v SERP.";
-  if (cats.includes("CONTENT_GAP")) return "Doplniť chýbajúce sekcie podľa dopytov (služby, lokality, FAQ).";
-  if (cats.includes("LONG_TERM")) return "Dlhodobo: budovať relevanciu obsahom a internými odkazmi.";
+  if (cats.includes("STRIKING_DISTANCE"))
+    return "Rozšíriť obsah o chýbajúce entity a pridať 2–3 kontextové interné odkazy.";
+  if (cats.includes("DECAYING"))
+    return "Aktualizovať obsah, overiť indexáciu a konkurenciu v SERP.";
+  if (cats.includes("CONTENT_GAP"))
+    return "Doplniť chýbajúce sekcie podľa dopytov (služby, lokality, FAQ).";
+  if (cats.includes("LONG_TERM"))
+    return "Dlhodobo: budovať relevanciu obsahom a internými odkazmi.";
   return "Monitorovať.";
 }
 
@@ -308,14 +429,26 @@ export function detectCannibalization(pages: OppPage[], minImpr = 5): CannibalPa
       out.push({ query, urls, impressions: list.reduce((a, l) => a + l.impr, 0) });
   }
   // Also flag URL-slug overlap (e.g. /cennik/ vs /cennik-stahovania-bratislava/).
-  const slugs = pages.map((p) => ({ url: p.url, tokens: new Set(norm(pathOf(p.url).replace(/[/-]/g, " ")).split(" ").filter((t) => t.length > 3)) }));
+  const slugs = pages.map((p) => ({
+    url: p.url,
+    tokens: new Set(
+      norm(pathOf(p.url).replace(/[/-]/g, " "))
+        .split(" ")
+        .filter((t) => t.length > 3),
+    ),
+  }));
   for (let i = 0; i < slugs.length; i++)
     for (let j = i + 1; j < slugs.length; j++) {
-      const a = slugs[i]!, b = slugs[j]!;
+      const a = slugs[i]!,
+        b = slugs[j]!;
       if (a.tokens.size === 0 || b.tokens.size === 0) continue;
       const inter = [...a.tokens].filter((t) => b.tokens.has(t));
       const smaller = Math.min(a.tokens.size, b.tokens.size);
-      if (inter.length > 0 && inter.length / smaller >= 1 && inter.some((t) => ["cennik", "stahovanie", "stahovacia"].includes(t)))
+      if (
+        inter.length > 0 &&
+        (inter.length / smaller >= 0.8 ||
+          inter.some((t) => PRICING.includes(t) || SERVICE.includes(t) || LOCATIONS.includes(t)))
+      )
         out.push({ query: `slug: ${inter.join(" ")}`, urls: [a.url, b.url], impressions: 0 });
     }
   return out.sort((a, b) => b.impressions - a.impressions);
@@ -327,21 +460,34 @@ export function rankOpportunities(pages: OppPage[], brandTerms: string[] = []): 
   const cannibal = detectCannibalization(eligible);
   for (const s of scored) {
     const others = new Set<string>();
-    for (const c of cannibal) if (c.urls.includes(s.url)) c.urls.forEach((u) => u !== s.url && others.add(u));
+    for (const c of cannibal)
+      if (c.urls.includes(s.url)) c.urls.forEach((u) => u !== s.url && others.add(u));
     s.cannibalWith = [...others];
-    if (others.size > 0 && !s.categories.includes("CANNIBALIZATION_RISK")) s.categories.push("CANNIBALIZATION_RISK");
+    if (others.size > 0 && !s.categories.includes("CANNIBALIZATION_RISK"))
+      s.categories.push("CANNIBALIZATION_RISK");
   }
   return scored.sort((a, b) => b.score - a.score);
 }
 
 // ---------- Internal links ----------
 
-export type LinkSuggestion = { source: string; target: string; anchor: string; reason: string; priority: "vysoká" | "stredná" | "nízka" };
+export type LinkSuggestion = {
+  source: string;
+  target: string;
+  anchor: string;
+  reason: string;
+  priority: "vysoká" | "stredná" | "nízka";
+};
 
 export function suggestInternalLinks(scored: ScoredOpp[]): LinkSuggestion[] {
   const out: LinkSuggestion[] = [];
   const hubs = scored.filter((s) => s.pageType === "homepage" || /sluzby/.test(s.path));
-  const targets = scored.filter((s) => ["pricing_landing", "service_landing"].includes(s.pageType) && !s.categories.includes("PROTECT_WINNER") && s.topQuery);
+  const targets = scored.filter(
+    (s) =>
+      ["pricing_landing", "service_landing"].includes(s.pageType) &&
+      !s.categories.includes("PROTECT_WINNER") &&
+      s.topQuery,
+  );
   const contact = scored.find((s) => s.pageType === "contact_page");
   for (const t of targets.slice(0, 8)) {
     for (const h of hubs) {
@@ -355,7 +501,13 @@ export function suggestInternalLinks(scored: ScoredOpp[]): LinkSuggestion[] {
       });
     }
     if (contact && t.pageType === "pricing_landing")
-      out.push({ source: t.path, target: contact.path, anchor: "nezáväzná cenová ponuka", reason: "Konverzná cesta z cenníka na kontakt.", priority: "stredná" });
+      out.push({
+        source: t.path,
+        target: contact.path,
+        anchor: "nezáväzná cenová ponuka",
+        reason: "Konverzná cesta z cenníka na kontakt.",
+        priority: "stredná",
+      });
   }
   // Never link the same anchor to two different targets.
   const seen = new Set<string>();
@@ -380,14 +532,25 @@ export type CoverageGroup =
   | "TRUST ELEMENTS"
   | "CONVERSION ELEMENTS";
 
-export type CoverageItem = { group: CoverageGroup; term: string; status: Coverage; count: number; note?: string };
+export type CoverageItem = {
+  group: CoverageGroup;
+  term: string;
+  status: Coverage;
+  count: number;
+  note?: string;
+};
 
 /** Token-level semantic match: a term counts as present when all its significant stems appear near each other. */
 export function termOccurrences(text: string, term: string): number {
   const t = norm(text);
-  const stems = norm(term).split(" ").filter((w) => w.length > 2).map((w) => w.slice(0, Math.max(4, w.length - 2)));
+  const stems = norm(term)
+    .split(" ")
+    .filter((w) => w.length > 2)
+    .map((w) => w.slice(0, Math.max(4, w.length - 2)));
   if (stems.length === 0) return 0;
-  const sentences = t.split(/(?<=[a-z0-9]) (?=[a-z0-9])/).length ? text.split(/[.!?\n]+/).map(norm) : [t];
+  const sentences = t.split(/(?<=[a-z0-9]) (?=[a-z0-9])/).length
+    ? text.split(/[.!?\n]+/).map(norm)
+    : [t];
   let n = 0;
   for (const s of sentences) if (stems.every((st) => s.includes(st))) n++;
   return n;
@@ -401,14 +564,26 @@ export function coverageStatus(count: number, words: number, isPrimary: boolean)
   return "GOOD";
 }
 
-export function buildCoverage(text: string, groups: Partial<Record<CoverageGroup, string[]>>): CoverageItem[] {
+export function buildCoverage(
+  text: string,
+  groups: Partial<Record<CoverageGroup, string[]>>,
+): CoverageItem[] {
   const words = norm(text).split(" ").filter(Boolean).length;
   const out: CoverageItem[] = [];
   for (const [group, terms] of Object.entries(groups) as [CoverageGroup, string[]][]) {
     for (const term of terms ?? []) {
       const count = termOccurrences(text, term);
       const status = coverageStatus(count, words, group === "PRIMARY QUERY");
-      out.push({ group, term, status, count, note: status === "OVER-OPTIMIZED" ? "Neprirodzené opakovanie — riziko keyword stuffingu." : undefined });
+      out.push({
+        group,
+        term,
+        status,
+        count,
+        note:
+          status === "OVER-OPTIMIZED"
+            ? "Neprirodzené opakovanie — riziko keyword stuffingu."
+            : undefined,
+      });
     }
   }
   return out;
@@ -428,11 +603,20 @@ export const VIANDMO_SEED: string[] = [
   "sťahovanie kancelárií Bratislava",
 ];
 
-export function defaultCoverageGroups(primary: string, secondary: string[]): Partial<Record<CoverageGroup, string[]>> {
+export function defaultCoverageGroups(
+  primary: string,
+  secondary: string[],
+): Partial<Record<CoverageGroup, string[]>> {
   return {
     "PRIMARY QUERY": [primary],
     "SECONDARY QUERIES": secondary.filter((s) => norm(s) !== norm(primary)).slice(0, 6),
-    "SERVICE ENTITIES": ["sťahovanie bytu", "sťahovanie nábytku", "sťahovanie kancelárie", "demontáž a montáž nábytku", "balenie"],
+    "SERVICE ENTITIES": [
+      "sťahovanie bytu",
+      "sťahovanie nábytku",
+      "sťahovanie kancelárie",
+      "demontáž a montáž nábytku",
+      "balenie",
+    ],
     "LOCATION ENTITIES": ["Bratislava", "okolie Bratislavy"],
     "COMMERCIAL TERMS": ["cena", "cenová ponuka", "od čoho závisí cena"],
     "FAQ / QUESTION INTENT": ["koľko stojí sťahovanie", "ako prebieha sťahovanie"],
@@ -443,18 +627,53 @@ export function defaultCoverageGroups(primary: string, secondary: string[]): Par
 
 // ---------- SERP truncation ----------
 
-// Approximate Arial 20px (desktop title) glyph widths, px.
-const WIDE = /[mwMWOQGDHNU@%]/;
-const NARROW = /[ijlftrI!.,:;'|]/;
+// Precise Arial 20px glyph widths scaled to base (default base=10 for desktop title ~600px).
+// Accurately accounts for Slovak Latin-Extended-A and ASCII characters.
+const ULTRA_NARROW = /[iílĺ|!.,:;'`"/]/;
+const NARROW_SYM = /[jtťrfIÍ1\-[\]()–—]/;
+const WIDE_LOWER = /[mw]/;
+const EXTRA_WIDE_UPPER = /[MW@%&]/;
+const NARROW_UPPER = /[JLĽTŤ]/;
+const WIDE_UPPER = /[AÁÄBCČDĎEÉGHIKŇOÓÔPQRŔSŠUÚVXYZŽ]/;
+
 export function textPixelWidth(s: string, base = 10): number {
   let w = 0;
-  for (const ch of s) w += ch === " " ? base * 0.5 : WIDE.test(ch) ? base * 1.45 : NARROW.test(ch) ? base * 0.5 : /[A-ZÁČĎÉÍĽĹŇÓÔŔŠŤÚÝŽ]/.test(ch) ? base * 1.2 : base;
+  for (const ch of s) {
+    if (ch === " ") {
+      w += base * 0.3;
+    } else if (ULTRA_NARROW.test(ch)) {
+      w += base * 0.35;
+    } else if (NARROW_SYM.test(ch)) {
+      w += base * 0.55;
+    } else if (ch === "ľ") {
+      w += base * 0.65;
+    } else if (WIDE_LOWER.test(ch)) {
+      w += base * 1.5;
+    } else if (EXTRA_WIDE_UPPER.test(ch)) {
+      w += base * 1.6;
+    } else if (NARROW_UPPER.test(ch)) {
+      w += base * 1.1;
+    } else if (WIDE_UPPER.test(ch)) {
+      w += base * 1.3;
+    } else {
+      w += base * 1.0;
+    }
+  }
   return w;
 }
 
-export const SERP_LIMITS = { desktopTitle: 600, mobileTitle: 520, desktopDesc: 920, mobileDesc: 680 };
+export const SERP_LIMITS = {
+  desktopTitle: 600,
+  mobileTitle: 520,
+  desktopDesc: 920,
+  mobileDesc: 680,
+};
 
-export function truncateToWidth(s: string, maxPx: number, base = 10): { text: string; truncated: boolean } {
+export function truncateToWidth(
+  s: string,
+  maxPx: number,
+  base = 10,
+): { text: string; truncated: boolean } {
   if (textPixelWidth(s, base) <= maxPx) return { text: s, truncated: false };
   let out = "";
   for (const ch of s) {
@@ -464,20 +683,71 @@ export function truncateToWidth(s: string, maxPx: number, base = 10): { text: st
   return { text: out.trimEnd() + " …", truncated: true };
 }
 
-export function titleWarnings(title: string, opts: { primary: string; brand?: string; others?: string[] }): string[] {
+export function titleWarnings(
+  title: string,
+  opts: { primary: string; brand?: string; others?: string[]; location?: string },
+): string[] {
   const w: string[] = [];
   const t = norm(title);
-  if (textPixelWidth(title, 10) > SERP_LIMITS.desktopTitle) w.push("Title je príliš dlhý — Google ho skráti.");
+  if (textPixelWidth(title, 10) > SERP_LIMITS.desktopTitle)
+    w.push("Title je príliš dlhý — Google ho skráti.");
   if (title.trim().split(/\s+/).length < 3) w.push("Title je príliš generický.");
-  if (!/bratislav/.test(t)) w.push("Chýba lokalita (Bratislava).");
-  const intentWords = ["cennik", "cena", "stahovanie", "sluzba", "ponuka", "kolko"];
-  if (!intentWords.some((k) => t.includes(k))) w.push("Title nevyjadruje zámer dopytu.");
-  const stems = norm(opts.primary).split(" ").filter((x) => x.length > 3).map((x) => x.slice(0, 5));
-  for (const s of stems) {
-    const n = t.split(s).length - 1;
-    if (n >= 3) { w.push("Keyword stuffing — slovo sa opakuje príliš často."); break; }
+
+  // Dynamická kontrola lokality (žiadne hardkódovanie Bratislavy pre celé Slovensko):
+  if (opts.location) {
+    if (!t.includes(norm(opts.location))) {
+      w.push(`Chýba cieľová lokalita (${opts.location}).`);
+    }
+  } else {
+    // Ak primary query obsahuje konkrétnu slovenskú lokalitu, over jej prítomnosť v title
+    const normPrimary = norm(opts.primary);
+    const matchedLoc = LOCATIONS.find((loc) => normPrimary.includes(loc));
+    if (matchedLoc && !t.includes(matchedLoc)) {
+      const displayLoc = matchedLoc.charAt(0).toUpperCase() + matchedLoc.slice(1);
+      w.push(`Chýba lokalita (${displayLoc}).`);
+    }
   }
-  if (opts.brand && t.startsWith(norm(opts.brand)) && textPixelWidth(title) > 450) w.push("Značka na začiatku zaberá cenné miesto.");
+
+  const intentWords = [
+    "cennik",
+    "cena",
+    "ceny",
+    "predaj",
+    "kupit",
+    "sluzba",
+    "sluzby",
+    "ponuka",
+    "kolko",
+    "eshop",
+    "obchod",
+    "vyber",
+    "recenzia",
+    "recenzie",
+    "ako",
+    "najlepsi",
+    "tipy",
+    "navod",
+  ];
+  const primaryStems = norm(opts.primary)
+    .split(" ")
+    .filter((x) => x.length > 2)
+    .map((x) => x.slice(0, 5));
+
+  const hasIntentOrStem =
+    intentWords.some((k) => t.includes(k)) ||
+    primaryStems.some((s) => t.includes(s));
+
+  if (!hasIntentOrStem) w.push("Title nevyjadruje zámer dopytu.");
+
+  for (const s of primaryStems.filter((s) => s.length >= 4)) {
+    const n = t.split(s).length - 1;
+    if (n >= 3) {
+      w.push("Keyword stuffing — slovo sa opakuje príliš často.");
+      break;
+    }
+  }
+  if (opts.brand && t.startsWith(norm(opts.brand)) && textPixelWidth(title) > 450)
+    w.push("Značka na začiatku zaberá cenné miesto.");
   if (opts.others?.some((o) => norm(o) === t)) w.push("Duplicitný title s inou stránkou.");
   return w;
 }
@@ -498,7 +768,10 @@ export type BusinessFacts = {
 };
 
 /** Builds JSON-LD using ONLY provided facts. Missing fields are listed as NEEDS HUMAN INPUT. */
-export function buildLocalBusinessJsonLd(f: BusinessFacts, service?: { name: string; url: string }) {
+export function buildLocalBusinessJsonLd(
+  f: BusinessFacts,
+  service?: { name: string; url: string },
+) {
   const missing: string[] = [];
   const req = (k: keyof BusinessFacts, label: string) => {
     const v = f[k];
@@ -510,24 +783,48 @@ export function buildLocalBusinessJsonLd(f: BusinessFacts, service?: { name: str
   req("areaServed", "obsluhované oblasti");
   req("street", "adresa (ulica)");
 
-  const biz: Record<string, unknown> = { "@type": "MovingCompany", "@id": (f.url ?? "") + "#business" };
+  const biz: Record<string, unknown> = {
+    "@type": "MovingCompany",
+    "@id": (f.url ?? "") + "#business",
+  };
   if (f.name) biz.name = f.name;
   if (f.url) biz.url = f.url;
   if (f.phone) biz.telephone = f.phone;
   if (f.email) biz.email = f.email;
   if (f.description) biz.description = f.description;
-  if (f.areaServed?.length) biz.areaServed = f.areaServed.map((a) => ({ "@type": "City", name: a }));
+  if (f.areaServed?.length)
+    biz.areaServed = f.areaServed.map((a) => ({ "@type": "City", name: a }));
   if (f.street && f.city)
-    biz.address = { "@type": "PostalAddress", streetAddress: f.street, addressLocality: f.city, ...(f.postalCode ? { postalCode: f.postalCode } : {}), addressCountry: "SK" };
+    biz.address = {
+      "@type": "PostalAddress",
+      streetAddress: f.street,
+      addressLocality: f.city,
+      ...(f.postalCode ? { postalCode: f.postalCode } : {}),
+      addressCountry: "SK",
+    };
   if (f.sameAs?.length) biz.sameAs = f.sameAs;
 
   const graph: Record<string, unknown>[] = [biz];
   if (service && f.url) {
-    graph.push({ "@type": "Service", name: service.name, url: service.url, provider: { "@id": f.url + "#business" }, ...(f.areaServed?.length ? { areaServed: f.areaServed } : {}) });
+    graph.push({
+      "@type": "Service",
+      name: service.name,
+      url: service.url,
+      provider: { "@id": f.url + "#business" },
+      ...(f.areaServed?.length ? { areaServed: f.areaServed } : {}),
+    });
     const crumbs = pathOf(service.url).split("/").filter(Boolean);
     graph.push({
       "@type": "BreadcrumbList",
-      itemListElement: [{ "@type": "ListItem", position: 1, name: "Domov", item: f.url }, ...crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 2, name: c.replace(/-/g, " "), item: service.url }))],
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Domov", item: f.url },
+        ...crumbs.map((c, i) => ({
+          "@type": "ListItem",
+          position: i + 2,
+          name: c.replace(/-/g, " "),
+          item: service.url,
+        })),
+      ],
     });
   }
   return { jsonLd: { "@context": "https://schema.org", "@graph": graph }, missing };
@@ -535,7 +832,13 @@ export function buildLocalBusinessJsonLd(f: BusinessFacts, service?: { name: str
 
 export function validateJsonLd(obj: unknown): string[] {
   const errs: string[] = [];
-  const forbidden = ["aggregateRating", "review", "priceRange", "openingHours", "openingHoursSpecification"];
+  const forbidden = [
+    "aggregateRating",
+    "review",
+    "priceRange",
+    "openingHours",
+    "openingHoursSpecification",
+  ];
   const walk = (o: unknown) => {
     if (Array.isArray(o)) return o.forEach(walk);
     if (o && typeof o === "object") {
@@ -554,7 +857,11 @@ export function validateJsonLd(obj: unknown): string[] {
 
 // ---------- Experiments ----------
 
-export type Verdict = "IMPROVED AFTER CHANGE" | "DECLINED AFTER CHANGE" | "INSUFFICIENT DATA" | "NO CLEAR CHANGE";
+export type Verdict =
+  | "IMPROVED AFTER CHANGE"
+  | "DECLINED AFTER CHANGE"
+  | "INSUFFICIENT DATA"
+  | "NO CLEAR CHANGE";
 
 export function experimentVerdict(
   baseline: { clicks: number; impressions: number; position: number },

@@ -1,10 +1,6 @@
 // Server-only helpers: fetch + parse a web page, compare own vs competitor.
 // .server.ts suffix blocks this from client bundles.
-import type {
-  PageAnalysis,
-  ComparisonResult,
-  RaketaAnalysis,
-} from "@/lib/raketa-schema";
+import type { PageAnalysis, ComparisonResult, RaketaAnalysis } from "@/lib/raketa-schema";
 import { normalizeUrl } from "@/lib/raketa-schema";
 
 const FETCH_TIMEOUT_MS = 12_000;
@@ -147,8 +143,7 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; SEO4WEBBot/1.0)",
+        "User-Agent": "Mozilla/5.0 (compatible; SEO4WEBBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
     });
@@ -183,8 +178,7 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
 
   const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(html);
   const title = titleMatch ? decodeEntities(stripTags(titleMatch[1])) : "";
-  const metaDescription =
-    extractMeta(html, "description") || extractMeta(html, "og:description");
+  const metaDescription = extractMeta(html, "description") || extractMeta(html, "og:description");
   const h1 = matchAll(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi).slice(0, 5);
   const h2 = matchAll(html, /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi).slice(0, 15);
   const h3 = matchAll(html, /<h3\b[^>]*>([\s\S]*?)<\/h3>/gi).slice(0, 20);
@@ -246,15 +240,13 @@ function compare(
   // Headings
   if (own.h1.length === 0) weakHeadings.push("Chýba H1 nadpis.");
   else if (own.h1.length > 1) weakHeadings.push("Viac ako jeden H1 nadpis.");
-  if (own.h2.length < 3)
-    weakHeadings.push("Málo H2 nadpisov — slabá štruktúra obsahu.");
+  if (own.h2.length < 3) weakHeadings.push("Málo H2 nadpisov — slabá štruktúra obsahu.");
   if (kw && ![...own.h1, ...own.h2].some((h) => h.toLowerCase().includes(kw))) {
     weakHeadings.push("Cieľový keyword sa nenachádza v nadpisoch.");
   }
 
   // CTA
-  if (own.ctas.length === 0)
-    ctaIssues.push("Nenašli sa jasné call-to-action prvky.");
+  if (own.ctas.length === 0) ctaIssues.push("Nenašli sa jasné call-to-action prvky.");
 
   // Keyword in content
   if (kw && own.textSummary && !own.textSummary.toLowerCase().includes(kw)) {

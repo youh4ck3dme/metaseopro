@@ -1,5 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchLiveDecayRows, getLivePeriods } from "./gsc.server";
+import {
+  assertUserPropertyAccess,
+  fetchLiveDecayRows,
+  getLivePeriods,
+  listUserVerifiedProperties,
+} from "./gsc.server";
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -22,18 +27,80 @@ describe("GSC comparison regressions", () => {
   it("retains URLs and queries which lost all current traffic", async () => {
     vi.stubEnv("LOVABLE_API_KEY", "test-only");
     vi.stubEnv("GOOGLE_SEARCH_CONSOLE_API_KEY", "test-only");
-    vi.stubGlobal("fetch", vi.fn(async (_url, init) => {
-      const body = JSON.parse(init.body);
-      const previous = body.startDate === "2026-05-05";
-      return Response.json({ rows: previous ? [{
-        keys: [body.dimensions[0] === "page" ? "https://example.com/lost" : "lost keyword"],
-        clicks: 20, impressions: 100, position: 7,
-      }] : [] });
-    }));
-    const rows = await fetchLiveDecayRows("https://example.com/", 12,
-      getLivePeriods(new Date("2026-11-03T00:59:00Z")));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url, init) => {
+        const body = JSON.parse(init.body);
+        const previous = body.startDate === "2026-05-05";
+        return Response.json({
+          rows: previous
+            ? [
+                {
+                  keys: [
+                    body.dimensions[0] === "page" ? "https://example.com/lost" : "lost keyword",
+                  ],
+                  clicks: 20,
+                  impressions: 100,
+                  position: 7,
+                },
+              ]
+            : [],
+        });
+      }),
+    );
+    const rows = await fetchLiveDecayRows(
+      "https://example.com/",
+      12,
+      getLivePeriods(new Date("2026-11-03T00:59:00Z")),
+    );
     expect(rows).toHaveLength(1);
-    expect(rows[0]).toMatchObject({ url: "https://example.com/lost", clicksPrev: 20, clicksNow: 0, impressionsNow: 0, positionNow: 0 });
-    expect(rows[0]?.topQueries[0]).toMatchObject({ query: "lost keyword", clicksPrev: 20, clicksNow: 0 });
+    expect(rows[0]).toMatchObject({
+      url: "https://example.com/lost",
+      clicksPrev: 20,
+      clicksNow: 0,
+      impressionsNow: 0,
+      positionNow: 0,
+    });
+    expect(rows[0]?.topQueries[0]).toMatchObject({
+      query: "lost keyword",
+      clicksPrev: 20,
+      clicksNow: 0,
+    });
+  });
+
+  it("enforces multi-tenant isolation so unauthorized users cannot access competitor properties", async () => {
+    vi.stubEnv("LOVABLE_API_KEY", "test-only");
+    vi.stubEnv("GOOGLE_SEARCH_CONSOLE_API_KEY", "test-only");
+    vi.stubEnv("ADMIN_EMAILS", "founder@seo4web.sk");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        Response.json({
+          siteEntry: [
+            { siteUrl: "https://vip-client.sk/", permissionLevel: "siteOwner" },
+            { siteUrl: "https://another-client.sk/", permissionLevel: "siteOwner" },
+          ],
+        }),
+      ),
+    );
+
+    // Non-admin user without access
+    const regularProps = await listUserVerifiedProperties("user-123", "stranger@comp.sk");
+    expect(regularProps).toEqual([]);
+
+    await expect(
+      assertUserPropertyAccess("user-123", "https://vip-client.sk/", "stranger@comp.sk"),
+    ).rejects.toThrow("GSC_USER_UNAUTHORIZED_FOR_PROPERTY");
+
+    // Admin user has access
+    const adminProps = await listUserVerifiedProperties("admin-uuid", "founder@seo4web.sk");
+    expect(adminProps).toHaveLength(2);
+
+    const verified = await assertUserPropertyAccess(
+      "admin-uuid",
+      "https://vip-client.sk/",
+      "founder@seo4web.sk",
+    );
+    expect(verified).toBe("https://vip-client.sk/");
   });
 });

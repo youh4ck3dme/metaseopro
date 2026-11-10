@@ -151,4 +151,3 @@ export const generateContentPlan = createServerFn({ method: "POST" })
 
     return { plan: content };
   });
-

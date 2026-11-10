@@ -23,7 +23,11 @@ export const Route = createFileRoute("/audit")({
           "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
       },
       { property: "og:title", content: "SEO Audit — SEO4WEB" },
-      { property: "og:description", content: "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti." },
+      {
+        property: "og:description",
+        content:
+          "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -73,10 +77,7 @@ function AuditPage() {
   };
 
   const start = async () => {
-    const all = Array.from(new Set([...domains, ...parseDomains(input)])).slice(
-      0,
-      5,
-    );
+    const all = Array.from(new Set([...domains, ...parseDomains(input)])).slice(0, 5);
     if (all.length === 0) {
       toast.error("Zadaj aspoň jednu doménu.");
       return;
@@ -168,8 +169,8 @@ function AuditPage() {
                 Hĺbkový SEO audit konkurencie
               </h1>
               <p className="mb-12 text-secondary-foreground text-pretty">
-                Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich
-                a navrhnem keyword príležitosti, kde môžeš konkurenciu predbehnúť.
+                Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich a navrhnem keyword
+                príležitosti, kde môžeš konkurenciu predbehnúť.
               </p>
             </div>
 
@@ -191,7 +192,9 @@ function AuditPage() {
                           className="inline-flex items-center gap-1.5 rounded-full bg-muted py-1 pr-1 pl-3 text-sm text-secondary-foreground"
                         >
                           {d}
-                          <Button variant="studio" size="studio"
+                          <Button
+                            variant="studio"
+                            size="studio"
                             type="button"
                             onClick={() => removeDomain(d)}
                             disabled={status === "streaming"}
@@ -274,14 +277,14 @@ function AuditPage() {
                         Gemini 2.5 Pro
                       </span>
                     </div>
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={start}
                       disabled={!canRun}
                       className="flex items-center gap-2 rounded-[8px] bg-primary px-3 py-2 text-sm font-medium text-primary-foreground ring-1 ring-ring transition-colors hover:bg-primary disabled:cursor-not-allowed disabled:opacity-60"
                     >
-                      {status === "streaming"
-                        ? "Analyzujem..."
-                        : "Spustiť analýzu"}
+                      {status === "streaming" ? "Analyzujem..." : "Spustiť analýzu"}
                     </Button>
                   </div>
                 </div>
@@ -309,9 +312,7 @@ function AuditPage() {
                       <>
                         <div className="size-2 animate-pulse rounded-full bg-success" />
                         <span className="text-xs font-medium tracking-normalst text-muted-foreground uppercase">
-                          {report
-                            ? "Generuje sa..."
-                            : "Zbieram dáta zo Semrush..."}
+                          {report ? "Generuje sa..." : "Zbieram dáta zo Semrush..."}
                         </span>
                       </>
                     ) : (
@@ -324,7 +325,9 @@ function AuditPage() {
                     )}
                   </div>
                   {status === "streaming" && (
-                    <Button variant="studio" size="studio"
+                    <Button
+                      variant="studio"
+                      size="studio"
                       onClick={stop}
                       className="flex items-center gap-1 rounded px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
                     >
@@ -337,9 +340,7 @@ function AuditPage() {
                 <div className="min-h-[800px] rounded-lg bg-card p-8 shadow-sm ring-1 ring-border/5 md:p-12">
                   {report ? (
                     <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-12 prose-h3:text-lg prose-p:text-secondary-foreground prose-p:leading-relaxed prose-p:text-pretty prose-strong:text-foreground prose-a:text-foreground prose-table:text-sm">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {report}
-                      </ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{report}</ReactMarkdown>
                       {status === "streaming" && (
                         <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                       )}
@@ -361,7 +362,9 @@ function AuditPage() {
 
       {status === "done" && report && (
         <div className="fixed bottom-4 left-1/2 flex flex-wrap justify-center max-w-[calc(100vw-1rem)] -translate-x-1/2 gap-2 rounded-full bg-primary p-2 text-primary-foreground shadow-2xl ring-1 ring-border/10">
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={start}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-primary"
           >
@@ -369,14 +372,18 @@ function AuditPage() {
             Regenerovať
           </Button>
           <div className="my-1 w-px bg-foreground" />
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={copy}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium transition-colors hover:bg-primary"
           >
             <Copy className="size-4" />
             Kopírovať
           </Button>
-          <Button variant="studio" size="studio"
+          <Button
+            variant="studio"
+            size="studio"
             onClick={download}
             className="flex items-center gap-2 rounded-full bg-background py-2 pr-4 pl-3 text-sm font-medium text-foreground transition-colors hover:bg-card"
           >

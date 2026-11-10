@@ -1,16 +1,8 @@
 // Server-only Decay Radar logic: scoring + dataset assembly.
 // Demo mode reads from decay-demo.ts. Live GSC mode is a Phase-2 extension;
 // until GSC is connected we always return demo data (clearly flagged).
-import {
-  DEMO_PERIOD_NOW,
-  DEMO_PERIOD_PREV,
-  DEMO_SCENARIOS,
-} from "./decay-demo";
-import {
-  getLivePeriods,
-  assertVerifiedProperty,
-  fetchLiveDecayRows,
-} from "./gsc.server";
+import { DEMO_PERIOD_NOW, DEMO_PERIOD_PREV, DEMO_SCENARIOS } from "./decay-demo";
+import { getLivePeriods, assertVerifiedProperty, fetchLiveDecayRows } from "./gsc.server";
 import {
   SCENARIO_LABEL,
   type DecayDataset,
@@ -22,13 +14,12 @@ import {
 
 function scoreRow(row: DecayRow): ScoredDecayRow {
   const clicksDeltaPct =
-    row.clicksPrev > 0
-      ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100)
-      : 0;
+    row.clicksPrev > 0 ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100) : 0;
   // Positive positionDelta = worse (higher number = lower rank).
-  const positionDelta = row.positionNow > 0 && row.positionPrev > 0
-    ? Number((row.positionNow - row.positionPrev).toFixed(1))
-    : 0;
+  const positionDelta =
+    row.positionNow > 0 && row.positionPrev > 0
+      ? Number((row.positionNow - row.positionPrev).toFixed(1))
+      : 0;
 
   // Decay score: 0 (healthy) .. 100 (severe decay). Driven by click loss,
   // amplified by ranking loss. Growth clamps toward 0.
@@ -54,13 +45,11 @@ const STATUS_ORDER: Record<DecayStatus, number> = {
 
 export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
   const demo = DEMO_SCENARIOS[scenario];
-  const rows = demo.rows
-    .map(scoreRow)
-    .sort((a, b) => {
-      const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-      if (s !== 0) return s;
-      return b.decayScore - a.decayScore;
-    });
+  const rows = demo.rows.map(scoreRow).sort((a, b) => {
+    const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (s !== 0) return s;
+    return b.decayScore - a.decayScore;
+  });
 
   return {
     demo: true,
@@ -81,13 +70,11 @@ export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
 export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   const verified = await assertVerifiedProperty(siteUrl);
   const periods = getLivePeriods();
-  const rows = (await fetchLiveDecayRows(verified, 12, periods))
-    .map(scoreRow)
-    .sort((a, b) => {
-      const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
-      if (s !== 0) return s;
-      return b.decayScore - a.decayScore;
-    });
+  const rows = (await fetchLiveDecayRows(verified, 12, periods)).map(scoreRow).sort((a, b) => {
+    const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
+    if (s !== 0) return s;
+    return b.decayScore - a.decayScore;
+  });
 
   return {
     demo: false,
@@ -104,8 +91,6 @@ export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   };
 }
 
-export async function runDecayAnalysis(
-  scenario: DecayScenario,
-): Promise<DecayDataset> {
+export async function runDecayAnalysis(scenario: DecayScenario): Promise<DecayDataset> {
   return buildDemoDataset(scenario);
 }

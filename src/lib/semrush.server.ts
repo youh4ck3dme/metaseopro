@@ -18,22 +18,14 @@ function requireKeys() {
   }
   const SEMRUSH_API_KEY = process.env.SEMRUSH_API_KEY;
   if (!SEMRUSH_API_KEY) {
-    throw new SemrushError(
-      "Semrush konektor nie je pripojený. Pripoj ho v nastaveniach.",
-      503,
-    );
+    throw new SemrushError("Semrush konektor nie je pripojený. Pripoj ho v nastaveniach.", 503);
   }
   return { LOVABLE_API_KEY, SEMRUSH_API_KEY };
 }
 
-async function semrushGet(
-  path: string,
-  params: Record<string, string | number>,
-) {
+async function semrushGet(path: string, params: Record<string, string | number>) {
   const { LOVABLE_API_KEY, SEMRUSH_API_KEY } = requireKeys();
-  const qs = new URLSearchParams(
-    Object.entries(params).map(([k, v]) => [k, String(v)]),
-  ).toString();
+  const qs = new URLSearchParams(Object.entries(params).map(([k, v]) => [k, String(v)])).toString();
   const url = `${GATEWAY_URL}${path}?${qs}`;
   const res = await fetch(url, {
     headers: {
@@ -50,13 +42,9 @@ async function semrushGet(
     // not JSON
   }
   if (!res.ok) {
-    const msg =
-      json?.error || `Semrush API zlyhalo (${res.status}): ${text.slice(0, 200)}`;
+    const msg = json?.error || `Semrush API zlyhalo (${res.status}): ${text.slice(0, 200)}`;
     if (typeof msg === "string" && msg.includes("ERROR 134")) {
-      throw new SemrushError(
-        "Vyčerpaný Semrush limit. Skús to neskôr alebo upgraduj plán.",
-        429,
-      );
+      throw new SemrushError("Vyčerpaný Semrush limit. Skús to neskôr alebo upgraduj plán.", 429);
     }
     throw new SemrushError(msg, res.status);
   }
@@ -107,9 +95,8 @@ export async function getDomainSnapshot(
   domain: string,
   databaseOverride?: string,
 ): Promise<DomainSnapshot> {
-  const database = databaseOverride && databaseOverride.length > 0
-    ? databaseOverride
-    : pickDatabase(domain);
+  const database =
+    databaseOverride && databaseOverride.length > 0 ? databaseOverride : pickDatabase(domain);
   const errors: string[] = [];
 
   const [overviewRes, keywordsRes, backlinksRes, anchorsRes, refDomainsRes] =
@@ -141,38 +128,25 @@ export async function getDomainSnapshot(
       }),
     ]);
 
-  const overviewRows =
-    overviewRes.status === "fulfilled" ? rowsToObjects(overviewRes.value) : [];
+  const overviewRows = overviewRes.status === "fulfilled" ? rowsToObjects(overviewRes.value) : [];
   if (overviewRes.status === "rejected") {
-    errors.push(
-      `domain_ranks: ${(overviewRes.reason as Error).message ?? "fail"}`,
-    );
+    errors.push(`domain_ranks: ${(overviewRes.reason as Error).message ?? "fail"}`);
   }
 
-  const topKeywords =
-    keywordsRes.status === "fulfilled" ? rowsToObjects(keywordsRes.value) : [];
+  const topKeywords = keywordsRes.status === "fulfilled" ? rowsToObjects(keywordsRes.value) : [];
   if (keywordsRes.status === "rejected") {
-    errors.push(
-      `domain_organic: ${(keywordsRes.reason as Error).message ?? "fail"}`,
-    );
+    errors.push(`domain_organic: ${(keywordsRes.reason as Error).message ?? "fail"}`);
   }
 
   const backlinksRows =
-    backlinksRes.status === "fulfilled"
-      ? rowsToObjects(backlinksRes.value)
-      : [];
+    backlinksRes.status === "fulfilled" ? rowsToObjects(backlinksRes.value) : [];
   if (backlinksRes.status === "rejected") {
-    errors.push(
-      `backlinks_overview: ${(backlinksRes.reason as Error).message ?? "fail"}`,
-    );
+    errors.push(`backlinks_overview: ${(backlinksRes.reason as Error).message ?? "fail"}`);
   }
 
-  const anchors =
-    anchorsRes.status === "fulfilled" ? rowsToObjects(anchorsRes.value) : [];
+  const anchors = anchorsRes.status === "fulfilled" ? rowsToObjects(anchorsRes.value) : [];
   const topRefDomains =
-    refDomainsRes.status === "fulfilled"
-      ? rowsToObjects(refDomainsRes.value)
-      : [];
+    refDomainsRes.status === "fulfilled" ? rowsToObjects(refDomainsRes.value) : [];
 
   return {
     domain,

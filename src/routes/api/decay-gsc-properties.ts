@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
-import { isGscConfigured, listVerifiedProperties } from "@/lib/gsc.server";
+import { isGscConfigured, listUserVerifiedProperties } from "@/lib/gsc.server";
 
 export const Route = createFileRoute("/api/decay-gsc-properties")({
   server: {
@@ -30,14 +30,14 @@ export const Route = createFileRoute("/api/decay-gsc-properties")({
         }
 
         if (!isGscConfigured()) {
-          return new Response(
-            JSON.stringify({ status: "not_connected", properties: [] }),
-            { headers: { "Content-Type": "application/json" } },
-          );
+          return new Response(JSON.stringify({ status: "not_connected", properties: [] }), {
+            headers: { "Content-Type": "application/json" },
+          });
         }
 
         try {
-          const properties = await listVerifiedProperties();
+          // Multi-tenant safe: only return properties belonging to the user's tenant or platform owner
+          const properties = await listUserVerifiedProperties(auth.userId, auth.email);
           return new Response(JSON.stringify({ status: "ok", properties }), {
             headers: { "Content-Type": "application/json" },
           });

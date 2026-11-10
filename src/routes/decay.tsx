@@ -51,8 +51,7 @@ export const Route = createFileRoute("/decay")({
       { property: "og:title", content: "Decay Radar — nájdi klesajúci obsah" },
       {
         property: "og:description",
-        content:
-          "Odhaľ stránky, ktoré strácajú organický traffic, a získaj AI refresh plán.",
+        content: "Odhaľ stránky, ktoré strácajú organický traffic, a získaj AI refresh plán.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -117,9 +116,7 @@ function DecayPage() {
   const [scenario, setScenario] = useState<DecayScenario>("blog");
   const [language, setLanguage] = useState<DecayLanguage>("sk");
   const [mode, setMode] = useState<"demo" | "live">("demo");
-  const [gscStatus, setGscStatus] = useState<"loading" | "ok" | "unavailable">(
-    "loading",
-  );
+  const [gscStatus, setGscStatus] = useState<"loading" | "ok" | "unavailable">("loading");
   const [properties, setProperties] = useState<string[]>([]);
   const [siteUrl, setSiteUrl] = useState("");
 
@@ -135,8 +132,7 @@ function DecayPage() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    if (!loading && !user)
-      navigate({ to: "/login", search: { redirect: "/decay" } });
+    if (!loading && !user) navigate({ to: "/login", search: { redirect: "/decay" } });
   }, [user, loading, navigate]);
 
   // Load verified Search Console properties (if the connector is available).
@@ -149,18 +145,14 @@ function DecayPage() {
           data: { session },
         } = await supabase.auth.getSession();
         const res = await fetch("/api/decay-gsc-properties", {
-          headers: session?.access_token
-            ? { Authorization: `Bearer ${session.access_token}` }
-            : {},
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {},
         });
         const json = await res.json().catch(() => ({}));
         if (cancelled) return;
-        const list: string[] = (json.properties ?? []).map(
-          (p: { siteUrl: string }) => p.siteUrl,
-        );
+        const list: string[] = (json.properties ?? []).map((p: { siteUrl: string }) => p.siteUrl);
         if (res.ok && json.status === "ok" && list.length > 0) {
           setProperties(list);
-          setSiteUrl((current) => list.includes(current) ? current : (list[0] ?? ""));
+          setSiteUrl((current) => (list.includes(current) ? current : (list[0] ?? "")));
           setGscStatus("ok");
         } else {
           setGscStatus("unavailable");
@@ -213,8 +205,7 @@ function DecayPage() {
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
       };
-      if (session?.access_token)
-        headers["Authorization"] = `Bearer ${session.access_token}`;
+      if (session?.access_token) headers["Authorization"] = `Bearer ${session.access_token}`;
 
       const res = await fetch("/api/decay-analyze", {
         method: "POST",
@@ -283,10 +274,7 @@ function DecayPage() {
           await save({
             data: {
               type: "decay",
-              title: `Decay refresh${dataset.demo ? " (demo)" : ""}: ${selected.url}`.slice(
-                0,
-                300,
-              ),
+              title: `Decay refresh${dataset.demo ? " (demo)" : ""}: ${selected.url}`.slice(0, 300),
               input: {
                 demo: dataset.demo,
                 scenario: dataset.scenario,
@@ -366,14 +354,16 @@ function DecayPage() {
                 Nájdi obsah, ktorý stráca traffic.
               </h1>
               <p className="mb-6 max-w-[60ch] text-base md:text-lg text-secondary-foreground text-pretty">
-                Decay Radar odhalí stránky s klesajúcimi kliknutiami a pozíciami
-                a vygeneruje AI refresh plán na obnovu výkonu.
+                Decay Radar odhalí stránky s klesajúcimi kliknutiami a pozíciami a vygeneruje AI
+                refresh plán na obnovu výkonu.
               </p>
 
               {/* Mode switch */}
               <div className="mb-5 inline-flex rounded-lg bg-muted p-1">
                 {(["demo", "live"] as const).map((m) => (
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     key={m}
                     onClick={() => setMode(m)}
                     disabled={m === "live" && gscStatus !== "ok"}
@@ -393,8 +383,7 @@ function DecayPage() {
                 <div className="mb-6 flex items-start gap-3 rounded-lg bg-warning-subtle p-4 ring-1 ring-warning-border">
                   <Activity className="mt-0.5 size-5 shrink-0 text-warning-foreground" />
                   <p className="text-sm text-warning-foreground">
-                    You're viewing a demo dataset – connect Google Search Console
-                    for real analysis.{" "}
+                    You're viewing a demo dataset – connect Google Search Console for real analysis.{" "}
                     {gscStatus === "unavailable" &&
                       "Search Console zatiaľ nie je pripojený, preto je dostupný len demo režim. "}
                     Demo dáta sa nikdy nemiešajú s reálnymi dátami.
@@ -404,8 +393,8 @@ function DecayPage() {
                 <div className="mb-6 flex items-start gap-3 rounded-lg bg-success-subtle p-4 ring-1 ring-success-border">
                   <Activity className="mt-0.5 size-5 shrink-0 text-success-foreground" />
                   <p className="text-sm text-success-foreground">
-                    Reálne dáta z Google Search Console — porovnanie posledných 90
-                    dní s predchádzajúcimi 90 dňami.
+                    Reálne dáta z Google Search Console — porovnanie posledných 90 dní s
+                    predchádzajúcimi 90 dňami.
                   </p>
                 </div>
               )}
@@ -456,7 +445,9 @@ function DecayPage() {
                   </select>
                 </Field>
                 <div className="flex items-end">
-                  <Button variant="studio" size="studio"
+                  <Button
+                    variant="studio"
+                    size="studio"
                     onClick={analyze}
                     disabled={phase === "analyzing"}
                     className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary disabled:opacity-60"
@@ -474,7 +465,9 @@ function DecayPage() {
             <div className="mt-6 rounded-lg bg-danger-subtle p-5 ring-1 ring-danger-border">
               <p className="text-sm font-medium text-danger-foreground">Niečo sa pokazilo</p>
               <p className="mt-1 text-sm text-danger-foreground">{errorMsg}</p>
-              <Button variant="studio" size="studio"
+              <Button
+                variant="studio"
+                size="studio"
                 onClick={analyze}
                 className="mt-3 inline-flex items-center gap-2 rounded-[8px] bg-danger px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-danger"
               >
@@ -510,13 +503,18 @@ function DecayPage() {
               </div>
 
               {!dataset.demo && (
-                <dl aria-label="Porovnávané obdobia GSC" className="mb-4 flex flex-wrap gap-x-8 gap-y-2 text-sm">
+                <dl
+                  aria-label="Porovnávané obdobia GSC"
+                  className="mb-4 flex flex-wrap gap-x-8 gap-y-2 text-sm"
+                >
                   <div>
                     <dt className="text-xs text-muted-foreground">Aktuálne obdobie (90 dní)</dt>
                     <dd className="font-medium text-foreground">{dataset.periodNow}</dd>
                   </div>
                   <div>
-                    <dt className="text-xs text-muted-foreground">Predchádzajúce obdobie (90 dní)</dt>
+                    <dt className="text-xs text-muted-foreground">
+                      Predchádzajúce obdobie (90 dní)
+                    </dt>
                     <dd className="font-medium text-foreground">{dataset.periodPrev}</dd>
                   </div>
                 </dl>
@@ -542,9 +540,7 @@ function DecayPage() {
                         className="cursor-pointer border-b border-border last:border-0 hover:bg-background"
                       >
                         <td className="max-w-[280px] px-4 py-3">
-                          <p className="truncate font-medium text-foreground">
-                            {row.title}
-                          </p>
+                          <p className="truncate font-medium text-foreground">{row.title}</p>
                           <p className="truncate text-xs text-muted-foreground">
                             {row.url.replace(/^https?:\/\//, "")}
                           </p>
@@ -572,9 +568,7 @@ function DecayPage() {
                                 style={{ width: `${row.decayScore}%` }}
                               />
                             </div>
-                            <span className="text-xs text-muted-foreground">
-                              {row.decayScore}
-                            </span>
+                            <span className="text-xs text-muted-foreground">{row.decayScore}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3">
@@ -614,7 +608,9 @@ function DecayPage() {
                 </p>
                 <h2 className="truncate text-base font-medium">{selected.title}</h2>
               </div>
-              <Button variant="studio" size="studio"
+              <Button
+                variant="studio"
+                size="studio"
                 onClick={() => setSelected(null)}
                 className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
                 aria-label="Zavrieť"
@@ -631,7 +627,9 @@ function DecayPage() {
               )}
 
               <p className="break-all text-xs text-muted-foreground">{selected.url}</p>
-              <Button variant="studio" size="studio"
+              <Button
+                variant="studio"
+                size="studio"
                 onClick={() => {
                   handoffToWriter(dataset.siteUrl, selected);
                   window.location.href = "/?fromRefresh=1";
@@ -643,17 +641,27 @@ function DecayPage() {
 
               {/* Metrics */}
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <Metric label="Kliknutia" value={`${selected.clicksNow.toLocaleString("sk-SK")}`} sub={`z ${selected.clicksPrev.toLocaleString("sk-SK")}`} />
+                <Metric
+                  label="Kliknutia"
+                  value={`${selected.clicksNow.toLocaleString("sk-SK")}`}
+                  sub={`z ${selected.clicksPrev.toLocaleString("sk-SK")}`}
+                />
                 <Metric label="Zmena" value={`${selected.clicksDeltaPct}%`} sub="kliknutia" />
-                <Metric label="Pozícia" value={selected.positionNow.toFixed(1)} sub={`z ${selected.positionPrev.toFixed(1)}`} />
-                <Metric label="Zobrazenia" value={selected.impressionsNow.toLocaleString("sk-SK")} sub={`z ${selected.impressionsPrev.toLocaleString("sk-SK")}`} />
+                <Metric
+                  label="Pozícia"
+                  value={selected.positionNow.toFixed(1)}
+                  sub={`z ${selected.positionPrev.toFixed(1)}`}
+                />
+                <Metric
+                  label="Zobrazenia"
+                  value={selected.impressionsNow.toLocaleString("sk-SK")}
+                  sub={`z ${selected.impressionsPrev.toLocaleString("sk-SK")}`}
+                />
               </div>
 
               {/* Query recovery map */}
               <div>
-                <h3 className="mb-2 text-sm font-medium text-foreground">
-                  Query recovery mapa
-                </h3>
+                <h3 className="mb-2 text-sm font-medium text-foreground">Query recovery mapa</h3>
                 <div className="overflow-hidden rounded-lg ring-1 ring-border/5">
                   <table className="w-full text-sm">
                     <thead>
@@ -683,20 +691,22 @@ function DecayPage() {
               {/* AI refresh plan */}
               <div>
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="text-sm font-medium text-foreground">
-                    AI refresh plán
-                  </h3>
+                  <h3 className="text-sm font-medium text-foreground">AI refresh plán</h3>
                   <div className="flex gap-2">
                     {plan && (
                       <>
-                        <Button variant="studio" size="studio"
+                        <Button
+                          variant="studio"
+                          size="studio"
                           onClick={copyPlan}
                           className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted"
                         >
                           {copied ? <Check className="size-4" /> : <Copy className="size-4" />}{" "}
                           Kopírovať
                         </Button>
-                        <Button variant="studio" size="studio"
+                        <Button
+                          variant="studio"
+                          size="studio"
                           onClick={exportPlan}
                           className="flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm text-secondary-foreground hover:bg-muted"
                         >
@@ -705,14 +715,18 @@ function DecayPage() {
                       </>
                     )}
                     {planLoading ? (
-                      <Button variant="studio" size="studio"
+                      <Button
+                        variant="studio"
+                        size="studio"
                         onClick={stopPlan}
                         className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-sm font-medium text-secondary-foreground hover:bg-border"
                       >
                         <Square className="size-4" /> Zastaviť
                       </Button>
                     ) : (
-                      <Button variant="studio" size="studio"
+                      <Button
+                        variant="studio"
+                        size="studio"
                         onClick={generatePlan}
                         className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary"
                       >
@@ -739,8 +753,8 @@ function DecayPage() {
 
                 {!plan && !planLoading && (
                   <p className="rounded-lg bg-background p-4 text-sm text-muted-foreground">
-                    Vygeneruj konkrétny plán na obnovu tejto stránky. Plán sa
-                    automaticky uloží do Histórie.
+                    Vygeneruj konkrétny plán na obnovu tejto stránky. Plán sa automaticky uloží do
+                    Histórie.
                   </p>
                 )}
               </div>
@@ -752,32 +766,16 @@ function DecayPage() {
   );
 }
 
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-xs font-medium text-secondary-foreground">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-xs font-medium text-secondary-foreground">{label}</span>
       {children}
     </label>
   );
 }
 
-function Metric({
-  label,
-  value,
-  sub,
-}: {
-  label: string;
-  value: string;
-  sub: string;
-}) {
+function Metric({ label, value, sub }: { label: string; value: string; sub: string }) {
   return (
     <div className="rounded-lg bg-background p-3">
       <p className="text-[11px] uppercase tracking-normal text-muted-foreground">{label}</p>

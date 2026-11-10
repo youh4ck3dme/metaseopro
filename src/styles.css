@@ -3,10 +3,7 @@
 @source "../src";
 @plugin "@tailwindcss/typography";
 
-
-
 @custom-variant dark (&:is(.dark *));
-
 
 /*
  * Design system definition.
@@ -204,50 +201,176 @@
 }
 
 @layer base {
-  h1, h2, h3, h4 { font-family: var(--font-display); }
-  * { letter-spacing: 0; }
-  main { animation: page-enter 320ms ease-out both; }
-  :is(input, textarea, select) { transition: border-color 160ms, box-shadow 160ms, background-color 160ms; max-width: 100%; }
-  :is(input, textarea, select):focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
-  :is(a, button):focus-visible { outline: 2px solid var(--ring); outline-offset: 4px; }
-  :is(button, a) { -webkit-tap-highlight-color: transparent; }
-  th { font-weight: 600; }
-  td { font-variant-numeric: tabular-nums; }
-  tbody tr { transition: background-color 150ms; }
-  tbody tr:hover { background-color: var(--muted); }
-  h1 { overflow-wrap: break-word; }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+  * {
+    letter-spacing: 0;
+  }
+  main {
+    animation: page-enter 320ms ease-out both;
+  }
+  :is(input, textarea, select) {
+    transition:
+      border-color 160ms,
+      box-shadow 160ms,
+      background-color 160ms;
+    max-width: 100%;
+  }
+  :is(input, textarea, select):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  :is(a, button):focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 4px;
+  }
+  :is(button, a) {
+    -webkit-tap-highlight-color: transparent;
+  }
+  th {
+    font-weight: 600;
+  }
+  td {
+    font-variant-numeric: tabular-nums;
+  }
+  tbody tr {
+    transition: background-color 150ms;
+  }
+  tbody tr:hover {
+    background-color: var(--muted);
+  }
+  h1 {
+    overflow-wrap: break-word;
+  }
 }
 
 .studio-button {
   height: auto;
   white-space: normal;
-  transition: background-color 160ms, color 160ms, box-shadow 160ms, transform 160ms;
+  transition:
+    background-color 160ms,
+    color 160ms,
+    box-shadow 160ms,
+    transform 160ms;
 }
-.studio-button:active:not(:disabled) { transform: translateY(1px); }
-.studio-button:disabled { transform: none; }
-.app-header { position: sticky; top: 0; z-index: 30; background: color-mix(in oklab, var(--background) 94%, transparent); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
-.brand-mark { background: var(--primary); color: var(--primary-foreground); box-shadow: var(--shadow-surface); }
-.nav-item { position: relative; transition: background-color 160ms, color 160ms; }
-.nav-item[aria-current="page"]::after { content: ""; position: absolute; inset: auto 12px -1px; height: 2px; background: var(--primary); border-radius: 2px; }
-.tool-workspace { border-top: 2px solid var(--primary); border-bottom: 1px solid var(--border); }
-.auth-panel { border: 1px solid var(--border); box-shadow: var(--shadow-raised); }
-.auth-page { background: var(--background); }
-.auth-heading { font-family: var(--font-display); }
-.auth-rule { width: 48px; height: 3px; background: var(--primary); }
-main > section, main > div { min-width: 0; }
-main .bg-card.rounded-lg { box-shadow: var(--shadow-surface); }
-main a.block.rounded-lg { transition: transform 180ms, box-shadow 180ms; }
-main a.block.rounded-lg:hover { box-shadow: var(--shadow-raised); }
-.fixed.inset-0 > .absolute { animation: panel-enter 220ms ease-out; }
-@keyframes page-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes panel-enter { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+.studio-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+.studio-button:disabled {
+  transform: none;
+}
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in oklab, var(--background) 94%, transparent);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+.brand-mark {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  box-shadow: var(--shadow-surface);
+}
+.nav-item {
+  position: relative;
+  transition:
+    background-color 160ms,
+    color 160ms;
+}
+.nav-item[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 12px -1px;
+  height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.tool-workspace {
+  border-top: 2px solid var(--primary);
+  border-bottom: 1px solid var(--border);
+}
+.auth-panel {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-raised);
+}
+.auth-page {
+  background: var(--background);
+}
+.auth-heading {
+  font-family: var(--font-display);
+}
+.auth-rule {
+  width: 48px;
+  height: 3px;
+  background: var(--primary);
+}
+main > section,
+main > div {
+  min-width: 0;
+}
+main .bg-card.rounded-lg {
+  box-shadow: var(--shadow-surface);
+}
+main a.block.rounded-lg {
+  transition:
+    transform 180ms,
+    box-shadow 180ms;
+}
+main a.block.rounded-lg:hover {
+  box-shadow: var(--shadow-raised);
+}
+.fixed.inset-0 > .absolute {
+  animation: panel-enter 220ms ease-out;
+}
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
 @media (max-width: 640px) {
-  main h1.text-5xl { font-size: 2rem; }
-  main h1.text-4xl { font-size: 2rem; }
-  .fixed.bottom-4 { width: max-content; }
-  .prose { overflow-wrap: anywhere; }
-  .prose table { display: block; overflow-x: auto; }
+  main h1.text-5xl {
+    font-size: 2rem;
+  }
+  main h1.text-4xl {
+    font-size: 2rem;
+  }
+  .fixed.bottom-4 {
+    width: max-content;
+  }
+  .prose {
+    overflow-wrap: anywhere;
+  }
+  .prose table {
+    display: block;
+    overflow-x: auto;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
 }
