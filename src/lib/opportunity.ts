@@ -23,12 +23,7 @@ export type OppPage = {
 };
 
 export type Intent =
-  | "TRANSACTIONAL"
-  | "COMMERCIAL"
-  | "LOCAL"
-  | "INFORMATIONAL"
-  | "NAVIGATIONAL"
-  | "MIXED";
+  "TRANSACTIONAL" | "COMMERCIAL" | "LOCAL" | "INFORMATIONAL" | "NAVIGATIONAL" | "MIXED";
 
 export type PageType =
   | "pricing_landing"
@@ -857,10 +852,7 @@ export function validateJsonLd(obj: unknown): string[] {
 // ---------- Experiments ----------
 
 export type Verdict =
-  | "IMPROVED AFTER CHANGE"
-  | "DECLINED AFTER CHANGE"
-  | "INSUFFICIENT DATA"
-  | "NO CLEAR CHANGE";
+  "IMPROVED AFTER CHANGE" | "DECLINED AFTER CHANGE" | "INSUFFICIENT DATA" | "NO CLEAR CHANGE";
 
 export function experimentVerdict(
   baseline: { clicks: number; impressions: number; position: number },

@@ -114,11 +114,17 @@ export function clearSemrushMemoryCache(): void {
 
 function getSupabaseServerClient() {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
-  if (!url || !key) return null;
-  return createClient(url, key, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceKey) return null;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { supabaseAdmin } = require("@/integrations/supabase/client.server");
+    return supabaseAdmin;
+  } catch {
+    return createClient(url, serviceKey, {
+      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
+    });
+  }
 }
 
 async function readFromSupabaseCache(

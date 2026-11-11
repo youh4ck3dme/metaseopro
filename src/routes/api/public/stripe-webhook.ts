@@ -189,8 +189,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                     ic_dph: session.metadata?.icDph || null,
                     billing_address:
                       (session.customer_details?.address as unknown as
-                        | import("@/integrations/supabase/types").Json
-                        | null) || null,
+                        import("@/integrations/supabase/types").Json | null) || null,
                     last_invoice_number: invoiceOutcome.invoiceNumber || null,
                     last_invoice_url: invoiceOutcome.invoiceUrl || null,
                     current_period_end: periodEnd.toISOString(),

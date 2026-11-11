@@ -1,10 +1,10 @@
 CREATE TABLE IF NOT EXISTS public.semrush_domain_cache (
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(), domain text NOT NULL, database text NOT NULL DEFAULT 'sk', snapshot_data jsonb NOT NULL, updated_at timestamptz NOT NULL DEFAULT now(), expires_at timestamptz NOT NULL DEFAULT (now() + interval '7 days')
 );
-GRANT SELECT ON public.semrush_domain_cache TO authenticated;
+REVOKE ALL ON TABLE public.semrush_domain_cache FROM authenticated, anon, public;
 GRANT ALL ON public.semrush_domain_cache TO service_role;
 ALTER TABLE public.semrush_domain_cache ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Authenticated cache read" ON public.semrush_domain_cache FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Allow service role all on semrush_domain_cache" ON public.semrush_domain_cache FOR ALL TO service_role USING (true) WITH CHECK (true);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_semrush_cache_domain_db ON public.semrush_domain_cache (lower(domain), lower(database));
 CREATE INDEX IF NOT EXISTS idx_semrush_cache_expires_at ON public.semrush_domain_cache (expires_at);
 CREATE TABLE IF NOT EXISTS public.subscriptions (

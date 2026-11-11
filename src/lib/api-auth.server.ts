@@ -2,8 +2,7 @@
 import { createClient } from "@supabase/supabase-js";
 
 export type AuthResult =
-  | { ok: true; userId: string; email?: string }
-  | { ok: false; response: Response };
+  { ok: true; userId: string; email?: string } | { ok: false; response: Response };
 
 function unauthorized(message = "Vyžaduje sa prihlásenie."): Response {
   return new Response(JSON.stringify({ error: message }), {

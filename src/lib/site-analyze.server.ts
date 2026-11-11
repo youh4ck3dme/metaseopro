@@ -2,6 +2,7 @@
 // .server.ts suffix blocks this from client bundles.
 import type { PageAnalysis, ComparisonResult, RaketaAnalysis } from "@/lib/raketa-schema";
 import { normalizeUrl } from "@/lib/raketa-schema";
+import { isSafePublicUrl } from "@/lib/ssrf";
 
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_BYTES = 1_500_000; // ~1.5MB cap on downloaded HTML
@@ -134,6 +135,13 @@ function mockAnalysis(url: string, note: string): PageAnalysis {
 export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
   const url = normalizeUrl(rawUrl);
   if (!url) return mockAnalysis(rawUrl, "Neplatná URL.");
+
+  if (!isSafePublicUrl(url)) {
+    return mockAnalysis(
+      url,
+      "URL adresa bola zablokovaná z bezpečnostných dôvodov (SSRF ochrana).",
+    );
+  }
 
   let html = "";
   try {

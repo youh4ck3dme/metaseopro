@@ -61,7 +61,8 @@ const sk = {
   "meta.loginTitle": "Prihlásenie — seo.vorkei",
   "meta.loginDesc": "Prihlás sa do seo.vorkei a spusti AI nástroje pre SEO.",
   "meta.auditTitle": "SEO Audit — seo.vorkei",
-  "meta.auditDesc": "Zadaj 1 až 5 domén. seo.vorkei zanalyzuje konkurenciu cez Semrush a navrhne keyword príležitosti.",
+  "meta.auditDesc":
+    "Zadaj 1 až 5 domén. seo.vorkei zanalyzuje konkurenciu cez Semrush a navrhne keyword príležitosti.",
   "meta.briefTitle": "SEO Content Brief — seo.vorkei",
   "meta.briefDesc": "Štruktúrovaný SEO brief: keywordy, H1/H2/H3, meta, FAQ a CTA.",
   "meta.planTitle": "30-dňový Content Plan — seo.vorkei",
@@ -89,7 +90,8 @@ const sk = {
   "home.toolPlan": "30-dňový kalendár obsahu s denným H1, KW a dĺžkou článku.",
   "home.toolWriter": "Long-form SEO článok, streamovaný v reálnom čase.",
   "home.flowTitle": "Workflow seo.vorkei",
-  "home.flowLead": "Štandardná postupnosť, ktorú reálne používajú SEO špecialisti — len rýchlejšie.",
+  "home.flowLead":
+    "Štandardná postupnosť, ktorú reálne používajú SEO špecialisti — len rýchlejšie.",
   "home.step": "Krok",
   "home.step1": "Audit",
   "home.step1d": "Zmapuj konkurenciu a keyword gap.",
@@ -100,15 +102,20 @@ const sk = {
   "home.step4": "SEO článok",
   "home.step4d": "Vygeneruj long-form článok podľa briefu.",
   "home.forAgencies": "Pre agentúry",
-  "home.forAgenciesD": "Zdvojnásob výstup tímu bez najímania ďalších copywriterov. Briefy a články priamo k schváleniu.",
+  "home.forAgenciesD":
+    "Zdvojnásob výstup tímu bez najímania ďalších copywriterov. Briefy a články priamo k schváleniu.",
   "home.forFreelancers": "Pre freelancerov",
-  "home.forFreelancersD": "Doruč klientovi audit, plán a článok za hodiny, nie dni. Profesionálne výstupy v slovenčine.",
+  "home.forFreelancersD":
+    "Doruč klientovi audit, plán a článok za hodiny, nie dni. Profesionálne výstupy v slovenčine.",
   "home.forSmb": "Pre malé firmy",
-  "home.forSmbD": "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — seo.vorkei dorobí SEO časť.",
+  "home.forSmbD":
+    "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — seo.vorkei dorobí SEO časť.",
   "home.writerTitle": "Blog Writer",
-  "home.writerLead": "Zadaj 2–3 vety o téme alebo vlož brief. seo.vorkei vygeneruje hĺbkový SEO článok.",
+  "home.writerLead":
+    "Zadaj 2–3 vety o téme alebo vlož brief. seo.vorkei vygeneruje hĺbkový SEO článok.",
   "home.topicLabel": "Téma a kontext článku",
-  "home.topicPh": "Napríklad: Prečo je dôležitá lokálna SEO optimalizácia pre malé firmy v Bratislave…",
+  "home.topicPh":
+    "Napríklad: Prečo je dôležitá lokálna SEO optimalizácia pre malé firmy v Bratislave…",
   "home.advanced": "+ Pokročilé (KW, publikum, tón, dĺžka)",
   "home.advancedHide": "− Skryť pokročilé",
   "home.kwPh": "Primárne keyword",
@@ -148,7 +155,8 @@ const sk = {
   "common.download": "Stiahnuť",
   "common.stop": "Zastaviť",
   "audit.h1": "Hĺbkový SEO audit konkurencie",
-  "audit.lead": "Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich a navrhnem keyword príležitosti.",
+  "audit.lead":
+    "Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich a navrhnem keyword príležitosti.",
   "audit.domains": "Domény",
   "audit.phEmpty": "Napríklad: konkurent.sk, priklad.com",
   "audit.phMore": "Pridať ďalšiu doménu...",
@@ -177,22 +185,20 @@ const sk = {
 
   "common.generate": "Vygenerovať",
   "common.generating": "Generuje sa...",
-  "common.stop": "Zastaviť",
-  "common.download": "Stiahnuť",
-  "common.copy": "Kopírovať",
-  "common.copied": "Skopírované",
-  "audit.needDomain": "Zadaj aspoň jednu doménu.",
-  "audit.leadFull": "Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich a navrhnem keyword príležitosti.",
+  "audit.leadFull":
+    "Zadaj 1 až 5 domén. Stiahnem reálne Semrush dáta, porovnám ich a navrhnem keyword príležitosti.",
   "brief.needTopic": "Zadaj hlavnú tému alebo keyword.",
-  "brief.lead": "Zadaj tému a kontext. AI pripraví kompletný brief s kľúčovými slovami, štruktúrou, meta, FAQ a CTA.",
-  "brief.toArticle": "Vygenerovať článok z briefu",
+  "brief.lead":
+    "Zadaj tému a kontext. AI pripraví kompletný brief s kľúčovými slovami, štruktúrou, meta, FAQ a CTA.",
   "dashboard.live": "Spustiť live analýzu v Decay Radar",
   "dashboard.refresh": "Aktualizovať článok",
-  "decay.lead": "Odhaľ stránky, ktoré strácajú organický traffic. Decay Radar analyzuje pokles kliknutí a pozícií a vygeneruje AI refresh plán.",
+  "decay.lead":
+    "Odhaľ stránky, ktoré strácajú organický traffic. Decay Radar analyzuje pokles kliknutí a pozícií a vygeneruje AI refresh plán.",
   "history.empty": "Zatiaľ žiadne výstupy.",
   "history.emptyCat": "V tejto kategórii nič nie je.",
   "plan.lead": "AI-generovaný 30-dňový SEO obsahový kalendár.",
-  "raketa.lead": "Zadaj web a konkurenciu. seo.vorkei zanalyzuje obsah, nájde SEO medzery a vygeneruje audit, článok, brief alebo 30-dňový content plán.",
+  "raketa.lead":
+    "Zadaj web a konkurenciu. seo.vorkei zanalyzuje obsah, nájde SEO medzery a vygeneruje audit, článok, brief alebo 30-dňový content plán.",
 } as const;
 
 const en: Record<keyof typeof sk, string> = {
@@ -216,7 +222,8 @@ const en: Record<keyof typeof sk, string> = {
   "meta.loginTitle": "Sign in — seo.vorkei",
   "meta.loginDesc": "Sign in to seo.vorkei and run the AI SEO tools.",
   "meta.auditTitle": "SEO Audit — seo.vorkei",
-  "meta.auditDesc": "Enter 1 to 5 domains. seo.vorkei analyses competitors via Semrush and suggests keyword opportunities.",
+  "meta.auditDesc":
+    "Enter 1 to 5 domains. seo.vorkei analyses competitors via Semrush and suggests keyword opportunities.",
   "meta.briefTitle": "SEO Content Brief — seo.vorkei",
   "meta.briefDesc": "Structured SEO brief: keywords, H1/H2/H3, meta, FAQ and CTA.",
   "meta.planTitle": "30-day Content Plan — seo.vorkei",
@@ -255,13 +262,16 @@ const en: Record<keyof typeof sk, string> = {
   "home.step4": "SEO article",
   "home.step4d": "Generate a long-form article from the brief.",
   "home.forAgencies": "For agencies",
-  "home.forAgenciesD": "Double team output without hiring more writers. Briefs and articles ready for approval.",
+  "home.forAgenciesD":
+    "Double team output without hiring more writers. Briefs and articles ready for approval.",
   "home.forFreelancers": "For freelancers",
   "home.forFreelancersD": "Deliver an audit, plan and article in hours, not days.",
   "home.forSmb": "For small businesses",
-  "home.forSmbD": "Your own marketing without an agency. You know the topic — seo.vorkei does the SEO.",
+  "home.forSmbD":
+    "Your own marketing without an agency. You know the topic — seo.vorkei does the SEO.",
   "home.writerTitle": "Blog Writer",
-  "home.writerLead": "Write 2–3 sentences or paste a brief. seo.vorkei generates a full SEO article.",
+  "home.writerLead":
+    "Write 2–3 sentences or paste a brief. seo.vorkei generates a full SEO article.",
   "home.topicLabel": "Topic and context",
   "home.topicPh": "For example: Why local SEO matters for small businesses in Bratislava…",
   "home.advanced": "+ Advanced (keyword, audience, tone, length)",
@@ -331,22 +341,20 @@ const en: Record<keyof typeof sk, string> = {
   "error.home": "Home",
   "common.generate": "Generate",
   "common.generating": "Generating...",
-  "common.stop": "Stop",
-  "common.download": "Download",
-  "common.copy": "Copy",
-  "common.copied": "Copied",
-  "audit.needDomain": "Enter at least one domain.",
-  "audit.leadFull": "Enter 1 to 5 domains. Real Semrush data, a comparison, and keyword opportunities.",
+  "audit.leadFull":
+    "Enter 1 to 5 domains. Real Semrush data, a comparison, and keyword opportunities.",
   "brief.needTopic": "Enter the main topic or keyword.",
-  "brief.lead": "Enter a topic and context. AI prepares a full brief with keywords, structure, meta, FAQ and CTA.",
-  "brief.toArticle": "Generate article from brief",
+  "brief.lead":
+    "Enter a topic and context. AI prepares a full brief with keywords, structure, meta, FAQ and CTA.",
   "dashboard.live": "Run live analysis in Decay Radar",
   "dashboard.refresh": "Update article",
-  "decay.lead": "Find pages losing organic traffic. Decay Radar analyses click and position drops and generates an AI refresh plan.",
+  "decay.lead":
+    "Find pages losing organic traffic. Decay Radar analyses click and position drops and generates an AI refresh plan.",
   "history.empty": "No outputs yet.",
   "history.emptyCat": "Nothing in this category.",
   "plan.lead": "AI-generated 30-day SEO content calendar.",
-  "raketa.lead": "Enter a site and competitors. seo.vorkei analyses the content, finds SEO gaps and generates an audit, article, brief or 30-day content plan.",
+  "raketa.lead":
+    "Enter a site and competitors. seo.vorkei analyses the content, finds SEO gaps and generates an audit, article, brief or 30-day content plan.",
 };
 
 const de: Record<keyof typeof sk, string> = {
@@ -366,11 +374,13 @@ const de: Record<keyof typeof sk, string> = {
   "meta.homeDesc":
     "Audit, Brief, 30-Tage-Plan und Artikel. SEO-Tools für Agenturen, Freelancer und KMU in DE/CH.",
   "meta.ogTitle": "seo.vorkei — AI SEO Command Center",
-  "meta.ogDesc": "Audit → Brief → 30-Tage-Plan → SEO-Artikel. Ein Workflow für den deutschsprachigen Markt.",
+  "meta.ogDesc":
+    "Audit → Brief → 30-Tage-Plan → SEO-Artikel. Ein Workflow für den deutschsprachigen Markt.",
   "meta.loginTitle": "Anmeldung — seo.vorkei",
   "meta.loginDesc": "Melde dich bei seo.vorkei an und starte die KI-SEO-Tools.",
   "meta.auditTitle": "SEO Audit — seo.vorkei",
-  "meta.auditDesc": "Gib 1 bis 5 Domains ein. seo.vorkei analysiert Wettbewerber über Semrush und schlägt Keyword-Chancen vor.",
+  "meta.auditDesc":
+    "Gib 1 bis 5 Domains ein. seo.vorkei analysiert Wettbewerber über Semrush und schlägt Keyword-Chancen vor.",
   "meta.briefTitle": "SEO Content Brief — seo.vorkei",
   "meta.briefDesc": "Strukturiertes SEO-Briefing: Keywords, H1/H2/H3, Meta, FAQ und CTA.",
   "meta.planTitle": "30-Tage Content Plan — seo.vorkei",
@@ -392,7 +402,8 @@ const de: Record<keyof typeof sk, string> = {
   "home.ctaStart": "Kostenlos starten",
   "home.ctaArticle": "Artikel schreiben",
   "home.toolsTitle": "Vier Tools, ein Workflow",
-  "home.toolsLead": "Funktionieren einzeln oder in der Kette — vom Audit bis zum veröffentlichten Artikel.",
+  "home.toolsLead":
+    "Funktionieren einzeln oder in der Kette — vom Audit bis zum veröffentlichten Artikel.",
   "home.toolAudit": "Echte Semrush-Daten plus Keyword-Chancen und Quick-Wins.",
   "home.toolBrief": "Strukturiertes Briefing: Keywords, H1/H2/H3, Meta, FAQ, CTA.",
   "home.toolPlan": "30-Tage-Content-Kalender mit täglichem H1, Keyword und Länge.",
@@ -409,13 +420,15 @@ const de: Record<keyof typeof sk, string> = {
   "home.step4": "SEO-Artikel",
   "home.step4d": "Long-Form-Artikel aus dem Briefing generieren.",
   "home.forAgencies": "Für Agenturen",
-  "home.forAgenciesD": "Team-Output verdoppeln ohne zusätzliche Texter. Briefings und Artikel bereit zur Freigabe.",
+  "home.forAgenciesD":
+    "Team-Output verdoppeln ohne zusätzliche Texter. Briefings und Artikel bereit zur Freigabe.",
   "home.forFreelancers": "Für Freelancer",
   "home.forFreelancersD": "Audit, Plan und Artikel in Stunden liefern, nicht in Tagen.",
   "home.forSmb": "Für KMU",
   "home.forSmbD": "Eigenes Marketing ohne Agentur. Du kennst das Thema — seo.vorkei macht das SEO.",
   "home.writerTitle": "Blog Writer",
-  "home.writerLead": "Schreibe 2–3 Sätze oder füge ein Briefing ein. seo.vorkei generiert einen vollständigen SEO-Artikel.",
+  "home.writerLead":
+    "Schreibe 2–3 Sätze oder füge ein Briefing ein. seo.vorkei generiert einen vollständigen SEO-Artikel.",
   "home.topicLabel": "Thema und Kontext",
   "home.topicPh": "Zum Beispiel: Warum lokale SEO für kleine Unternehmen in Zürich wichtig ist…",
   "home.advanced": "+ Erweitert (Keyword, Zielgruppe, Ton, Länge)",
@@ -485,22 +498,19 @@ const de: Record<keyof typeof sk, string> = {
   "error.home": "Startseite",
   "common.generate": "Generieren",
   "common.generating": "Wird generiert...",
-  "common.stop": "Stopp",
-  "common.download": "Herunterladen",
-  "common.copy": "Kopieren",
-  "common.copied": "Kopiert",
-  "audit.needDomain": "Gib mindestens eine Domain ein.",
   "audit.leadFull": "Gib 1 bis 5 Domains ein. Echte Semrush-Daten, Vergleich und Keyword-Chancen.",
   "brief.needTopic": "Gib das Hauptthema oder Keyword ein.",
-  "brief.lead": "Gib Thema und Kontext ein. Die KI erstellt ein vollständiges Briefing mit Keywords, Struktur, Meta, FAQ und CTA.",
-  "brief.toArticle": "Artikel aus Briefing generieren",
+  "brief.lead":
+    "Gib Thema und Kontext ein. Die KI erstellt ein vollständiges Briefing mit Keywords, Struktur, Meta, FAQ und CTA.",
   "dashboard.live": "Live-Analyse in Decay Radar starten",
   "dashboard.refresh": "Artikel aktualisieren",
-  "decay.lead": "Finde Seiten, die organischen Traffic verlieren. Decay Radar analysiert Klick- und Positionsrückgänge und erstellt einen KI-Refresh-Plan.",
+  "decay.lead":
+    "Finde Seiten, die organischen Traffic verlieren. Decay Radar analysiert Klick- und Positionsrückgänge und erstellt einen KI-Refresh-Plan.",
   "history.empty": "Noch keine Ausgaben.",
   "history.emptyCat": "In dieser Kategorie ist nichts.",
   "plan.lead": "KI-generierter 30-Tage-SEO-Content-Kalender.",
-  "raketa.lead": "Gib eine Website und Wettbewerber ein. seo.vorkei analysiert den Inhalt, findet SEO-Lücken und generiert Audit, Artikel, Briefing oder 30-Tage-Plan.",
+  "raketa.lead":
+    "Gib eine Website und Wettbewerber ein. seo.vorkei analysiert den Inhalt, findet SEO-Lücken und generiert Audit, Artikel, Briefing oder 30-Tage-Plan.",
 };
 
 export type MessageKey = keyof typeof sk;

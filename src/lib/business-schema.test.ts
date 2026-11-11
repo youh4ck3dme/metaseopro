@@ -24,11 +24,14 @@ describe("Business table access boundaries", () => {
     );
   });
 
-  it("allows authenticated cache reads but reserves writes for service access", () => {
-    expect(sql).toContain("GRANT SELECT ON public.semrush_domain_cache TO authenticated;");
+  it("restricts cache exclusively to service role without exposing data to authenticated clients", () => {
     expect(sql).toContain("GRANT ALL ON public.semrush_domain_cache TO service_role;");
+    expect(sql).toContain(
+      "REVOKE ALL ON TABLE public.semrush_domain_cache FROM authenticated, anon, public;",
+    );
+    expect(sql).not.toContain("GRANT SELECT ON public.semrush_domain_cache TO authenticated;");
     expect(sql).not.toMatch(
-      /GRANT (?:ALL|INSERT|UPDATE|DELETE).*public\.semrush_domain_cache TO authenticated/,
+      /GRANT (?:ALL|SELECT|INSERT|UPDATE|DELETE).*public\.semrush_domain_cache TO authenticated/,
     );
   });
 });

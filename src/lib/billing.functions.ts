@@ -17,8 +17,20 @@ const CheckoutInputSchema = z.object({
   ico: z.string().trim().max(20).optional(),
   dic: z.string().trim().max(20).optional(),
   icDph: z.string().trim().max(20).optional(),
-  successUrl: z.string().optional(),
-  cancelUrl: z.string().optional(),
+  successUrl: z
+    .string()
+    .trim()
+    .refine((u) => u.startsWith("/") && !u.startsWith("//"), {
+      message: "successUrl musí byť relatívna cesta začínajúca /",
+    })
+    .optional(),
+  cancelUrl: z
+    .string()
+    .trim()
+    .refine((u) => u.startsWith("/") && !u.startsWith("//"), {
+      message: "cancelUrl musí byť relatívna cesta začínajúca /",
+    })
+    .optional(),
 });
 
 function getStripeClient(): Stripe | null {
@@ -58,12 +70,22 @@ export const createCheckoutSession = createServerFn({ method: "POST" })
 
     const userEmail = typeof claims?.email === "string" ? claims.email : undefined;
 
-    // Fallback URL builder
-    const fallbackOrigin = process.env.SITE_URL || "https://seo4web.lovable.app";
-    const successUrl =
-      data.successUrl ||
-      `${fallbackOrigin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`;
-    const cancelUrl = data.cancelUrl || `${fallbackOrigin}/dashboard?payment=cancelled`;
+    // 2. Safe URL builder: enforce trusted application origin
+    const baseOrigin = process.env.SITE_URL || "https://seo4web.lovable.app";
+    const successUrl = data.successUrl
+      ? new URL(data.successUrl, baseOrigin).toString()
+      : `${baseOrigin}/dashboard?payment=success&session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = data.cancelUrl
+      ? new URL(data.cancelUrl, baseOrigin).toString()
+      : `${baseOrigin}/dashboard?payment=cancelled`;
+
+    // Poistka: Cieľová URL musí mať zhodný origin
+    if (
+      new URL(successUrl).origin !== new URL(baseOrigin).origin ||
+      new URL(cancelUrl).origin !== new URL(baseOrigin).origin
+    ) {
+      throw new Error("Neplatná cieľová URL pre presmerovanie.");
+    }
 
     // If Stripe is not yet configured with secret key, return a mock checkout session in dev/demo
     if (!stripe) {

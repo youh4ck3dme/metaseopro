@@ -684,13 +684,7 @@ export function AppHeader() {
   );
 }
 
-function LocaleSwitch({
-  locale,
-  onSwitch,
-}: {
-  locale: Locale;
-  onSwitch: (next: Locale) => void;
-}) {
+function LocaleSwitch({ locale, onSwitch }: { locale: Locale; onSwitch: (next: Locale) => void }) {
   return (
     <div className="flex items-center gap-0.5 text-xs" role="group" aria-label="Language">
       {(["sk", "en", "de"] as const).map((code) => (
