@@ -11,6 +11,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { OG_IMAGE, SITE, pageUrl } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -98,19 +99,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://seo.vorkei.com" },
-      { property: "og:image", content: "https://seo.vorkei.com/seo4web.svg" },
+      { property: "og:url", content: SITE },
+      { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "SEO4WEB — All-in-One SEO Command Center" },
+      { name: "twitter:title", content: "seo.vorkei — AI SEO Command Center" },
       {
         name: "twitter:description",
         content:
-          "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
+          "Audit, brief, 30-day plan and SEO article. One workflow for agencies and freelancers. SK / EN / DE.",
       },
-      { name: "twitter:image", content: "https://seo.vorkei.com/seo4web.svg" },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "canonical", href: "https://seo.vorkei.com" },
+      { rel: "canonical", href: SITE },
+      { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/") },
+      { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
+      { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
+      { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
       { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
