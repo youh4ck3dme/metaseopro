@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import { checkRateLimit } from "@/lib/rate-limit.server";
 import {
   buildSuperfakturaPayload,
   createSuperfakturaInvoice,
@@ -89,6 +90,32 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const contentLength = Number(request.headers.get("content-length") ?? "0");
+        if (contentLength > 64 * 1024) {
+          return new Response(JSON.stringify({ error: "Payload too large" }), {
+            status: 413,
+            headers: { "Content-Type": "application/json" },
+          });
+        }
+
+        const clientIp =
+          request.headers.get("cf-connecting-ip") ||
+          request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+          "unknown";
+        const rl = checkRateLimit(`stripe-webhook:${clientIp}`, {
+          limit: 120,
+          windowMs: 60_000,
+        });
+        if (!rl.ok) {
+          return new Response(JSON.stringify({ error: "Too many requests" }), {
+            status: 429,
+            headers: {
+              "Content-Type": "application/json",
+              "Retry-After": String(rl.retryAfterSec),
+            },
+          });
+        }
+
         const stripe = getStripeClient();
         const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 

@@ -104,3 +104,20 @@
   - Zabezpečená schéma `cms_connections` v Supabase s RLS politikami (`auth.uid() = user_id`).
   - Interaktívny dialóg `<CmsDeployDialog />` na Dashboarde (CTR Booster, Opportunity Radar) a v Blog Writeri (`/`, `/brief`).
   - Správa a overovanie spojenia v `/settings/agency` na novej záložke **CMS Integrácie**.
+- [x] **Whitelabel Klientsky PDF Report Generator (`src/lib/pdf-report.ts`):**
+  - Reprezentatívny klientsky audit s dynamickou hlavičkou, logom a primárnou farbou z `agency_profiles`.
+  - 4 súhrnné KPI karty (SEO Health Index, organické kliky, impresie, priemerná pozícia s medzimesačnou deltou).
+  - Prehľad 5 najväčších prepadov z Decay Radaru s odporúčanými akčnými krokmi a Striking Distance príležitosti.
+  - Tlačidlo **„Stiahnuť klientsky report (PDF)“** priamo na Dashboarde pre zvolený web.
+- [x] **Automatizovaný nočný Decay Alerting (`/api/public/cron-decay-alerts`):**
+  - Server endpoint zabezpečený cez `CRON_SECRET` a IP rate limiting.
+  - Automatická detekcia URL s prepadom klikov > 25 % oproti predchádzajúcemu obdobiu.
+  - Responzívna HTML e-mailová šablóna s prehľadom postihnutých URL a preklikom do aplikácie cez Resend API.
+- [x] **Odstránenie 4 bezpečnostných varovaní (Security Hardening):**
+  - Migrácia `20261111030000_security_hardening.sql`: zapnuté a vynútené RLS na všetkých tabuľkách.
+  - Odobratie verejných/anon oprávnení na používateľské tabuľky (`REVOKE ALL`).
+  - Zavedená SSRF ochrana v `cms-publisher.server.ts`.
+  - Rate limiting a obmedzenie veľkosti payloadu na webhookoch.
+- [x] **Produkčný SEO & Launch Checklist:**
+  - Vytvorený `public/robots.txt` a dynamická `sitemap.xml` v `src/routes/api/public/sitemap.ts`.
+  - Doplnené OpenGraph a Twitter karty, canonical meta tag a sémantický popis v `src/routes/__root.tsx`.

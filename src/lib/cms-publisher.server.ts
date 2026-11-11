@@ -42,6 +42,63 @@ export interface PublishResult {
 }
 
 /**
+ * Security: Validates that an outgoing target URL is a safe public address,
+ * protecting against Server-Side Request Forgery (SSRF) and cloud metadata access.
+ */
+export function assertSafePublicUrl(rawUrl: string): void {
+  if (!rawUrl || typeof rawUrl !== "string") {
+    throw new Error("Chýbajúca URL adresa.");
+  }
+  let parsed: URL;
+  try {
+    const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(rawUrl);
+    parsed = new URL(hasScheme ? rawUrl : `https://${rawUrl}`);
+  } catch {
+    throw new Error("Neplatný formát URL adresy.");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Povolené sú iba protokoly http:// a https://.");
+  }
+
+  const host = parsed.hostname.toLowerCase().trim();
+
+  // Block localhost and internal names
+  if (
+    host === "localhost" ||
+    host.endsWith(".localhost") ||
+    host.endsWith(".local") ||
+    host.endsWith(".internal")
+  ) {
+    throw new Error("Nepovolená sieťová adresa (SSRF ochrana): lokálne adresy nie sú povolené.");
+  }
+
+  // Check IPv4 private and metadata ranges
+  const ipMatch = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(host);
+  if (ipMatch) {
+    const a = Number(ipMatch[1]);
+    const b = Number(ipMatch[2]);
+    if (a === 127) throw new Error("Nepovolená sieťová adresa: loopback IP (127.0.0.0/8).");
+    if (a === 10) throw new Error("Nepovolená sieťová adresa: privátna sieť (10.0.0.0/8).");
+    if (a === 172 && b >= 16 && b <= 31) {
+      throw new Error("Nepovolená sieťová adresa: privátna sieť (172.16.0.0/12).");
+    }
+    if (a === 192 && b === 168) {
+      throw new Error("Nepovolená sieťová adresa: privátna sieť (192.168.0.0/16).");
+    }
+    if (a === 169 && b === 254) {
+      throw new Error("Nepovolená sieťová adresa: link-local / metadata service (169.254.0.0/16).");
+    }
+    if (a === 0) throw new Error("Nepovolená sieťová adresa: 0.0.0.0/8.");
+  }
+
+  // Check IPv6 loopback
+  if (host === "::1" || host === "[::1]") {
+    throw new Error("Nepovolená sieťová adresa: loopback IPv6.");
+  }
+}
+
+/**
  * Extracts a clean post slug from a full URL or path.
  * e.g. "https://example.sk/blog/ako-zacat-behat/" -> "ako-zacat-behat"
  */
@@ -170,6 +227,18 @@ export async function publishToWordPress(params: WordPressPublishParams): Promis
     status = "draft",
     fetchFn = fetch,
   } = params;
+
+  try {
+    if (siteUrl) assertSafePublicUrl(siteUrl);
+    if (apiEndpoint) assertSafePublicUrl(apiEndpoint);
+  } catch (err) {
+    return {
+      success: false,
+      action: "updated",
+      status: "error",
+      error: err instanceof Error ? err.message : "Neplatná alebo nepovolená URL adresa.",
+    };
+  }
 
   const endpoint = normalizeWordPressEndpoint(apiEndpoint);
   const authHeader = formatWordPressAuthHeader(credentials);
@@ -324,6 +393,17 @@ export async function publishToCustomWebhook(params: WebhookPublishParams): Prom
     fetchFn = fetch,
   } = params;
 
+  try {
+    assertSafePublicUrl(webhookUrl);
+  } catch (err) {
+    return {
+      success: false,
+      action: "webhook_delivered",
+      status: "error",
+      error: err instanceof Error ? err.message : "Neplatná alebo nepovolená URL adresa webhooku.",
+    };
+  }
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -388,6 +468,16 @@ export async function testWordPressConnection(params: {
   fetchFn?: typeof fetch;
 }): Promise<{ ok: boolean; message: string; username?: string }> {
   const { apiEndpoint, credentials, fetchFn = fetch } = params;
+
+  try {
+    assertSafePublicUrl(apiEndpoint);
+  } catch (err) {
+    return {
+      ok: false,
+      message: err instanceof Error ? err.message : "Neplatná alebo nepovolená URL adresa.",
+    };
+  }
+
   const endpoint = normalizeWordPressEndpoint(apiEndpoint);
   const baseWpJson = endpoint.replace(/\/wp\/v2\/.*$/, "");
   const authHeader = formatWordPressAuthHeader(credentials);

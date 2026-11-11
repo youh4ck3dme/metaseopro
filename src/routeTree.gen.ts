@@ -28,6 +28,8 @@ import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brie
 import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
 import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
 import { Route as SettingsAgencyRouteImport } from './routes/settings.agency'
+import { Route as ApiPublicCronDecayAlertsRouteImport } from './routes/api/public/cron-decay-alerts'
+import { Route as ApiPublicSitemapRouteImport } from './routes/api/public/sitemap'
 import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
 const IndexRoute = IndexRouteImport.update({
@@ -125,6 +127,17 @@ const SettingsAgencyRoute = SettingsAgencyRouteImport.update({
   path: '/settings/agency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCronDecayAlertsRoute =
+  ApiPublicCronDecayAlertsRouteImport.update({
+    id: '/api/public/cron-decay-alerts',
+    path: '/api/public/cron-decay-alerts',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicSitemapRoute = ApiPublicSitemapRouteImport.update({
+  id: '/api/public/sitemap',
+  path: '/api/public/sitemap',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
   id: '/api/public/stripe-webhook',
   path: '/api/public/stripe-webhook',
@@ -151,6 +164,8 @@ export interface FileRoutesByFullPath {
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
   '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -173,6 +188,8 @@ export interface FileRoutesByTo {
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
   '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
@@ -196,6 +213,8 @@ export interface FileRoutesById {
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
   '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
   '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
@@ -220,6 +239,8 @@ export interface FileRouteTypes {
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
     | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
     | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -242,6 +263,8 @@ export interface FileRouteTypes {
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
     | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
     | '/api/public/stripe-webhook'
   id:
     | '__root__'
@@ -264,6 +287,8 @@ export interface FileRouteTypes {
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
     | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
     | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
@@ -287,6 +312,8 @@ export interface RootRouteChildren {
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
   ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
   SettingsAgencyRoute: typeof SettingsAgencyRoute
+  ApiPublicCronDecayAlertsRoute: typeof ApiPublicCronDecayAlertsRoute
+  ApiPublicSitemapRoute: typeof ApiPublicSitemapRoute
   ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
@@ -425,6 +452,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAgencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/cron-decay-alerts': {
+      id: '/api/public/cron-decay-alerts'
+      path: '/api/public/cron-decay-alerts'
+      fullPath: '/api/public/cron-decay-alerts'
+      preLoaderRoute: typeof ApiPublicCronDecayAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sitemap': {
+      id: '/api/public/sitemap'
+      path: '/api/public/sitemap'
+      fullPath: '/api/public/sitemap'
+      preLoaderRoute: typeof ApiPublicSitemapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/stripe-webhook': {
       id: '/api/public/stripe-webhook'
       path: '/api/public/stripe-webhook'
@@ -455,6 +496,8 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
   ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
   SettingsAgencyRoute: SettingsAgencyRoute,
+  ApiPublicCronDecayAlertsRoute: ApiPublicCronDecayAlertsRoute,
+  ApiPublicSitemapRoute: ApiPublicSitemapRoute,
   ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport

@@ -345,8 +345,13 @@ function DashboardPage() {
   const b = siteSnaps.find((s) => s.id === bId);
 
   const remove = async (id: string) => {
+    if (!user) return;
     if (!confirm("Zmazať snapshot?")) return;
-    const { error } = await supabase.from("seo_snapshots").delete().eq("id", id);
+    const { error } = await supabase
+      .from("seo_snapshots")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", user.id);
     if (!error) setSnaps((p) => p.filter((s) => s.id !== id));
   };
 
@@ -399,7 +404,7 @@ function DashboardPage() {
                 className="gap-1.5 font-medium shadow-sm"
               >
                 <FileText className="size-4 text-primary" />
-                Mesačný PDF Report
+                Stiahnuť klientsky report (PDF)
               </Button>
             )}
             <Button onClick={() => setPaywallOpen(true)} className="gap-1.5 font-medium shadow-sm">

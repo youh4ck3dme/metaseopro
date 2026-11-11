@@ -111,7 +111,8 @@ export function OpportunityRadar({
   };
 
   const removeExp = async (id: string) => {
-    await supabase.from("seo_experiments").delete().eq("id", id);
+    if (!userId) return;
+    await supabase.from("seo_experiments").delete().eq("id", id).eq("user_id", userId);
     void loadExps();
   };
 

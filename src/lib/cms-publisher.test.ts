@@ -7,6 +7,7 @@ import {
   publishToWordPress,
   publishToCustomWebhook,
   testWordPressConnection,
+  assertSafePublicUrl,
 } from "./cms-publisher.server";
 
 describe("CMS Publisher & WordPress Connector", () => {
@@ -349,6 +350,37 @@ describe("CMS Publisher & WordPress Connector", () => {
 
       expect(res.ok).toBe(false);
       expect(res.message).toContain("Neplatné prihlasovacie údaje");
+    });
+    describe("SSRF Security & URL Validation", () => {
+      it("blocks localhost, loopback and private networks", () => {
+        expect(() => assertSafePublicUrl("http://localhost/wp-json")).toThrow(/lokálne adresy/);
+        expect(() => assertSafePublicUrl("http://127.0.0.1:8080/wp-json")).toThrow(/loopback IP/);
+        expect(() => assertSafePublicUrl("http://169.254.169.254/meta-data")).toThrow(
+          /metadata service/,
+        );
+        expect(() => assertSafePublicUrl("http://10.1.2.3/api")).toThrow(/privátna sieť/);
+        expect(() => assertSafePublicUrl("http://192.168.1.100/posts")).toThrow(/privátna sieť/);
+        expect(() => assertSafePublicUrl("http://172.20.0.5/api")).toThrow(/privátna sieť/);
+        expect(() => assertSafePublicUrl("ftp://example.com/api")).toThrow(/protokoly http/);
+      });
+
+      it("allows valid public web URLs", () => {
+        expect(() => assertSafePublicUrl("https://mojweb.sk")).not.toThrow();
+        expect(() =>
+          assertSafePublicUrl("https://blog.firma.cz/wp-json/wp/v2/posts"),
+        ).not.toThrow();
+      });
+
+      it("rejects publishToWordPress when target URL is private", async () => {
+        const res = await publishToWordPress({
+          siteUrl: "http://127.0.0.1",
+          apiEndpoint: "http://127.0.0.1/wp-json",
+          credentials: "user:pass",
+          title: "Test",
+        });
+        expect(res.success).toBe(false);
+        expect(res.error).toMatch(/Nepovolená sieťová adresa/);
+      });
     });
   });
 });

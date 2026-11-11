@@ -306,8 +306,20 @@ bun run tsc --noEmit
 # ✓ src/lib/slovak-billing.test.ts  — Slovenská validácia IČO, DIČ, IČ DPH, Live EÚ VIES overenie
 # ✓ src/lib/invoicing.test.ts       — SuperFaktúra API, 20% DPH vs. Reverse Charge (§ 69 ods. 3), PDF doručenie
 # ✓ src/lib/agency.test.ts          — Whitelabel engine, health index, top víťazi, Striking Distance, zdieľateľné linky
+# ✓ src/lib/cms-publisher.test.ts   — WordPress REST API v2, Yoast/Rank Math meta tagy, SSRF ochrana
+# ✓ src/lib/pdf-report.test.ts      — Whitelabel PDF export, KPI karty, Decay prepady, XSS sanitizácia
+# ✓ src/lib/decay-alerts.test.ts    — Detekcia >25% prepadov, HTML e-mailové notifikácie, Resend integrácia
 # ✓ src/lib/e2e-app.test.ts         — E2E dostupnosť všetkých trás, SSR markup, API ochrana a Stripe webhook
 ```
+
+---
+
+## 🛡️ Bezpečnostná Architektúra & RLS Hardening (4/4 Fixes)
+
+1. **Access control & authorization:** Všetky používateľské tabuľky (`profiles`, `subscriptions`, `agency_profiles`, `cms_connections`, `generated_outputs`, `content_plan_usage`, `seo_snapshots`, `seo_experiments`) majú zapnuté a vynútené Row Level Security (`FORCE ROW LEVEL SECURITY`) so striktnou väzbou `auth.uid() = user_id`.
+2. **Exposed personal & sensitive data:** Oprávnenia `anon` a `public` boli kompletne odobraté (`REVOKE ALL`), citlivé údaje vidí iba vlastník záznamu cez overený session token.
+3. **Unsafe input & injection:** Zavedená striktná SSRF ochrana v `cms-publisher.server.ts` (blokovanie loopback, RFC1918 a link-local/cloud-metadata adries) a validácia dopytov cez Zod schémy.
+4. **Unauthenticated & abusable endpoints:** Cron endpoint `/api/public/cron-decay-alerts` je chránený tokenom `CRON_SECRET`, verejné webhooky (`stripe-webhook`) majú IP rate limiting a kontrolu veľkosti payloadu.
 
 ---
 

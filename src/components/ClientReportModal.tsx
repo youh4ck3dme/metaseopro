@@ -30,6 +30,7 @@ import {
   type ExecutiveReportData,
   DEFAULT_AGENCY_PROFILE,
 } from "@/lib/agency";
+import { exportClientReportPdf } from "@/lib/pdf-report";
 import type { DecayDataset } from "@/lib/decay-schema";
 
 interface ClientReportModalProps {
@@ -141,7 +142,9 @@ export function ClientReportModal({
   const [copiedLink, setCopiedLink] = useState(false);
 
   const handlePrint = () => {
-    window.print();
+    exportClientReportPdf(report, {
+      criticalDrops: dataset?.rows,
+    });
   };
 
   const handleCopyShareLink = async () => {

@@ -74,25 +74,43 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "SEO4WEB — SEO Command Center" },
+      { name: "theme-color", content: "#0284c7" },
+      { name: "robots", content: "index, follow" },
+      { title: "SEO4WEB — All-in-One SEO Command Center pre slovenský a český trh" },
       {
         name: "description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "SEO4WEB: Inteligentný SEO audit, detekcia prepadov návštevnosti (Content Decay), CTR booster a 1-klikové nasadzovanie optimalizácií do WordPressu.",
       },
-      { property: "og:title", content: "SEO4WEB — SEO Command Center" },
+      {
+        name: "keywords",
+        content:
+          "SEO audit, SEO nástroj, Search Console, Content Decay Radar, WordPress SEO, Yoast SEO, Rank Math, CTR optimalizácia, SEO Slovensko",
+      },
+      { property: "og:site_name", content: "SEO4WEB" },
+      {
+        property: "og:title",
+        content: "SEO4WEB — All-in-One SEO Command Center",
+      },
       {
         property: "og:description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "SEO4WEB — SEO Command Center" },
+      { property: "og:url", content: "https://seo.vorkei.com" },
+      { property: "og:image", content: "https://seo.vorkei.com/seo4web.svg" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "SEO4WEB — All-in-One SEO Command Center" },
       {
         name: "twitter:description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
       },
+      { name: "twitter:image", content: "https://seo.vorkei.com/seo4web.svg" },
     ],
     links: [
+      { rel: "canonical", href: "https://seo.vorkei.com" },
       { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
