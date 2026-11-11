@@ -45,7 +45,6 @@ export const checkContentPlanAccess = createServerFn({ method: "GET" })
  * Returns the full markdown plan (non-streaming for simplicity & gating reliability).
  */
 export const generateContentPlan = createServerFn({ method: "POST" })
-  .validator((input: unknown) => InputSchema.parse(input))
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }) => {

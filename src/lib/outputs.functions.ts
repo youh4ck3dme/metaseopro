@@ -10,7 +10,6 @@ const SaveSchema = z.object({
 });
 
 export const saveOutput = createServerFn({ method: "POST" })
-  .validator((input: unknown) => SaveSchema.parse(input))
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => SaveSchema.parse(input))
   .handler(async ({ data, context }) => {
@@ -44,7 +43,6 @@ export const listOutputs = createServerFn({ method: "GET" })
   });
 
 export const getOutput = createServerFn({ method: "POST" })
-  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
@@ -61,7 +59,6 @@ export const getOutput = createServerFn({ method: "POST" })
   });
 
 export const deleteOutput = createServerFn({ method: "POST" })
-  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {

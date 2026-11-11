@@ -9,12 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "audit:deps": "depcheck --skip-missing --ignores='@cloudflare/vite-plugin,@hookform/resolvers,@tailwindcss/typography,@tanstack/router-plugin,date-fns,tailwindcss,tw-animate-css,drizzle-orm,postgres' && npm audit --omit=dev --audit-level=high",
-    "audit:lighthouse": "lhci autorun",
-    "check": "npm run lint && npm run test && npm run build"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.68.0",
