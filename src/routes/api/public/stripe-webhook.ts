@@ -2,6 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
+import {
+  buildSuperfakturaPayload,
+  createSuperfakturaInvoice,
+  sendInvoiceEmail,
+  type InvoiceResult,
+} from "@/lib/invoicing.server";
 
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
@@ -22,81 +28,61 @@ function getStripeClient(): Stripe | null {
 }
 
 /**
- * Prepares payload for Slovak & Czech automated invoicing (SuperFaktúra / Fakturoid API).
- * Applies correct VAT calculation:
- * - SK company / consumer: 20% DPH
- * - EU company with valid VAT: 0% Reverse charge (Prenesenie daňovej povinnosti)
- * - Outside EU: 0% exempt export of services
+ * Prepares payload and issues invoice via SuperFaktúra module.
+ * Applies Slovak 20% VAT vs. EU Reverse Charge (§ 69 ods. 3 zákona o DPH).
  */
 export async function forwardToSlovakInvoicing(
   session: Stripe.Checkout.Session,
   plan: string,
-): Promise<{ status: "sent" | "skipped" | "error"; invoiceNumber?: string }> {
-  const superfakturaEmail = process.env.SUPERFAKTURA_EMAIL;
-  const superfakturaApiKey = process.env.SUPERFAKTURA_API_KEY;
+): Promise<{
+  status: "sent" | "skipped" | "error" | "mock";
+  invoiceNumber?: string;
+  invoiceUrl?: string;
+  result?: InvoiceResult;
+}> {
+  try {
+    const metadata = session.metadata || {};
+    const amountTotal = (session.amount_total ?? 3900) / 100;
+    const currency = (session.currency ?? "eur").toUpperCase();
 
-  const metadata = session.metadata || {};
-  const amountTotal = (session.amount_total ?? 3900) / 100;
-  const currency = (session.currency ?? "eur").toUpperCase();
-
-  const isReverseCharge = Boolean(metadata.icDph && !metadata.icDph.toUpperCase().startsWith("SK"));
-
-  const invoiceData = {
-    Invoice: {
-      name: `Faktúra za SEO4WEB ${plan.toUpperCase()}`,
-      variable: session.id.slice(-10),
+    const payload = buildSuperfakturaPayload({
+      plan,
+      amountTotal,
       currency,
-      payment_type: "card",
-    },
-    Client: {
-      name: metadata.companyName || session.customer_details?.name || "Zákazník SEO4WEB",
-      ico: metadata.ico || "",
-      dic: metadata.dic || "",
-      ic_dph: metadata.icDph || "",
-      email: session.customer_details?.email || "",
-      address: session.customer_details?.address?.line1 || "",
-      city: session.customer_details?.address?.city || "",
-      zip: session.customer_details?.address?.postal_code || "",
-      country: session.customer_details?.address?.country || "Slovensko",
-    },
-    InvoiceItem: [
-      {
-        name: `SEO4WEB ${plan.toUpperCase()} (Mesačné predplatné)`,
-        quantity: 1,
-        unit_price: isReverseCharge ? amountTotal : Number((amountTotal / 1.2).toFixed(2)),
-        tax: isReverseCharge ? 0 : 20,
-        description: isReverseCharge
-          ? "Prenesenie daňovej povinnosti podľa § 69 ods. 3 zákona o DPH (Reverse charge)."
-          : undefined,
+      variableSymbol: session.id
+        .slice(-10)
+        .replace(/[^0-9]/g, "")
+        .padStart(8, "2026"),
+      stripeSessionId: session.id,
+      client: {
+        name: metadata.companyName || session.customer_details?.name || "Zákazník SEO4WEB",
+        ico: metadata.ico || undefined,
+        dic: metadata.dic || undefined,
+        ic_dph: metadata.icDph || undefined,
+        email: session.customer_details?.email || "",
+        address: session.customer_details?.address?.line1 || undefined,
+        city: session.customer_details?.address?.city || undefined,
+        zip: session.customer_details?.address?.postal_code || undefined,
+        country: session.customer_details?.address?.country || "Slovensko",
       },
-    ],
-  };
+    });
 
-  // If SuperFaktúra integration keys are configured, submit live invoice
-  if (superfakturaEmail && superfakturaApiKey) {
-    try {
-      const res = await fetch("https://moja.superfaktura.sk/invoices/create", {
-        method: "POST",
-        headers: {
-          Authorization: `SFAPI email=${superfakturaEmail}&apikey=${superfakturaApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(invoiceData),
-      });
-      if (res.ok) {
-        const json = (await res.json().catch(() => ({}))) as {
-          data?: { Invoice?: { token?: string } };
-        };
-        return { status: "sent", invoiceNumber: json.data?.Invoice?.token };
-      }
-    } catch (e) {
-      console.error("SuperFaktura webhook forward error:", e);
-      return { status: "error" };
+    const res = await createSuperfakturaInvoice(payload);
+
+    if (res.success && res.invoiceId && payload.Client.email) {
+      await sendInvoiceEmail(res.invoiceId, payload.Client.email);
     }
-  }
 
-  // Ready for production SuperFaktura API trigger
-  return { status: "skipped" };
+    return {
+      status: res.mock ? "mock" : res.success ? "sent" : "error",
+      invoiceNumber: res.invoiceNumber,
+      invoiceUrl: res.invoiceUrl || res.invoicePdfUrl,
+      result: res,
+    };
+  } catch (err) {
+    console.error("[Stripe Invoicing Error] Nepodarilo sa vystaviť faktúru:", err);
+    return { status: "error" };
+  }
 }
 
 export const Route = createFileRoute("/api/public/stripe-webhook")({
@@ -158,6 +144,9 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 const now = new Date();
                 const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
+                // Trigger automated Slovak B2B invoice creation via SuperFaktúra
+                const invoiceOutcome = await forwardToSlovakInvoicing(session, plan);
+
                 await supabase.from("subscriptions").upsert(
                   {
                     user_id: userId,
@@ -175,14 +164,13 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                       (session.customer_details?.address as unknown as
                         | import("@/integrations/supabase/types").Json
                         | null) || null,
+                    last_invoice_number: invoiceOutcome.invoiceNumber || null,
+                    last_invoice_url: invoiceOutcome.invoiceUrl || null,
                     current_period_end: periodEnd.toISOString(),
                     updated_at: now.toISOString(),
                   },
                   { onConflict: "user_id" },
                 );
-
-                // Trigger automated Slovak B2B invoice creation
-                await forwardToSlovakInvoicing(session, plan);
               }
               break;
             }

@@ -231,6 +231,8 @@ export type Database = {
           ic_dph: string | null;
           ico: string | null;
           id: string;
+          last_invoice_number: string | null;
+          last_invoice_url: string | null;
           plan: string;
           status: string;
           stripe_customer_id: string | null;
@@ -247,6 +249,8 @@ export type Database = {
           ic_dph?: string | null;
           ico?: string | null;
           id?: string;
+          last_invoice_number?: string | null;
+          last_invoice_url?: string | null;
           plan?: string;
           status?: string;
           stripe_customer_id?: string | null;
@@ -263,6 +267,8 @@ export type Database = {
           ic_dph?: string | null;
           ico?: string | null;
           id?: string;
+          last_invoice_number?: string | null;
+          last_invoice_url?: string | null;
           plan?: string;
           status?: string;
           stripe_customer_id?: string | null;

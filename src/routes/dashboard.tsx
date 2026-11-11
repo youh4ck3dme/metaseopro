@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
 import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
+import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -525,6 +526,18 @@ function DashboardPage() {
             </section>
           </>
         )}
+
+        {/* Fakturačné údaje a história platieb */}
+        <section className="mt-14 border-t border-border/60 pt-8">
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold">Fakturačné údaje a história platieb</h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Správa firemných údajov, automatické vystavovanie faktúr cez SuperFaktúru a sťahovanie
+              daňových dokladov (PDF).
+            </p>
+          </div>
+          <BillingInvoiceSection />
+        </section>
       </main>
 
       <PaywallModal

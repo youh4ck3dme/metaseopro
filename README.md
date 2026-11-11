@@ -264,7 +264,7 @@ SEO4WEB je stavaný pre dosiahnutie obratu **9 000 €+ mesačne (MRR)** prostre
 Projekt udržiava 100% priechodnosť testovacej suity a nulovú toleranciu pre typové chyby:
 
 ```bash
-# Spustenie všetkých unit a integračných testov (61 testov v 11 suitách)
+# Spustenie všetkých unit a integračných testov (79 testov v 13 suitách)
 bunx vitest run
 
 # Spustenie statickej analýzy a lintingu kódu (ESLint)
@@ -274,17 +274,19 @@ bun run lint
 bun run tsc --noEmit
 
 # Testovacie suity v projekte (100% priechodnosť):
-# ✓ src/lib/integrity.test.ts      — Secret & env ochrana, TanStack Start .validator, RLS vo všetkých migráciách
-# ✓ src/lib/rate-limit.test.ts     — LRU pamäťový limit, extrakcia IP, zložený rate limit
-# ✓ src/lib/gsc.test.ts            — 90-dňové periódy, multi-tenant izolácia domén
-# ✓ src/lib/site-analyze.test.ts   — On-page HTML extrakcia, sémantické tagy, skórovanie
-# ✓ src/lib/decay-schema.test.ts   — Zod validačné schémy a typová integrita
-# ✓ src/lib/opportunity.test.ts    — Search intent, celoslovenská lokalita, diakritika SERP
-# ✓ src/lib/decay-analyze.test.ts  — Skórovanie prepadov a kalkulácia decay metrík
-# ✓ src/lib/semrush.test.ts        — Semrush caching, TTL 7 dní, fallback a circuit breaker
-# ✓ src/lib/slovak-billing.test.ts — Slovenská validácia IČO, DIČ, IČ DPH, Live EÚ VIES overenie
-# ✓ src/lib/agency.test.ts         — Whitelabel engine, health index, top víťazi, Striking Distance, zdieľateľné linky
-# ✓ src/lib/e2e-app.test.ts        — E2E dostupnosť všetkých trás, SSR markup, API ochrana a Stripe webhook
+# ✓ src/lib/integrity.test.ts       — Secret & env ochrana, TanStack Start .validator, RLS vo všetkých migráciách
+# ✓ src/lib/business-schema.test.ts — Prístupové práva, RLS a izolácia predplatného a cache
+# ✓ src/lib/rate-limit.test.ts      — LRU pamäťový limit, extrakcia IP, zložený rate limit
+# ✓ src/lib/gsc.test.ts             — 90-dňové periódy, multi-tenant izolácia domén
+# ✓ src/lib/site-analyze.test.ts    — On-page HTML extrakcia, sémantické tagy, skórovanie
+# ✓ src/lib/decay-schema.test.ts    — Zod validačné schémy a typová integrita
+# ✓ src/lib/opportunity.test.ts     — Search intent, celoslovenská lokalita, diakritika SERP
+# ✓ src/lib/decay-analyze.test.ts   — Skórovanie prepadov a kalkulácia decay metrík
+# ✓ src/lib/semrush.test.ts         — Semrush caching, TTL 7 dní, fallback a circuit breaker
+# ✓ src/lib/slovak-billing.test.ts  — Slovenská validácia IČO, DIČ, IČ DPH, Live EÚ VIES overenie
+# ✓ src/lib/invoicing.test.ts       — SuperFaktúra API, 20% DPH vs. Reverse Charge (§ 69 ods. 3), PDF doručenie
+# ✓ src/lib/agency.test.ts          — Whitelabel engine, health index, top víťazi, Striking Distance, zdieľateľné linky
+# ✓ src/lib/e2e-app.test.ts         — E2E dostupnosť všetkých trás, SSR markup, API ochrana a Stripe webhook
 ```
 
 ---

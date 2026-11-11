@@ -90,5 +90,11 @@
 - [x] Aplikovať chýbajúce tabuľky cache, predplatného a agentúry s grantmi a RLS.
 - [x] Zjednotiť navigáciu existujúcich nástrojov a zobraziť aktuálny balík používateľa.
 - [x] Overiť uloženie profilu agentúry a navigáciu na počítači aj mobile.
-- [ ] **SuperFaktúra / Fakturoid API konektor:** Priame automatické vystavenie a odoslanie slovenskej faktúry na e-mail klienta po úspešnej Stripe platbe.
+- [x] **SuperFaktúra API konektor & Automatická B2B fakturácia (`src/lib/invoicing.server.ts`):**
+  - Automatické vystavenie daňového dokladu po udalosti `checkout.session.completed` cez SuperFaktúra REST API (`/invoices/create`).
+  - Automatické doručenie faktúry v PDF formáte na e-mail klienta cez `/invoices/sendInvoiceEmail`.
+  - Daňový algoritmus pre SR a EÚ: 20% DPH pre tuzemské subjekty vs. 0% Reverse Charge (§ 69 ods. 3 zákona o DPH) pre zahraničné firmy s overeným IČ DPH.
+  - Graceful fallback s detailným mock payloadom pri absencii produkčných kľúčov.
+  - Perzistencia čísla faktúry a odkazu na stiahnutie (`last_invoice_number`, `last_invoice_url`) v tabuľke `subscriptions`.
+  - UI sekcia **„Fakturačné údaje a história platieb“** na `/settings/agency` a `/dashboard` s okamžitou validáciou IČO, DIČ, IČ DPH a tlačidlom na stiahnutie PDF faktúry.
 - [ ] **WordPress REST API exportér:** Automatické publikovanie a aktualizácia meta značiek priamo do Yoast / RankMath na klientovom webe.

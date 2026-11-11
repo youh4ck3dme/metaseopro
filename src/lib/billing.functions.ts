@@ -144,7 +144,7 @@ export const getUserSubscription = createServerFn({ method: "GET" })
       const { data, error } = await supabase
         .from("subscriptions")
         .select(
-          "plan, status, current_period_end, company_name, ico, dic, ic_dph, stripe_customer_id",
+          "plan, status, current_period_end, company_name, ico, dic, ic_dph, stripe_customer_id, last_invoice_number, last_invoice_url, billing_address",
         )
         .eq("user_id", userId)
         .maybeSingle();
@@ -158,6 +158,9 @@ export const getUserSubscription = createServerFn({ method: "GET" })
           ico: null,
           dic: null,
           icDph: null,
+          billingAddress: null,
+          lastInvoiceNumber: null,
+          lastInvoiceUrl: null,
           currentPeriodEnd: null,
         };
       }
@@ -172,6 +175,9 @@ export const getUserSubscription = createServerFn({ method: "GET" })
         ico: data.ico,
         dic: data.dic,
         icDph: data.ic_dph,
+        billingAddress: data.billing_address,
+        lastInvoiceNumber: data.last_invoice_number,
+        lastInvoiceUrl: data.last_invoice_url,
         currentPeriodEnd: data.current_period_end,
       };
     } catch {
@@ -183,7 +189,71 @@ export const getUserSubscription = createServerFn({ method: "GET" })
         ico: null,
         dic: null,
         icDph: null,
+        billingAddress: null,
+        lastInvoiceNumber: null,
+        lastInvoiceUrl: null,
         currentPeriodEnd: null,
       };
     }
+  });
+
+const UpdateBillingInputSchema = z.object({
+  companyName: z.string().trim().max(255).optional(),
+  ico: z.string().trim().max(20).optional(),
+  dic: z.string().trim().max(20).optional(),
+  icDph: z.string().trim().max(20).optional(),
+  address: z.string().trim().max(255).optional(),
+  city: z.string().trim().max(100).optional(),
+  zip: z.string().trim().max(20).optional(),
+  country: z.string().trim().max(100).optional(),
+});
+
+export const updateCompanyBillingDetails = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => UpdateBillingInputSchema.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const validation = validateCompanyBilling({
+      companyName: data.companyName,
+      ico: data.ico,
+      dic: data.dic,
+      icDph: data.icDph,
+    });
+
+    if (!validation.valid) {
+      const firstError = Object.values(validation.errors)[0];
+      throw new Error(firstError || "Neplatné fakturačné údaje.");
+    }
+
+    const normalizedIco = data.ico ? normalizeICO(data.ico) : null;
+    const normalizedDic = data.dic ? normalizeDIC(data.dic) : null;
+    const normalizedIcDph = data.icDph ? normalizeICDPH(data.icDph) : null;
+
+    const billingAddress = {
+      line1: data.address || null,
+      city: data.city || null,
+      postal_code: data.zip || null,
+      country: data.country || "Slovensko",
+    };
+
+    const { error } = await supabase.from("subscriptions").upsert(
+      {
+        user_id: userId,
+        company_name: data.companyName || null,
+        ico: normalizedIco,
+        dic: normalizedDic,
+        ic_dph: normalizedIcDph,
+        billing_address: billingAddress as unknown as import("@/integrations/supabase/types").Json,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" },
+    );
+
+    if (error) {
+      console.error("Error updating billing details:", error);
+      throw new Error("Nepodarilo sa uložiť fakturačné údaje.");
+    }
+
+    return { success: true };
   });
