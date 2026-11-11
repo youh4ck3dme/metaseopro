@@ -1,4 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+// Mock supabase so the test suite can load without the real package installed
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    from: () => ({
+      select: () => ({ eq: () => ({ maybeSingle: async () => ({ data: null, error: null }) }) }),
+      upsert: async () => ({ error: null }),
+      insert: async () => ({ error: null }),
+      update: () => ({ eq: async () => ({ error: null }) }),
+    }),
+  }),
+}));
+
 import { clearSemrushMemoryCache, getCachedDomainSnapshot, SemrushError } from "./semrush.server";
 
 describe("Semrush intelligent cache & quota protection", () => {
