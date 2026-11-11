@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS public.agency_profiles (
 ALTER TABLE public.agency_profiles ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated users to view only their own agency profile
+DROP POLICY IF EXISTS "Users view own agency profile" ON public.agency_profiles;
 CREATE POLICY "Users view own agency profile"
   ON public.agency_profiles
   FOR SELECT
@@ -23,6 +24,7 @@ CREATE POLICY "Users view own agency profile"
   USING (auth.uid() = user_id);
 
 -- Allow authenticated users to insert their own agency profile
+DROP POLICY IF EXISTS "Users insert own agency profile" ON public.agency_profiles;
 CREATE POLICY "Users insert own agency profile"
   ON public.agency_profiles
   FOR INSERT
@@ -30,6 +32,7 @@ CREATE POLICY "Users insert own agency profile"
   WITH CHECK (auth.uid() = user_id);
 
 -- Allow authenticated users to update their own agency profile
+DROP POLICY IF EXISTS "Users update own agency profile" ON public.agency_profiles;
 CREATE POLICY "Users update own agency profile"
   ON public.agency_profiles
   FOR UPDATE
@@ -38,6 +41,7 @@ CREATE POLICY "Users update own agency profile"
   WITH CHECK (auth.uid() = user_id);
 
 -- Allow authenticated users to delete their own agency profile
+DROP POLICY IF EXISTS "Users delete own agency profile" ON public.agency_profiles;
 CREATE POLICY "Users delete own agency profile"
   ON public.agency_profiles
   FOR DELETE
@@ -45,6 +49,7 @@ CREATE POLICY "Users delete own agency profile"
   USING (auth.uid() = user_id);
 
 -- Allow service role full management of agency profiles
+DROP POLICY IF EXISTS "Service role manages agency profiles" ON public.agency_profiles;
 CREATE POLICY "Service role manages agency profiles"
   ON public.agency_profiles
   FOR ALL
@@ -53,6 +58,7 @@ CREATE POLICY "Service role manages agency profiles"
   WITH CHECK (true);
 
 -- Shared updated_at trigger
+DROP TRIGGER IF EXISTS update_agency_profiles_updated_at ON public.agency_profiles;
 CREATE TRIGGER update_agency_profiles_updated_at
   BEFORE UPDATE ON public.agency_profiles
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

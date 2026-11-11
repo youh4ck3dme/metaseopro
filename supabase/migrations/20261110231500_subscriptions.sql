@@ -26,6 +26,7 @@ CREATE INDEX IF NOT EXISTS idx_subscriptions_stripe_customer_id ON public.subscr
 ALTER TABLE public.subscriptions ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated users to view only their own subscription
+DROP POLICY IF EXISTS "Users view own subscription" ON public.subscriptions;
 CREATE POLICY "Users view own subscription"
   ON public.subscriptions
   FOR SELECT
@@ -33,6 +34,7 @@ CREATE POLICY "Users view own subscription"
   USING (auth.uid() = user_id);
 
 -- Allow service role full management of subscriptions (via webhooks and server functions)
+DROP POLICY IF EXISTS "Service role manages subscriptions" ON public.subscriptions;
 CREATE POLICY "Service role manages subscriptions"
   ON public.subscriptions
   FOR ALL
@@ -41,6 +43,7 @@ CREATE POLICY "Service role manages subscriptions"
   WITH CHECK (true);
 
 -- Shared updated_at trigger
+DROP TRIGGER IF EXISTS update_subscriptions_updated_at ON public.subscriptions;
 CREATE TRIGGER update_subscriptions_updated_at
   BEFORE UPDATE ON public.subscriptions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();

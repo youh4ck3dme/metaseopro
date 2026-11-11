@@ -22,6 +22,7 @@ CREATE INDEX IF NOT EXISTS idx_semrush_cache_expires_at
 ALTER TABLE public.semrush_domain_cache ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated users to read cached domain snapshots
+DROP POLICY IF EXISTS "Allow authenticated read on semrush_domain_cache" ON public.semrush_domain_cache;
 CREATE POLICY "Allow authenticated read on semrush_domain_cache"
   ON public.semrush_domain_cache
   FOR SELECT
@@ -29,6 +30,7 @@ CREATE POLICY "Allow authenticated read on semrush_domain_cache"
   USING (true);
 
 -- Allow service role full access (writes and updates)
+DROP POLICY IF EXISTS "Allow service role write on semrush_domain_cache" ON public.semrush_domain_cache;
 CREATE POLICY "Allow service role write on semrush_domain_cache"
   ON public.semrush_domain_cache
   FOR ALL
