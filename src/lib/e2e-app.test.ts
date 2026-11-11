@@ -27,7 +27,8 @@ describe("E2E Application Workflow & Route Integrity", () => {
     expect(html).toContain("SEO4WEB");
     expect(html).toContain("AI SEO Command Center");
     expect(html).toContain("Blog Writer");
-    expect(html).toContain("/settings/agency");
+    // Dropdown links mount on interaction; their destinations are checked below
+    // and through the authenticated browser navigation check.
     expect(html).toContain("Agentúra");
   }, 15000);
 
