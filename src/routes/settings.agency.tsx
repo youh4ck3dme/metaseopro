@@ -36,6 +36,10 @@ export const Route = createFileRoute("/settings/agency")({
         content:
           "Nastavte si logo, farby a kontaktné údaje vašej marketingovej agentúry pre automatické mesačné SEO reporty pre klientov.",
       },
+      { property: "og:title", content: "Nastavenia agentúry — SEO4WEB" },
+      { property: "og:description", content: "Identita agentúry, vlastné logo a branding klientskych SEO reportov." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AgencySettingsPage,
@@ -80,12 +84,13 @@ function AgencySettingsPage() {
       setLoadingData(true);
       try {
         // 1. Fetch user subscription
-        const { data: sub } = await supabase
-          .from("subscriptions" as never)
+        const { data: sub, error: subError } = await supabase
+          .from("subscriptions")
           .select("plan, status")
           .eq("user_id", currentUserId)
           .maybeSingle();
 
+        if (subError) throw subError;
         if (active && sub) {
           const p = (sub as { plan?: string } | null)?.plan;
           if (p === "agency" || p === "pro" || p === "free") {
@@ -94,12 +99,13 @@ function AgencySettingsPage() {
         }
 
         // 2. Fetch agency profile
-        const { data: profile } = await supabase
-          .from("agency_profiles" as never)
+        const { data: profile, error: profileError } = await supabase
+          .from("agency_profiles")
           .select("*")
           .eq("user_id", currentUserId)
           .maybeSingle();
 
+        if (profileError) throw profileError;
         if (active && profile) {
           const prof = profile as unknown as AgencyProfile;
           setAgencyName(prof.agency_name || DEFAULT_AGENCY_PROFILE.agency_name);
@@ -114,6 +120,7 @@ function AgencySettingsPage() {
         }
       } catch (err) {
         console.error("Error loading agency profile:", err);
+        if (active) toast.error("Nepodarilo sa načítať nastavenia agentúry.");
       } finally {
         if (active) setLoadingData(false);
       }
@@ -151,8 +158,8 @@ function AgencySettingsPage() {
       };
 
       const { error } = await supabase
-        .from("agency_profiles" as never)
-        .upsert(payload as never, { onConflict: "user_id" });
+        .from("agency_profiles")
+        .upsert(payload, { onConflict: "user_id" });
 
       if (error) {
         throw error;

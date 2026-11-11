@@ -7,6 +7,8 @@
 - **API Contracts & Storage:** Preserve existing storage identifiers, Zod schemas, and API contracts during changes to avoid breaking saved context, database records, and integrations.
 - **Server Functions:** Use the installed TanStack Start server-function `.validator(...)` API. Never use `.inputValidator(...)`.
 - **Router:** Use `@tanstack/react-router` exclusively. Never install or import `react-router-dom`. Do not manually edit `src/routeTree.gen.ts`.
+- **Navigation:** Maintain tool groups in AppHeader as the shared source for desktop and mobile menus; embed subtools under their existing workspace rather than linking to nonexistent pages.
+- **Business tables:** Apply business-table changes through Lovable Cloud migrations; subscriptions are owner-readable and service-managed, agency profiles are owner CRUD, and public Semrush cache is authenticated read-only.
 - **Cloudflare Worker Runtime Safe:** Never initialize `new Date()` as a static top-level module constant (it defaults to epoch 1970 on worker boot). Always evaluate dates dynamically inside request handlers.
 - **Multi-Tenant GSC Isolation:** Never return global connector properties indiscriminately. Use `listUserVerifiedProperties(userId, email)` and enforce `assertUserPropertyAccess(userId, siteUrl, email)`. Non-admin tenants must never see or analyze properties they do not own.
 - **Slovak NLP & Localization:** Never hardcode a single city (e.g. Bratislava) in SEO rules. Support all 79 districts and nationwide businesses via `LOCATIONS`. Use calibrated `textPixelWidth()` to accurately measure Slovak accented characters (`í`, `ĺ`, `ľ`, `ť`, `Á`, etc.) in SERP previews.
