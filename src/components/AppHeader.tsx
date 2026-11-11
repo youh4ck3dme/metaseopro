@@ -37,6 +37,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PaywallModal } from "@/components/PaywallModal";
 import type { PlanId } from "@/lib/slovak-billing";
+import { isLocale, readLocaleCookie, writeLocaleCookie, type Locale } from "@/lib/i18n";
 
 const SEO_TOOLS = [
   {
@@ -147,6 +148,15 @@ export function AppHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [userPlan, setUserPlan] = useState<PlanId>("free");
+  const [locale, setLocale] = useState<Locale>(() => readLocaleCookie() ?? "sk");
+
+  const switchLocale = (next: Locale) => {
+    if (next === locale) return;
+    writeLocaleCookie(next);
+    setLocale(next);
+    if (typeof document !== "undefined") document.documentElement.lang = next;
+    window.location.reload();
+  };
 
   // Load user subscription tier
   useEffect(() => {
@@ -396,8 +406,9 @@ export function AppHeader() {
           </DropdownMenu>
         </nav>
 
-        {/* ================= RIGHT CORNER: USER STATUS & PLAN PILL ================= */}
+        {/* ================= RIGHT CORNER: LOCALE + USER STATUS & PLAN PILL ================= */}
         <div className="flex items-center gap-2.5">
+          <LocaleSwitch locale={locale} onSwitch={switchLocale} />
           {user ? (
             <div className="flex items-center gap-2">
               {/* Plan Badge */}
@@ -670,5 +681,34 @@ export function AppHeader() {
       {/* Embedded Paywall Modal */}
       <PaywallModal open={paywallOpen} onOpenChange={setPaywallOpen} />
     </header>
+  );
+}
+
+function LocaleSwitch({
+  locale,
+  onSwitch,
+}: {
+  locale: Locale;
+  onSwitch: (next: Locale) => void;
+}) {
+  return (
+    <div className="flex items-center gap-0.5 text-xs" role="group" aria-label="Language">
+      {(["sk", "en", "de"] as const).map((code) => (
+        <button
+          key={code}
+          type="button"
+          onClick={() => onSwitch(code)}
+          className={
+            "rounded px-1.5 py-0.5 uppercase " +
+            (locale === code
+              ? "font-semibold text-foreground bg-secondary"
+              : "text-muted-foreground hover:text-foreground")
+          }
+          aria-current={locale === code ? "true" : undefined}
+        >
+          {code}
+        </button>
+      ))}
+    </div>
   );
 }
