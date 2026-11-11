@@ -3,6 +3,7 @@ import { AnalyzeBodySchema, normalizeUrl } from "@/lib/raketa-schema";
 import { runAnalysis } from "@/lib/site-analyze.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
+import { assertSafePublicUrl } from "@/lib/ssrf";
 
 const MAX_BODY_BYTES = 8 * 1024;
 
@@ -54,11 +55,23 @@ export const Route = createFileRoute("/api/raketa-analyze")({
 
           const ownUrl = normalizeUrl(parsed.data.ownUrl);
           if (!ownUrl) return err(400, "Neplatná URL vlastného webu.");
+          try {
+            assertSafePublicUrl(ownUrl);
+          } catch (e) {
+            return err(400, e instanceof Error ? e.message : "Nepovolená URL vlastného webu.");
+          }
           const competitorUrl = parsed.data.competitorUrl
             ? normalizeUrl(parsed.data.competitorUrl)
             : "";
           if (parsed.data.competitorUrl && !competitorUrl) {
             return err(400, "Neplatná URL konkurencie.");
+          }
+          if (competitorUrl) {
+            try {
+              assertSafePublicUrl(competitorUrl);
+            } catch (e) {
+              return err(400, e instanceof Error ? e.message : "Nepovolená URL konkurencie.");
+            }
           }
 
           const analysis = await runAnalysis(ownUrl, competitorUrl || "", parsed.data.keyword);

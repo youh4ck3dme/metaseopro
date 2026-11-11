@@ -137,11 +137,27 @@ const SERVICE = [
   "odvoz",
   "montaz",
   "demontaz",
+  "instalacia",
   "upratovanie",
+  "cistenie",
+  "tepovanie",
   "preprava",
+  "doprava",
+  "oprava",
+  "servis",
+  "prenajom",
+  "pozicovna",
+  "rekonstrukcia",
+  "tvorba webu",
+  "vyroba",
+  "uctovnictvo",
+  "advokat",
+  "notar",
+  "kadernictvo",
 ];
 const INFO = ["ako ", "preco", "co je", "navod", "tipy", "checklist", "kedy", "pripravit"];
 const LOCATIONS = [
+  // Bratislava a mestské časti
   "bratislava",
   "petrzalka",
   "ruzinov",
@@ -152,6 +168,50 @@ const LOCATIONS = [
   "senec",
   "pezinok",
   "malacky",
+  // Krajské a veľké mestá celého Slovenska
+  "kosice",
+  "presov",
+  "zilina",
+  "nitra",
+  "banska bystrica",
+  "trnava",
+  "trencin",
+  "martin",
+  "poprad",
+  "prievidza",
+  "zvolen",
+  "povazska bystrica",
+  "nove zamky",
+  "michalovce",
+  "spisska nova ves",
+  "komarno",
+  "levice",
+  "humenne",
+  "bardejov",
+  "liptovsky mikulas",
+  "piestany",
+  "ruzomberok",
+  "topolcany",
+  "lucenec",
+  "cadca",
+  "dubnica",
+  "rimavska sobota",
+  "partizanske",
+  "sala",
+  "dunajska streda",
+  "vranov",
+  "trebisov",
+  "snina",
+  "senica",
+  "roznava",
+  "dolny kubin",
+  "kezmarok",
+  "puchov",
+  "skalica",
+  "brezno",
+  "ziar nad hronom",
+  "svidnik",
+  "slovensko",
 ];
 
 export function classifyIntent(query: string, brandTerms: string[] = []): Intent {
@@ -381,8 +441,8 @@ export function detectCannibalization(pages: OppPage[], minImpr = 5): CannibalPa
       const smaller = Math.min(a.tokens.size, b.tokens.size);
       if (
         inter.length > 0 &&
-        inter.length / smaller >= 1 &&
-        inter.some((t) => ["cennik", "stahovanie", "stahovacia"].includes(t))
+        (inter.length / smaller >= 0.8 ||
+          inter.some((t) => PRICING.includes(t) || SERVICE.includes(t) || LOCATIONS.includes(t)))
       )
         out.push({ query: `slug: ${inter.join(" ")}`, urls: [a.url, b.url], impressions: 0 });
     }
@@ -562,22 +622,38 @@ export function defaultCoverageGroups(
 
 // ---------- SERP truncation ----------
 
-// Approximate Arial 20px (desktop title) glyph widths, px.
-const WIDE = /[mwMWOQGDHNU@%]/;
-const NARROW = /[ijlftrI!.,:;'|]/;
+// Precise Arial 20px glyph widths scaled to base (default base=10 for desktop title ~600px).
+// Accurately accounts for Slovak Latin-Extended-A and ASCII characters.
+const ULTRA_NARROW = /[iílĺ|!.,:;'`"/]/;
+const NARROW_SYM = /[jtťrfIÍ1\-[\]()–—]/;
+const WIDE_LOWER = /[mw]/;
+const EXTRA_WIDE_UPPER = /[MW@%&]/;
+const NARROW_UPPER = /[JLĽTŤ]/;
+const WIDE_UPPER = /[AÁÄBCČDĎEÉGHIKŇOÓÔPQRŔSŠUÚVXYZŽ]/;
+
 export function textPixelWidth(s: string, base = 10): number {
   let w = 0;
-  for (const ch of s)
-    w +=
-      ch === " "
-        ? base * 0.5
-        : WIDE.test(ch)
-          ? base * 1.45
-          : NARROW.test(ch)
-            ? base * 0.5
-            : /[A-ZÁČĎÉÍĽĹŇÓÔŔŠŤÚÝŽ]/.test(ch)
-              ? base * 1.2
-              : base;
+  for (const ch of s) {
+    if (ch === " ") {
+      w += base * 0.3;
+    } else if (ULTRA_NARROW.test(ch)) {
+      w += base * 0.35;
+    } else if (NARROW_SYM.test(ch)) {
+      w += base * 0.55;
+    } else if (ch === "ľ") {
+      w += base * 0.65;
+    } else if (WIDE_LOWER.test(ch)) {
+      w += base * 1.5;
+    } else if (EXTRA_WIDE_UPPER.test(ch)) {
+      w += base * 1.6;
+    } else if (NARROW_UPPER.test(ch)) {
+      w += base * 1.1;
+    } else if (WIDE_UPPER.test(ch)) {
+      w += base * 1.3;
+    } else {
+      w += base * 1.0;
+    }
+  }
   return w;
 }
 
@@ -604,21 +680,60 @@ export function truncateToWidth(
 
 export function titleWarnings(
   title: string,
-  opts: { primary: string; brand?: string; others?: string[] },
+  opts: { primary: string; brand?: string; others?: string[]; location?: string },
 ): string[] {
   const w: string[] = [];
   const t = norm(title);
   if (textPixelWidth(title, 10) > SERP_LIMITS.desktopTitle)
     w.push("Title je príliš dlhý — Google ho skráti.");
   if (title.trim().split(/\s+/).length < 3) w.push("Title je príliš generický.");
-  if (!/bratislav/.test(t)) w.push("Chýba lokalita (Bratislava).");
-  const intentWords = ["cennik", "cena", "stahovanie", "sluzba", "ponuka", "kolko"];
-  if (!intentWords.some((k) => t.includes(k))) w.push("Title nevyjadruje zámer dopytu.");
-  const stems = norm(opts.primary)
+
+  // Dynamická kontrola lokality (žiadne hardkódovanie Bratislavy pre celé Slovensko):
+  if (opts.location) {
+    if (!t.includes(norm(opts.location))) {
+      w.push(`Chýba cieľová lokalita (${opts.location}).`);
+    }
+  } else {
+    // Ak primary query obsahuje konkrétnu slovenskú lokalitu, over jej prítomnosť v title
+    const normPrimary = norm(opts.primary);
+    const matchedLoc = LOCATIONS.find((loc) => normPrimary.includes(loc));
+    if (matchedLoc && !t.includes(matchedLoc)) {
+      const displayLoc = matchedLoc.charAt(0).toUpperCase() + matchedLoc.slice(1);
+      w.push(`Chýba lokalita (${displayLoc}).`);
+    }
+  }
+
+  const intentWords = [
+    "cennik",
+    "cena",
+    "ceny",
+    "predaj",
+    "kupit",
+    "sluzba",
+    "sluzby",
+    "ponuka",
+    "kolko",
+    "eshop",
+    "obchod",
+    "vyber",
+    "recenzia",
+    "recenzie",
+    "ako",
+    "najlepsi",
+    "tipy",
+    "navod",
+  ];
+  const primaryStems = norm(opts.primary)
     .split(" ")
-    .filter((x) => x.length > 3)
+    .filter((x) => x.length > 2)
     .map((x) => x.slice(0, 5));
-  for (const s of stems) {
+
+  const hasIntentOrStem =
+    intentWords.some((k) => t.includes(k)) || primaryStems.some((s) => t.includes(s));
+
+  if (!hasIntentOrStem) w.push("Title nevyjadruje zámer dopytu.");
+
+  for (const s of primaryStems.filter((s) => s.length >= 4)) {
     const n = t.split(s).length - 1;
     if (n >= 3) {
       w.push("Keyword stuffing — slovo sa opakuje príliš často.");

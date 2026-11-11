@@ -45,6 +45,20 @@ export function normalizeUrl(raw: string): string | null {
   if (url.protocol !== "http:" && url.protocol !== "https:") return null;
   // host must contain a dot (a real domain) and no spaces
   if (!url.hostname.includes(".") || /\s/.test(url.hostname)) return null;
+  // Block internal/localhost/link-local hostnames
+  const h = url.hostname.toLowerCase();
+  if (
+    h === "localhost" ||
+    h.endsWith(".localhost") ||
+    h.endsWith(".local") ||
+    h.endsWith(".internal") ||
+    h.endsWith(".lan") ||
+    h === "127.0.0.1" ||
+    h === "0.0.0.0" ||
+    h === "169.254.169.254"
+  ) {
+    return null;
+  }
   return url.toString();
 }
 

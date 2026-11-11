@@ -15,6 +15,13 @@
       "when": 1791114021871,
       "tag": "0001_create_seo_experiments",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794378465693,
+      "tag": "0002_create_seo_business_tables",
+      "breakpoints": true
     }
   ]
 }

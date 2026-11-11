@@ -42,6 +42,11 @@
   --color-info-border: var(--info-border);
   --color-overlay: var(--overlay);
   --color-serp-link: var(--serp-link);
+  --color-dashboard-bg: #171717;
+  --color-dashboard-surface: #212121;
+  --color-dashboard-card: #1f1f1f;
+  --color-dashboard-border: #2c2c2c;
+  --color-dashboard-elevated: #262626;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -374,3 +379,83 @@ main a.block.rounded-lg:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* Print-friendly styles for Whitelabel Client Reports */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 15mm 15mm 15mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Hide app shell, navbars, toasts, dialog overlays and interactive buttons */
+  .no-print,
+  header.app-header,
+  nav,
+  [data-sonner-toaster],
+  [data-radix-portal] > div:first-child:not([role="dialog"]) {
+    display: none !important;
+  }
+
+  /* Force modal content to take full printable page */
+  [role="dialog"] {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+    transform: none !important;
+  }
+
+  #executive-client-report {
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    background: #ffffff !important;
+    color: #111827 !important;
+    width: 100% !important;
+  }
+
+  .break-inside-avoid {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+}
+
+/* ==========================================================================
+   PWA & iOS Mobile Standalone Optimizations (Native Feel)
+   ========================================================================== */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safe Area Utilities */
+.safe-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+

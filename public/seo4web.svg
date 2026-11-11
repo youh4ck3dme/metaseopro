@@ -1,1 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="oklch(0.38 0.075 165)"/><g fill="none" stroke="oklch(0.984 0.003 247.858)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 48V37m11 11V31m11 17V24m11 24V16M14 28l12-7 11 2 12-13"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg_studio" cx="50%" cy="38%" r="72%">
+      <stop offset="0%" stop-color="#1e2522" />
+      <stop offset="50%" stop-color="#141716" />
+      <stop offset="100%" stop-color="#0c0d0d" />
+    </radialGradient>
+
+    <!-- Column Gradients -->
+    <linearGradient id="bar1_g" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <linearGradient id="bar2_g" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <linearGradient id="bar3_g" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#0d9488" />
+      <stop offset="100%" stop-color="#10b981" />
+    </linearGradient>
+    <linearGradient id="bar4_g" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+
+    <!-- Trend Line Gradient -->
+    <linearGradient id="trendGrad_g" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="50%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#6ee7b7" />
+    </linearGradient>
+
+    <linearGradient id="radarSweep_g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34d399" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
+    </linearGradient>
+
+    <filter id="bloom_g" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="shadow_g" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#000000" flood-opacity="0.8" />
+    </filter>
+  </defs>
+
+  <!-- Deep Studio Base (512x512) -->
+  <rect width="512" height="512" fill="url(#bg_studio)" />
+
+  <!-- Radar Telemetry Scope (Within 80% safe zone r=205) -->
+  <circle cx="256" cy="256" r="198" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2" />
+  <circle cx="256" cy="256" r="156" fill="none" stroke="rgba(16,185,129,0.14)" stroke-width="1.5" stroke-dasharray="6 8" />
+  <circle cx="256" cy="256" r="114" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
+  
+  <!-- Sweeping Radar Scanner Arm -->
+  <g>
+    <path d="M 256 58 A 198 198 0 0 1 454 256" fill="none" stroke="url(#radarSweep_g)" stroke-width="3" stroke-linecap="round" />
+    <circle cx="454" cy="256" r="4.5" fill="#34d399" filter="url(#bloom_g)" />
+  </g>
+
+  <!-- Central Visual: The 4 Ascending SEO Metric Columns (Centered at x=256) -->
+  <g filter="url(#shadow_g)">
+    <!-- Column 1 (Baseline) -->
+    <rect x="141" y="290" width="44" height="90" rx="22" fill="url(#bar1_g)" />
+    <!-- Column 2 (Growth) -->
+    <rect x="203" y="240" width="44" height="140" rx="22" fill="url(#bar2_g)" />
+    <!-- Column 3 (High SERP) -->
+    <rect x="265" y="190" width="44" height="190" rx="22" fill="url(#bar3_g)" />
+    <!-- Column 4 (#1 Rank Peak) -->
+    <rect x="327" y="140" width="44" height="240" rx="22" fill="url(#bar4_g)" />
+    
+    <!-- Neon Under-glow for the Trend Line -->
+    <path d="M 131 310 L 225 256 L 287 206 L 391 102"
+          fill="none" stroke="#10b981" stroke-width="30" stroke-linecap="round" stroke-linejoin="round" opacity="0.35" filter="url(#bloom_g)" />
+
+    <!-- Dynamic Upward SERP Growth Vector -->
+    <path d="M 131 310 L 225 256 L 287 206 L 391 102"
+          fill="none" stroke="url(#trendGrad_g)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Upward Trend Arrowhead at (391, 102) -->
+    <path d="M 321 102 L 391 102 L 391 172"
+          fill="none" stroke="url(#trendGrad_g)" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+
+    <!-- Luminous Data Point Nodes -->
+    <circle cx="163" cy="290" r="7" fill="#ffffff" />
+    <circle cx="225" cy="240" r="7" fill="#ffffff" />
+    <circle cx="287" cy="190" r="7" fill="#ffffff" />
+    <circle cx="349" cy="140" r="8.5" fill="#ffffff" filter="url(#bloom_g)" />
+    <circle cx="391" cy="102" r="10.5" fill="#6ee7b7" filter="url(#bloom_g)" />
+  </g>
+</svg>

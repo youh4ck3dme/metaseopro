@@ -1,14 +1,16 @@
 {
-  "name": "SEO4WEB — SEO Command Center",
+  "id": "sk.seo4web.app",
+  "name": "SEO4WEB — AI SEO Command Center",
   "short_name": "SEO4WEB",
-  "description": "SEO analýzy, obsahové plány a články na jednom mieste.",
+  "description": "Profesionálne SEO analýzy, content plán, Decay Radar a audit pre agentúry a firmy.",
   "lang": "sk",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait-primary",
-  "theme_color": "#0b6b4f",
-  "background_color": "#f8faf9",
+  "theme_color": "#171717",
+  "background_color": "#171717",
   "categories": ["business", "productivity"],
   "icons": [
     { "src": "/icons/icon-16.png", "sizes": "16x16", "type": "image/png" },
@@ -22,5 +24,28 @@
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any maskable" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Otvoriť Dashboard",
+      "short_name": "Dashboard",
+      "description": "Zobraziť celkový prehľad SEO metrík a domén",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Decay Radar",
+      "short_name": "Radar prepadov",
+      "description": "Okamžitá kontrola poklesov návštevnosti",
+      "url": "/dashboard?tab=decay",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Analyzovať nový web",
+      "short_name": "Nový audit",
+      "description": "Spustiť hĺbkovú analýzu novej domény",
+      "url": "/?action=audit",
+      "icons": [{ "src": "/icons/icon-96.png", "sizes": "96x96" }]
+    }
   ]
 }

@@ -11,6 +11,9 @@ import {
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { OG_IMAGE, SITE, pageUrl } from "@/lib/i18n";
+import { PwaLaunchExperience } from "@/components/PwaLaunchExperience";
+import { IosInstallPrompt } from "@/components/IosInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -74,34 +77,58 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#0b6b4f" },
+      { name: "theme-color", content: "#171717" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "SEO4WEB" },
-      { name: "application-name", content: "SEO4WEB" },
-      { title: "SEO4WEB — SEO Command Center" },
+      { name: "format-detection", content: "telephone=no" },
+      { name: "robots", content: "index, follow" },
+      { title: "SEO4WEB — All-in-One SEO Command Center pre slovenský a český trh" },
       {
         name: "description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "SEO4WEB: Inteligentný SEO audit, detekcia prepadov návštevnosti (Content Decay), CTR booster a 1-klikové nasadzovanie optimalizácií do WordPressu.",
       },
-      { property: "og:title", content: "SEO4WEB — SEO Command Center" },
+      {
+        name: "keywords",
+        content:
+          "SEO audit, SEO nástroj, Search Console, Content Decay Radar, WordPress SEO, Yoast SEO, Rank Math, CTR optimalizácia, SEO Slovensko",
+      },
+      { property: "og:site_name", content: "SEO4WEB" },
+      {
+        property: "og:title",
+        content: "SEO4WEB — All-in-One SEO Command Center",
+      },
       {
         property: "og:description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
       },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:title", content: "SEO4WEB — SEO Command Center" },
+      { property: "og:url", content: SITE },
+      { property: "og:image", content: OG_IMAGE },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "seo.vorkei — AI SEO Command Center" },
       {
         name: "twitter:description",
-        content: "SEO4WEB — SEO analýzy, obsahové plány a články na jednom mieste.",
+        content:
+          "Audit, brief, 30-day plan and SEO article. One workflow for agencies and freelancers. SK / EN / DE.",
       },
+      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "icon", type: "image/svg+xml", href: "/seo4web.svg" },
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon-180.png" },
+      { rel: "apple-touch-startup-image", href: "/icons/icon-512.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/icon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/icons/icon-16.png" },
+      { rel: "canonical", href: SITE },
+      { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/") },
+      { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
+      { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
+      { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -140,6 +167,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PwaLaunchExperience />
+        <IosInstallPrompt />
         <Outlet />
       </AuthProvider>
     </QueryClientProvider>

@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { classifyIntent, experimentVerdict, isEligible, rankOpportunities } from "./opportunity";
+import {
+  classifyIntent,
+  experimentVerdict,
+  isEligible,
+  rankOpportunities,
+  textPixelWidth,
+  titleWarnings,
+} from "./opportunity";
 
 describe("opportunity engine", () => {
   it("keeps zero-click pages with impressions", () => {
@@ -44,5 +51,35 @@ describe("opportunity engine", () => {
         2,
       ),
     ).toBe("INSUFFICIENT DATA");
+  });
+
+  it("does not demand Bratislava for nationwide or regional queries", () => {
+    // E-shop title with nationwide product
+    const warningsEshop = titleWarnings("Najlepšie matrace na mieru – recenzia a výber", {
+      primary: "matrace na mieru",
+    });
+    expect(warningsEshop).not.toContain("Chýba lokalita (Bratislava).");
+
+    // Regional service with Kosice
+    const warningsKosice = titleWarnings(
+      "Autoservis a diagnostika vozidiel Košice – cenník služieb",
+      {
+        primary: "autoservis kosice",
+      },
+    );
+    expect(warningsKosice).not.toContain("Chýba lokalita (Bratislava).");
+    expect(warningsKosice).not.toContain("Chýba lokalita (Kosice).");
+  });
+
+  it("calculates accurate pixel width for Slovak accented characters", () => {
+    // í and l are narrow, M and W are wide
+    const narrowWidth = textPixelWidth("íííííí");
+    const wideWidth = textPixelWidth("MMMMMM");
+    expect(narrowWidth).toBeLessThan(wideWidth / 2);
+
+    // Diacritics don't cause wild inflation over base
+    const skWord = textPixelWidth("kôň");
+    const enWord = textPixelWidth("kon");
+    expect(Math.abs(skWord - enWord)).toBeLessThan(5);
   });
 });

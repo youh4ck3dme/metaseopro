@@ -26,6 +26,7 @@ import { streamSSE } from "@/lib/stream-sse";
 import { handoffToWriter } from "@/lib/refresh-handoff";
 import { saveOutput } from "@/lib/outputs.functions";
 import { supabase } from "@/integrations/supabase/client";
+import { PaywallModal } from "@/components/PaywallModal";
 import {
   DECAY_LANGUAGES,
   DECAY_SCENARIOS,
@@ -128,6 +129,7 @@ function DecayPage() {
   const [plan, setPlan] = useState("");
   const [planLoading, setPlanLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [paywallOpen, setPaywallOpen] = useState(false);
 
   const abortRef = useRef<AbortController | null>(null);
 
@@ -152,7 +154,7 @@ function DecayPage() {
         const list: string[] = (json.properties ?? []).map((p: { siteUrl: string }) => p.siteUrl);
         if (res.ok && json.status === "ok" && list.length > 0) {
           setProperties(list);
-          setSiteUrl(list[0] ?? "");
+          setSiteUrl((current) => (list.includes(current) ? current : (list[0] ?? "")));
           setGscStatus("ok");
         } else {
           setGscStatus("unavailable");
@@ -179,7 +181,12 @@ function DecayPage() {
         .limit(1)
         .maybeSingle();
       if (cancelled || !data?.raw_data) return;
-      setDataset((prev) => prev ?? (data.raw_data as unknown as DecayDataset));
+      const restored = data.raw_data as unknown as DecayDataset;
+      setDataset((prev) => prev ?? restored);
+      if (!restored.demo) {
+        setMode("live");
+        setSiteUrl(restored.siteUrl);
+      }
       setPhase((p) => (p === "idle" ? "ready" : p));
     })();
     return () => {
@@ -234,6 +241,13 @@ function DecayPage() {
 
   const generatePlan = async () => {
     if (!dataset || !selected) return;
+
+    const rowIndex = dataset.rows.findIndex((r) => r.url === selected.url);
+    if (rowIndex >= 3) {
+      setPaywallOpen(true);
+      return;
+    }
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -497,6 +511,24 @@ function DecayPage() {
                 )}
               </div>
 
+              {!dataset.demo && (
+                <dl
+                  aria-label="Porovnávané obdobia GSC"
+                  className="mb-4 flex flex-wrap gap-x-8 gap-y-2 text-sm"
+                >
+                  <div>
+                    <dt className="text-xs text-muted-foreground">Aktuálne obdobie (90 dní)</dt>
+                    <dd className="font-medium text-foreground">{dataset.periodNow}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs text-muted-foreground">
+                      Predchádzajúce obdobie (90 dní)
+                    </dt>
+                    <dd className="font-medium text-foreground">{dataset.periodPrev}</dd>
+                  </div>
+                </dl>
+              )}
+
               <div className="overflow-x-auto rounded-lg bg-card ring-1 ring-border/5">
                 <table className="w-full min-w-[720px] text-sm">
                   <thead>
@@ -739,6 +771,13 @@ function DecayPage() {
           </div>
         </div>
       )}
+
+      <PaywallModal
+        open={paywallOpen}
+        onOpenChange={setPaywallOpen}
+        title="Odomknite Decay Radar s balíkom Pro"
+        description="V bezplatnej verzii môžete generovať záchranný plán pre prvé 3 podstránky. Pre záchranu všetkých klesajúcich URL a WordPress export aktivujte balík Pro (39 € / mes.)."
+      />
     </div>
   );
 }

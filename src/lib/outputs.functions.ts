@@ -12,6 +12,7 @@ const SaveSchema = z.object({
 export const saveOutput = createServerFn({ method: "POST" })
   .validator((input: unknown) => SaveSchema.parse(input))
   .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => SaveSchema.parse(input))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
     const { data: row, error } = await supabase
@@ -45,12 +46,14 @@ export const listOutputs = createServerFn({ method: "GET" })
 export const getOutput = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
+    const { supabase, userId } = context;
     const { data: row, error } = await supabase
       .from("generated_outputs")
       .select("id, type, title, input, output_markdown, created_at")
       .eq("id", data.id)
+      .eq("user_id", userId)
       .maybeSingle();
     if (error) throw new Error(error.message);
     if (!row) throw new Error("Záznam nenájdený.");
@@ -60,9 +63,14 @@ export const getOutput = createServerFn({ method: "POST" })
 export const deleteOutput = createServerFn({ method: "POST" })
   .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .middleware([requireSupabaseAuth])
+  .validator((input: unknown) => z.object({ id: z.string().uuid() }).parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { error } = await supabase.from("generated_outputs").delete().eq("id", data.id);
+    const { supabase, userId } = context;
+    const { error } = await supabase
+      .from("generated_outputs")
+      .delete()
+      .eq("id", data.id)
+      .eq("user_id", userId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });

@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { AUDIT_SYSTEM_PROMPT } from "@/lib/audit-prompt";
-import { getDomainSnapshot, SemrushError, type DomainSnapshot } from "@/lib/semrush.server";
+import { getCachedDomainSnapshot, SemrushError, type DomainSnapshot } from "@/lib/semrush.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
 
@@ -92,7 +92,7 @@ export const Route = createFileRoute("/api/audit-domains")({
           let snapshots: DomainSnapshot[];
           try {
             snapshots = await Promise.all(
-              normalized.map((d) => getDomainSnapshot(d, parsed.data.database || undefined)),
+              normalized.map((d) => getCachedDomainSnapshot(d, parsed.data.database || undefined)),
             );
           } catch (e) {
             if (e instanceof SemrushError) {

@@ -2,12 +2,7 @@
 // Demo mode reads from decay-demo.ts. Live GSC mode is a Phase-2 extension;
 // until GSC is connected we always return demo data (clearly flagged).
 import { DEMO_PERIOD_NOW, DEMO_PERIOD_PREV, DEMO_SCENARIOS } from "./decay-demo";
-import {
-  LIVE_PERIOD_NOW,
-  LIVE_PERIOD_PREV,
-  assertVerifiedProperty,
-  fetchLiveDecayRows,
-} from "./gsc.server";
+import { getLivePeriods, assertVerifiedProperty, fetchLiveDecayRows } from "./gsc.server";
 import {
   SCENARIO_LABEL,
   type DecayDataset,
@@ -21,7 +16,10 @@ function scoreRow(row: DecayRow): ScoredDecayRow {
   const clicksDeltaPct =
     row.clicksPrev > 0 ? Math.round(((row.clicksNow - row.clicksPrev) / row.clicksPrev) * 100) : 0;
   // Positive positionDelta = worse (higher number = lower rank).
-  const positionDelta = Number((row.positionNow - row.positionPrev).toFixed(1));
+  const positionDelta =
+    row.positionNow > 0 && row.positionPrev > 0
+      ? Number((row.positionNow - row.positionPrev).toFixed(1))
+      : 0;
 
   // Decay score: 0 (healthy) .. 100 (severe decay). Driven by click loss,
   // amplified by ranking loss. Growth clamps toward 0.
@@ -71,7 +69,8 @@ export function buildDemoDataset(scenario: DecayScenario): DecayDataset {
  */
 export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
   const verified = await assertVerifiedProperty(siteUrl);
-  const rows = (await fetchLiveDecayRows(verified)).map(scoreRow).sort((a, b) => {
+  const periods = getLivePeriods();
+  const rows = (await fetchLiveDecayRows(verified, 12, periods)).map(scoreRow).sort((a, b) => {
     const s = STATUS_ORDER[a.status] - STATUS_ORDER[b.status];
     if (s !== 0) return s;
     return b.decayScore - a.decayScore;
@@ -82,8 +81,8 @@ export async function buildLiveDataset(siteUrl: string): Promise<DecayDataset> {
     scenario: "blog",
     siteUrl: verified,
     scenarioLabel: verified,
-    periodPrev: LIVE_PERIOD_PREV,
-    periodNow: LIVE_PERIOD_NOW,
+    periodPrev: periods.prev,
+    periodNow: periods.now,
     rows,
     note:
       rows.length === 0
