@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_profiles: {
+        Row: {
+          agency_name: string
+          contact_email: string | null
+          created_at: string
+          logo_url: string | null
+          primary_color: string
+          report_footer_text: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_name: string
+          contact_email?: string | null
+          created_at?: string
+          logo_url?: string | null
+          primary_color?: string
+          report_footer_text?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_name?: string
+          contact_email?: string | null
+          created_at?: string
+          logo_url?: string | null
+          primary_color?: string
+          report_footer_text?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_plan_usage: {
         Row: {
           created_at: string
@@ -98,6 +131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      semrush_domain_cache: {
+        Row: {
+          database: string
+          domain: string
+          expires_at: string
+          id: string
+          snapshot_data: Json
+          updated_at: string
+        }
+        Insert: {
+          database?: string
+          domain: string
+          expires_at?: string
+          id?: string
+          snapshot_data: Json
+          updated_at?: string
+        }
+        Update: {
+          database?: string
+          domain?: string
+          expires_at?: string
+          id?: string
+          snapshot_data?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       seo_experiments: {
         Row: {
           baseline: Json
@@ -163,6 +223,57 @@ export type Database = {
           raw_data?: Json
           site_url?: string
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          billing_address: Json | null
+          company_name: string | null
+          created_at: string
+          current_period_end: string | null
+          dic: string | null
+          ic_dph: string | null
+          ico: string | null
+          id: string
+          plan: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          dic?: string | null
+          ic_dph?: string | null
+          ico?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_address?: Json | null
+          company_name?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          dic?: string | null
+          ic_dph?: string | null
+          ico?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
