@@ -88,10 +88,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "SEO audit, SEO nástroj, Search Console, Content Decay Radar, WordPress SEO, Yoast SEO, Rank Math, CTR optimalizácia, SEO Slovensko",
       },
-      { property: "og:site_name", content: "SEO4WEB" },
+      { property: "og:site_name", content: "seo.vorkei" },
       {
         property: "og:title",
-        content: "SEO4WEB — All-in-One SEO Command Center",
+        content: "seo.vorkei — AI SEO Command Center",
       },
       {
         property: "og:description",
