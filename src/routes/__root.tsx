@@ -12,6 +12,8 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { OG_IMAGE, SITE, pageUrl } from "@/lib/i18n";
+import { PwaLaunchExperience } from "@/components/PwaLaunchExperience";
+import { IosInstallPrompt } from "@/components/IosInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -80,6 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "apple-mobile-web-app-title", content: "SEO4WEB" },
+      { name: "format-detection", content: "telephone=no" },
       { name: "robots", content: "index, follow" },
       { title: "SEO4WEB — All-in-One SEO Command Center pre slovenský a český trh" },
       {
@@ -117,6 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon-180.png" },
+      { rel: "apple-touch-startup-image", href: "/icons/icon-512.png" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/icon-32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/icons/icon-16.png" },
@@ -163,6 +167,8 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PwaLaunchExperience />
+        <IosInstallPrompt />
         <Outlet />
       </AuthProvider>
     </QueryClientProvider>

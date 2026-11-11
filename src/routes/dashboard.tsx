@@ -32,6 +32,7 @@ import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 import { CmsDeployDialog } from "@/components/CmsDeployDialog";
+import { setPwaBadge } from "@/lib/pwa-badging";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -189,6 +190,12 @@ function DashboardPage() {
       setBusy(false);
     })();
   }, [user]);
+
+  useEffect(() => {
+    if (snaps.length > 0) {
+      setPwaBadge(snaps.length);
+    }
+  }, [snaps]);
 
   const sites = useMemo(() => Array.from(new Set(snaps.map((s) => s.site_url))), [snaps]);
   const siteSnaps = useMemo(() => snaps.filter((s) => s.site_url === site), [snaps, site]);

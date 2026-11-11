@@ -435,3 +435,27 @@ main a.block.rounded-lg:hover {
     page-break-inside: avoid !important;
   }
 }
+
+/* ==========================================================================
+   PWA & iOS Mobile Standalone Optimizations (Native Feel)
+   ========================================================================== */
+@media (display-mode: standalone) {
+  html, body {
+    overscroll-behavior-y: none;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS Safe Area Utilities */
+.safe-pt {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
