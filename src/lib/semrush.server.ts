@@ -129,22 +129,17 @@ async function readFromSupabaseCache(
   if (!supabase) return null;
   try {
     const { data, error } = await supabase
-      .from("semrush_domain_cache" as never)
+      .from("semrush_domain_cache")
       .select("snapshot_data, updated_at, expires_at")
       .eq("domain", domain)
       .eq("database", database)
       .maybeSingle();
 
     if (error || !data) return null;
-    const row = data as unknown as {
-      snapshot_data: DomainSnapshot;
-      updated_at: string;
-      expires_at: string;
-    };
     return {
-      snapshot: row.snapshot_data,
-      updatedAt: row.updated_at,
-      expiresAt: row.expires_at,
+      snapshot: data.snapshot_data as unknown as DomainSnapshot,
+      updatedAt: data.updated_at,
+      expiresAt: data.expires_at,
     };
   } catch {
     return null;
@@ -161,14 +156,14 @@ async function saveToSupabaseCache(
   const supabase = getSupabaseServerClient();
   if (!supabase) return;
   try {
-    await supabase.from("semrush_domain_cache" as never).upsert(
+    await supabase.from("semrush_domain_cache").upsert(
       {
         domain,
         database,
-        snapshot_data: snapshot as never,
+        snapshot_data: snapshot as unknown as import("@/integrations/supabase/types").Json,
         updated_at: now.toISOString(),
         expires_at: expiresAt.toISOString(),
-      } as never,
+      },
       { onConflict: "domain,database" },
     );
   } catch (e) {

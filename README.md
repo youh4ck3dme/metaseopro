@@ -233,6 +233,17 @@ Privátne kľúče (`LOVABLE_API_KEY`, `SEMRUSH_API_KEY`, `GOOGLE_SEARCH_CONSOLE
 5. **GSC Porovnanie periód:**
    Obe 90-dňové periódy (aktuálna vs. predchádzajúca) sa počítajú z jedného referenčného času requestu so zohľadnením 3-dňového oneskorenia dát v Google Search Console.
 
+### 3. Dizajn Systém, Navigácia & UI/UX Architektúra (`src/components/AppHeader.tsx`)
+
+- **Hierarchická modulárna navigácia:**
+  - **SEO Nástroje:** Dashboard, SEO Raketa, Decay Radar, SEO Audit, Blog Writer s Lucide ikonami a výstižnými popismi.
+  - **Obsah & Taktika:** Content Plan, SEO Brief, História vygenerovaných výstupov.
+  - **Agentúra:** Whitelabel Branding a Klientske PDF Reporty.
+- **Predplatiteľský status (Plan Pill):** Dynamické zobrazovanie aktuálneho balíka prihláseného používateľa (`Free`, `Pro`, `Agency`) priamo v hlavičke s rýchlym preklikom na upgrade (`<PaywallModal />`).
+- **Používateľský profil:** Zobrazenie e-mailu, priamy odkaz na Whitelabel branding a bezpečné odhlásenie.
+- **Responzívny Sheet drawer:** Pohodlné ovládanie na mobilných zariadeniach a tabletoch bez orezávania prvkov.
+- **Sémantický styling:** Striktne využívané sémantické CSS premenné (`bg-card`, `border-border`, `text-foreground`) pre 100% zhodu so svetlým aj tmavým motívom.
+
 ---
 
 ## 💰 Monetizačný model pre slovenský B2B trh (Cesta k 9 000 €+ MRR)

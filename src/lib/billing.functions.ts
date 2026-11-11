@@ -142,11 +142,11 @@ export const getUserSubscription = createServerFn({ method: "GET" })
 
     try {
       const { data, error } = await supabase
-        .from("subscriptions" as never)
+        .from("subscriptions")
         .select(
-          "plan, status, current_period_end, company_name, ico, dic, ic_dph, stripe_customer_id" as never,
+          "plan, status, current_period_end, company_name, ico, dic, ic_dph, stripe_customer_id",
         )
-        .eq("user_id" as never, userId as never)
+        .eq("user_id", userId)
         .maybeSingle();
 
       if (error || !data) {
@@ -162,27 +162,17 @@ export const getUserSubscription = createServerFn({ method: "GET" })
         };
       }
 
-      const row = data as unknown as {
-        plan: PlanId;
-        status: string;
-        current_period_end: string | null;
-        company_name: string | null;
-        ico: string | null;
-        dic: string | null;
-        ic_dph: string | null;
-      };
-
-      const planKey = (row.plan in PLANS ? row.plan : "free") as PlanId;
+      const planKey = (data.plan in PLANS ? data.plan : "free") as PlanId;
 
       return {
         plan: planKey,
-        status: row.status,
+        status: data.status,
         config: PLANS[planKey],
-        companyName: row.company_name,
-        ico: row.ico,
-        dic: row.dic,
-        icDph: row.ic_dph,
-        currentPeriodEnd: row.current_period_end,
+        companyName: data.company_name,
+        ico: data.ico,
+        dic: data.dic,
+        icDph: data.ic_dph,
+        currentPeriodEnd: data.current_period_end,
       };
     } catch {
       return {

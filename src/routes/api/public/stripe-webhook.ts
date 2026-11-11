@@ -1,12 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import type { Database } from "@/integrations/supabase/types";
 
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key, {
+  return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
@@ -157,7 +158,7 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                 const now = new Date();
                 const periodEnd = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-                await supabase.from("subscriptions" as never).upsert(
+                await supabase.from("subscriptions").upsert(
                   {
                     user_id: userId,
                     stripe_customer_id:
@@ -170,10 +171,13 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
                     ico: session.metadata?.ico || null,
                     dic: session.metadata?.dic || null,
                     ic_dph: session.metadata?.icDph || null,
-                    billing_address: session.customer_details?.address || null,
+                    billing_address:
+                      (session.customer_details?.address as unknown as
+                        | import("@/integrations/supabase/types").Json
+                        | null) || null,
                     current_period_end: periodEnd.toISOString(),
                     updated_at: now.toISOString(),
-                  } as never,
+                  },
                   { onConflict: "user_id" },
                 );
 
@@ -192,26 +196,26 @@ export const Route = createFileRoute("/api/public/stripe-webhook")({
               ).toISOString();
 
               await supabase
-                .from("subscriptions" as never)
+                .from("subscriptions")
                 .update({
                   status,
                   current_period_end: currentPeriodEnd,
                   updated_at: new Date().toISOString(),
-                } as never)
-                .eq("stripe_subscription_id" as never, subscription.id as never);
+                })
+                .eq("stripe_subscription_id", subscription.id);
               break;
             }
 
             case "customer.subscription.deleted": {
               const subscription = event.data.object as Stripe.Subscription;
               await supabase
-                .from("subscriptions" as never)
+                .from("subscriptions")
                 .update({
                   plan: "free",
                   status: "canceled",
                   updated_at: new Date().toISOString(),
-                } as never)
-                .eq("stripe_subscription_id" as never, subscription.id as never);
+                })
+                .eq("stripe_subscription_id", subscription.id);
               break;
             }
 

@@ -86,13 +86,13 @@ export function ClientReportModal({
         if (user) {
           // 1. Fetch agency profile
           const { data: profile } = await supabase
-            .from("agency_profiles" as never)
+            .from("agency_profiles")
             .select("*")
             .eq("user_id", user.id)
             .maybeSingle();
 
           if (active && profile) {
-            setAgency(profile as unknown as AgencyProfile);
+            setAgency(profile);
           }
 
           // 2. Fetch seo_experiments for this site
@@ -104,7 +104,17 @@ export function ClientReportModal({
             .limit(10);
 
           if (active && exps) {
-            setExperiments(exps as never);
+            setExperiments(
+              exps.map((e) => ({
+                id: e.id,
+                page_url: e.page_url,
+                implemented_at: e.implemented_at,
+                target_queries: e.target_queries,
+                changes: e.changes,
+                status: e.status,
+                baseline: e.baseline as { clicks?: number; position?: number } | undefined,
+              })),
+            );
           }
         }
       } catch (err) {

@@ -70,9 +70,22 @@
   - `DECAY_SYSTEM_PROMPT`: Presný recovery plán pre stratené vyhľadávacie frázy.
   - `RAKETA_SYSTEM_PROMPT` a `CONTENT_PLAN_SYSTEM_PROMPT`: Technická on-page hierarchia a 30-dňové klastrovanie.
 
+## 7. UI/UX Navigácia & Databázová Integrita (Hotovo ✅)
+
+- [x] **Konsolidovaná idempotentná migrácia (`supabase/migrations/20261111000000_consolidated_missing_tables.sql`):** Transakčné nasadenie tabuliek `agency_profiles`, `subscriptions` a `semrush_domain_cache` s RLS ochranou a idempotentnými triggermi.
+- [x] **Plná typová bezpečnosť Supabase (`src/integrations/supabase/types.ts`):** 100% zosúladenie PostgreSQL schémy s TypeScriptom a úplné odstránenie provizórnych `as never` pretypovaní.
+- [x] **Nová modulárna navigácia (`src/components/AppHeader.tsx`):**
+  - **SEO Nástroje dropdown:** Dashboard, SEO Raketa, Decay Radar, SEO Audit, Blog Writer s popismi a Lucide ikonami.
+  - **Obsah & Taktika dropdown:** Content Plan, SEO Brief, História vygenerovaných výstupov.
+  - **Agentúra dropdown:** Whitelabel nastavenia (`/settings/agency`), klientske PDF reporty.
+  - **Plan Pill / Odznak predplatného:** Dynamické zobrazenie aktuálneho stavu (`Free`, `Pro`, `Agency`) priamo v hlavičke.
+  - **Rýchla akcia "Cenník / Upgrade":** Jedným kliknutím otvára vložený `<PaywallModal />`.
+  - **Používateľské menu:** Zobrazenie e-mailu, odkazu na agentúrne nastavenia a bezpečné odhlásenie.
+  - **Responzívny Sheet drawer:** Prepracované mobilné a tabletové menu s kompletnou kategorizáciou.
+
 ---
 
-## 7. Nasledujúce vylepšenia (Plánované 🚀)
+## 8. Nasledujúce vylepšenia (Plánované 🚀)
 
 - [x] Aplikovať chýbajúce tabuľky cache, predplatného a agentúry s grantmi a RLS.
 - [x] Zjednotiť navigáciu existujúcich nástrojov a zobraziť aktuálny balík používateľa.

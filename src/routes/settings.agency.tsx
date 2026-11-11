@@ -37,7 +37,10 @@ export const Route = createFileRoute("/settings/agency")({
           "Nastavte si logo, farby a kontaktné údaje vašej marketingovej agentúry pre automatické mesačné SEO reporty pre klientov.",
       },
       { property: "og:title", content: "Nastavenia agentúry — SEO4WEB" },
-      { property: "og:description", content: "Identita agentúry, vlastné logo a branding klientskych SEO reportov." },
+      {
+        property: "og:description",
+        content: "Identita agentúry, vlastné logo a branding klientskych SEO reportov.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -92,7 +95,7 @@ function AgencySettingsPage() {
 
         if (subError) throw subError;
         if (active && sub) {
-          const p = (sub as { plan?: string } | null)?.plan;
+          const p = sub.plan;
           if (p === "agency" || p === "pro" || p === "free") {
             setUserPlan(p);
           }
@@ -107,13 +110,12 @@ function AgencySettingsPage() {
 
         if (profileError) throw profileError;
         if (active && profile) {
-          const prof = profile as unknown as AgencyProfile;
-          setAgencyName(prof.agency_name || DEFAULT_AGENCY_PROFILE.agency_name);
-          setLogoUrl(prof.logo_url || "");
-          setPrimaryColor(prof.primary_color || DEFAULT_AGENCY_PROFILE.primary_color);
-          setContactEmail(prof.contact_email || user?.email || "");
+          setAgencyName(profile.agency_name || DEFAULT_AGENCY_PROFILE.agency_name);
+          setLogoUrl(profile.logo_url || "");
+          setPrimaryColor(profile.primary_color || DEFAULT_AGENCY_PROFILE.primary_color);
+          setContactEmail(profile.contact_email || user?.email || "");
           setReportFooterText(
-            prof.report_footer_text || DEFAULT_AGENCY_PROFILE.report_footer_text || "",
+            profile.report_footer_text || DEFAULT_AGENCY_PROFILE.report_footer_text || "",
           );
         } else if (active && user?.email) {
           setContactEmail(user.email);
