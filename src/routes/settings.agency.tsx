@@ -21,6 +21,7 @@ import {
   Loader2,
   Eye,
   CreditCard,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,6 +30,7 @@ import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
+import { CmsConnectionsSection } from "@/components/CmsConnectionsSection";
 
 export const Route = createFileRoute("/settings/agency")({
   head: () => ({
@@ -286,10 +288,14 @@ function AgencySettingsPage() {
         )}
 
         <Tabs defaultValue="branding" className="mt-8">
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+          <TabsList className="mb-6 grid w-full max-w-xl grid-cols-3">
             <TabsTrigger value="branding" className="gap-2">
               <Building2 className="size-4" />
               <span>Branding & Report</span>
+            </TabsTrigger>
+            <TabsTrigger value="cms" className="gap-2">
+              <Globe className="size-4" />
+              <span>CMS Integrácie</span>
             </TabsTrigger>
             <TabsTrigger value="billing" className="gap-2">
               <CreditCard className="size-4" />
@@ -557,6 +563,10 @@ function AgencySettingsPage() {
                 </div>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="cms" className="space-y-6">
+            <CmsConnectionsSection />
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-6">

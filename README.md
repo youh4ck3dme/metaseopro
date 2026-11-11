@@ -192,6 +192,26 @@ SEO4WEB obsahuje vstavaný **Whitelabel Report Engine** (`src/lib/agency.ts`, `s
 
 ---
 
+## 🚀 1-Click CMS & WordPress REST API Konektor
+
+SEO4WEB umožňuje priame nasadenie optimalizovaného Title, Meta Description a vygenerovaných článkov priamo do redakčného systému (WordPress alebo Webhook) bez manuálneho kopírovania:
+
+1. **Perzistencia prepojení v Supabase (`cms_connections`):**
+   - Bezpečné uloženie domény, REST API endpointu, WordPress Application Passwords a typu SEO pluginu.
+   - RLS ochrana obmedzená na vlastníka (`auth.uid() = user_id`).
+   - Správa a test spojenia priamo v `/settings/agency` (záložka **CMS Integrácie**).
+2. **Podpora SEO pluginov a metadát:**
+   - **Yoast SEO:** Automatický zápis do `_yoast_wpseo_title` a `_yoast_wpseo_metadesc`.
+   - **Rank Math:** Automatický zápis do `rank_math_title` a `rank_math_description`.
+   - **Core WordPress:** Aktualizácia natívneho titulku, excerptu a obsahu.
+3. **Okamžité nasadzovanie na 1 klik:**
+   - **Dashboard (CTR Booster):** Tlačidlo **„🚀 Nasadiť na web“** priamo pri AI navrhnutých variantoch.
+   - **Opportunity Radar:** Rýchle nasadenie meta značiek pre prepadnuté stránky.
+   - **Blog Writer & Brief (`/brief`, `/`):** Tlačidlo **„Odoslať ako koncept do WordPressu“** s možnosťou voľby Koncept (Draft) vs. Publikovať naživo (Publish).
+   - Dialóg `<CmsDeployDialog />` s vizuálnym diffom starých a nových hodnôt a priamym odkazom na úpravu vo WordPress administrácii.
+
+---
+
 ## 🔐 Premenné prostredia (.env Best Practices)
 
 Projekt striktne oddeľuje verejné konfigurácie od privátnych tajných kľúčov:

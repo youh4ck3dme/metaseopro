@@ -97,4 +97,10 @@
   - Graceful fallback s detailným mock payloadom pri absencii produkčných kľúčov.
   - Perzistencia čísla faktúry a odkazu na stiahnutie (`last_invoice_number`, `last_invoice_url`) v tabuľke `subscriptions`.
   - UI sekcia **„Fakturačné údaje a história platieb“** na `/settings/agency` a `/dashboard` s okamžitou validáciou IČO, DIČ, IČ DPH a tlačidlom na stiahnutie PDF faktúry.
-- [ ] **WordPress REST API exportér:** Automatické publikovanie a aktualizácia meta značiek priamo do Yoast / RankMath na klientovom webe.
+- [x] **WordPress REST API & 1-Click CMS konektor (`src/lib/cms-publisher.server.ts`):**
+  - Plná integrácia WordPress REST API v2 (`/wp-json/wp/v2/posts`) a Custom Webhookov.
+  - Zápis SEO meta polí pre **Yoast SEO** (`_yoast_wpseo_title`, `_yoast_wpseo_metadesc`) aj **Rank Math** (`rank_math_title`, `rank_math_description`).
+  - Vyhľadávanie existujúcich príspevkov podľa slugu alebo ID s automatickou aktualizáciou namiesto duplikovania.
+  - Zabezpečená schéma `cms_connections` v Supabase s RLS politikami (`auth.uid() = user_id`).
+  - Interaktívny dialóg `<CmsDeployDialog />` na Dashboarde (CTR Booster, Opportunity Radar) a v Blog Writeri (`/`, `/brief`).
+  - Správa a overovanie spojenia v `/settings/agency` na novej záložke **CMS Integrácie**.

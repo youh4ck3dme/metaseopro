@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Rocket } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { handoffToWriter } from "@/lib/refresh-handoff";
 import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
@@ -45,7 +46,15 @@ function toOpp(r: ScoredDecayRow): OppPage {
   };
 }
 
-export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string }) {
+export function OpportunityRadar({
+  snap,
+  userId,
+  onDeploy,
+}: {
+  snap: Snap;
+  userId: string;
+  onDeploy?: (url: string, markdown?: string, title?: string) => void;
+}) {
   const rows = snap.raw_data?.rows ?? [];
   const pages = useMemo(() => rows.map(toOpp), [rows]);
   const brand = useMemo(() => {
@@ -191,6 +200,17 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
                     >
                       Sledovať zmenu
                     </Button>
+                    {onDeploy && (
+                      <Button
+                        variant="studio"
+                        size="studio"
+                        onClick={() => onDeploy(p.url, "", p.path)}
+                        className="ml-2 rounded-[8px] bg-emerald-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
+                        title="1-Click nasadenie do WordPressu"
+                      >
+                        <Rocket className="size-3.5" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}

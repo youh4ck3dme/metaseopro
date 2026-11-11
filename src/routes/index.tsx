@@ -13,6 +13,7 @@ import {
   Copy,
   FileText,
   Lightbulb,
+  Rocket,
   RotateCcw,
   Square,
 } from "lucide-react";
@@ -23,6 +24,7 @@ import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
 import { SerpLab } from "@/components/SerpLab";
 import { saveOutput } from "@/lib/outputs.functions";
+import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -57,6 +59,7 @@ function Index() {
   const [article, setArticle] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
   const [savedId, setSavedId] = useState<string | null>(null);
+  const [deployOpen, setDeployOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   // Auto-load brief context if user came from /brief
@@ -520,6 +523,14 @@ function Index() {
           <Button
             variant="studio"
             size="studio"
+            onClick={() => setDeployOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-emerald-600 py-2 pr-4 pl-3 text-sm font-medium text-white hover:bg-emerald-700 shadow-sm"
+          >
+            <Rocket className="size-4" /> Odoslať ako koncept do WordPressu
+          </Button>
+          <Button
+            variant="studio"
+            size="studio"
             onClick={copy}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
@@ -535,6 +546,14 @@ function Index() {
           </Button>
         </div>
       )}
+
+      <CmsDeployDialog
+        open={deployOpen}
+        onOpenChange={setDeployOpen}
+        initialTitle={primaryKeyword || topic.slice(0, 60)}
+        initialContent={article}
+        status="draft"
+      />
     </div>
   );
 }

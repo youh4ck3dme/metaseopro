@@ -13,6 +13,7 @@ import {
   Minus,
   Plus,
   RefreshCw,
+  Rocket,
   Sparkles,
   Trash2,
 } from "lucide-react";
@@ -30,6 +31,7 @@ import type { DecayDataset, ScoredDecayRow } from "@/lib/decay-schema";
 import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
+import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
 export const Route = createFileRoute("/dashboard")({
   head: () => ({
@@ -141,6 +143,31 @@ function DashboardPage() {
   const [scanStage, setScanStage] = useState("");
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [cmsDeployOpen, setCmsDeployOpen] = useState(false);
+  const [deployTargetUrl, setDeployTargetUrl] = useState("");
+  const [deployTitle, setDeployTitle] = useState("");
+  const [deployCurrentTitle, setDeployCurrentTitle] = useState("");
+  const [deployMetaDesc, setDeployMetaDesc] = useState("");
+
+  const handleOpenDeploy = (targetUrl: string, markdown?: string, currentTitle?: string) => {
+    setDeployTargetUrl(targetUrl);
+    setDeployCurrentTitle(currentTitle || "");
+
+    if (markdown) {
+      const titleMatch = markdown.match(/Title(?:\s*\d*)?:\s*([^\n\r]+)/i);
+      const metaMatch = markdown.match(
+        /(?:Meta(?:\s*Description)?|Popis)(?:\s*\d*)?:\s*([^\n\r]+)/i,
+      );
+      const clean = (s?: string) => s?.replace(/^[#*_\s"]+|[#*_\s"]+$/g, "").trim();
+
+      setDeployTitle(clean(titleMatch?.[1]) || currentTitle || "");
+      setDeployMetaDesc(clean(metaMatch?.[1]) || "");
+    } else {
+      setDeployTitle(currentTitle || "");
+      setDeployMetaDesc("");
+    }
+    setCmsDeployOpen(true);
+  };
 
   useEffect(() => {
     if (!loading && !user) navigate({ to: "/login", search: { redirect: "/dashboard" } });
@@ -467,9 +494,11 @@ function DashboardPage() {
               </div>
             </dl>
 
-            {user && <OpportunityRadar snap={latest} userId={user.id} />}
+            {user && (
+              <OpportunityRadar snap={latest} userId={user.id} onDeploy={handleOpenDeploy} />
+            )}
             <Explorer snap={latest} />
-            <CtrBooster snap={latest} />
+            <CtrBooster snap={latest} onDeploy={handleOpenDeploy} />
 
             {/* Snapshots */}
             <section className="mt-10">
@@ -553,6 +582,16 @@ function DashboardPage() {
         siteUrl={site || latest?.site_url || ""}
         dataset={latest?.raw_data}
         summary={m}
+      />
+
+      <CmsDeployDialog
+        open={cmsDeployOpen}
+        onOpenChange={setCmsDeployOpen}
+        siteUrl={site || latest?.site_url || ""}
+        targetUrl={deployTargetUrl}
+        initialTitle={deployTitle}
+        currentTitle={deployCurrentTitle}
+        initialMetaDescription={deployMetaDesc}
       />
     </div>
   );
@@ -906,7 +945,13 @@ function Explorer({ snap }: { snap: Snapshot }) {
 const expectedCtr = (pos: number) =>
   pos <= 1 ? 28 : pos <= 2 ? 15 : pos <= 3 ? 11 : pos <= 5 ? 7 : pos <= 10 ? 3 : 1.2;
 
-function CtrBooster({ snap }: { snap: Snapshot }) {
+function CtrBooster({
+  snap,
+  onDeploy,
+}: {
+  snap: Snapshot;
+  onDeploy?: (url: string, markdown?: string, currentTitle?: string) => void;
+}) {
   const candidates = useMemo(() => {
     const raw = snap.raw_data?.rows ?? [];
     const seen = new Set<string>();
@@ -994,15 +1039,28 @@ function CtrBooster({ snap }: { snap: Snapshot }) {
                     %)
                   </p>
                 </div>
-                <Button
-                  variant="studio"
-                  size="studio"
-                  disabled={busy}
-                  onClick={() => run(r, ctr)}
-                  className="shrink-0 rounded-[6px] bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50"
-                >
-                  Navrhnúť title + popis
-                </Button>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <Button
+                    variant="studio"
+                    size="studio"
+                    disabled={busy}
+                    onClick={() => run(r, ctr)}
+                    className="rounded-[6px] bg-primary px-2.5 py-1 text-xs font-medium text-primary-foreground disabled:opacity-50"
+                  >
+                    Navrhnúť title + popis
+                  </Button>
+                  {onDeploy && (
+                    <Button
+                      variant="studio"
+                      size="studio"
+                      onClick={() => onDeploy(r.url, "", r.title)}
+                      className="rounded-[6px] border border-border px-2 py-1 text-xs font-medium hover:bg-muted"
+                      title="🚀 Nasadiť do WordPressu"
+                    >
+                      <Rocket className="size-3 text-emerald-600 dark:text-emerald-400" />
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
@@ -1016,17 +1074,29 @@ function CtrBooster({ snap }: { snap: Snapshot }) {
                 <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
                   <span className="truncate">{path(active)}</span>
                   {out && !busy && (
-                    <Button
-                      variant="studio"
-                      size="studio"
-                      onClick={() => {
-                        navigator.clipboard.writeText(out);
-                        toast.success("Skopírované");
-                      }}
-                      className="inline-flex items-center gap-1 hover:text-foreground"
-                    >
-                      <Copy className="size-3" /> Kopírovať
-                    </Button>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="studio"
+                        size="studio"
+                        onClick={() => {
+                          navigator.clipboard.writeText(out);
+                          toast.success("Skopírované");
+                        }}
+                        className="inline-flex items-center gap-1 hover:text-foreground"
+                      >
+                        <Copy className="size-3" /> Kopírovať
+                      </Button>
+                      {onDeploy && (
+                        <Button
+                          variant="studio"
+                          size="studio"
+                          onClick={() => onDeploy(active, out)}
+                          className="inline-flex items-center gap-1 rounded-[6px] bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 shadow-sm"
+                        >
+                          <Rocket className="size-3" /> 🚀 Nasadiť na web
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
                 {busy && !out && <p className="text-sm text-muted-foreground">Generujem návrhy…</p>}

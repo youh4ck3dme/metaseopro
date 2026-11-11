@@ -6,12 +6,13 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
-import { ArrowDown, Copy, FileText, Save, Square, X } from "lucide-react";
+import { ArrowDown, Copy, FileText, Rocket, Save, Square, X } from "lucide-react";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
 import { streamSSE } from "@/lib/stream-sse";
 import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
+import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
 export const Route = createFileRoute("/brief")({
   head: () => ({
@@ -53,6 +54,7 @@ function BriefPage() {
   const [brief, setBrief] = useState("");
   const [status, setStatus] = useState<"idle" | "streaming" | "done">("idle");
   const [saved, setSaved] = useState(false);
+  const [deployOpen, setDeployOpen] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -408,6 +410,14 @@ function BriefPage() {
           <Button
             variant="studio"
             size="studio"
+            onClick={() => setDeployOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-emerald-600 py-2 pr-4 pl-3 text-sm font-medium text-white hover:bg-emerald-700 shadow-sm"
+          >
+            <Rocket className="size-4" /> Odoslať ako koncept do WordPressu
+          </Button>
+          <Button
+            variant="studio"
+            size="studio"
             onClick={copy}
             className="flex items-center gap-2 rounded-full py-2 pr-4 pl-3 text-sm font-medium hover:bg-primary"
           >
@@ -428,6 +438,15 @@ function BriefPage() {
           )}
         </div>
       )}
+
+      <CmsDeployDialog
+        open={deployOpen}
+        onOpenChange={setDeployOpen}
+        siteUrl={domain}
+        initialTitle={topic ? `SEO Brief: ${topic}` : "Nový SEO Brief"}
+        initialContent={brief}
+        status="draft"
+      />
     </div>
   );
 }
