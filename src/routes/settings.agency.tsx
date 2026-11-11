@@ -80,6 +80,13 @@ function AgencySettingsPage() {
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
+  // Authentication redirect guard - immediately redirect unauthenticated users
+  useEffect(() => {
+    if (!authLoading && !user) {
+      void navigate({ to: "/login", search: { redirect: "/settings/agency" } });
+    }
+  }, [user, authLoading, navigate]);
+
   // Load existing profile and subscription
   useEffect(() => {
     if (!user) return;
@@ -177,6 +184,21 @@ function AgencySettingsPage() {
       setSaving(false);
     }
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-background text-foreground pb-20">
+        <AppHeader />
+        <Toaster />
+        <main className="mx-auto flex max-w-5xl min-h-[60vh] flex-col items-center justify-center px-6 text-center">
+          <Loader2 className="size-8 animate-spin text-primary mb-4" />
+          <p className="text-sm font-medium text-muted-foreground">
+            {authLoading ? "Overujem prihlásenie…" : "Presmerovávam na prihlásenie…"}
+          </p>
+        </main>
+      </div>
+    );
+  }
 
   const isAgencyPlan = userPlan === "agency";
 

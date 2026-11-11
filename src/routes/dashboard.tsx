@@ -626,14 +626,28 @@ function DiffView({ a, b }: { a: Snapshot; b: Snapshot }) {
         }))
         .sort((x, y) => Math.abs(y.bClicks - y.aClicks) - Math.abs(x.bClicks - x.aClicks));
     };
-    const urlMap = (rows: ScoredDecayRow[]) =>
-      new Map(rows.map((r) => [r.url, [r.clicksNow, r.positionNow] as [number, number]]));
+    const urlMap = (rows: ScoredDecayRow[]) => {
+      const m = new Map<string, [number, number]>();
+      rows.forEach((r) => {
+        const u = r.url?.trim();
+        if (!u) return;
+        const cur = m.get(u);
+        if (!cur) {
+          m.set(u, [r.clicksNow, r.positionNow]);
+        } else {
+          m.set(u, [(cur[0] ?? 0) + r.clicksNow, Math.min(cur[1], r.positionNow)]);
+        }
+      });
+      return m;
+    };
     const qMap = (rows: ScoredDecayRow[]) => {
       const m = new Map<string, [number, number]>();
       rows.forEach((r) =>
-        r.topQueries.forEach((q) => {
-          const cur = m.get(q.query);
-          m.set(q.query, [
+        r.topQueries?.forEach((q) => {
+          const query = q.query?.trim();
+          if (!query) return;
+          const cur = m.get(query);
+          m.set(query, [
             (cur?.[0] ?? 0) + q.clicksNow,
             cur ? Math.min(cur[1], q.positionNow) : q.positionNow,
           ]);
@@ -683,13 +697,16 @@ function DiffTable({ title, lines }: { title: string; lines: Line[] }) {
                 </td>
               </tr>
             )}
-            {lines.map((l) => {
+            {lines.map((l, idx) => {
               const d = l.bClicks - l.aClicks;
               const pd =
                 l.aPos != null && l.bPos != null ? Number((l.bPos - l.aPos).toFixed(1)) : 0;
               const bg = d > 0 ? "bg-success-subtle/60" : d < 0 ? "bg-danger-subtle/60" : "";
               return (
-                <tr key={l.key} className={"border-t border-border " + bg}>
+                <tr
+                  key={`${title}-${l.key || "row"}-${idx}`}
+                  className={"border-t border-border " + bg}
+                >
                   <td className="max-w-[220px] truncate px-3 py-2" title={l.key}>
                     {l.key.replace(/^https?:\/\/[^/]+/, "") || "/"}
                   </td>
@@ -719,7 +736,19 @@ const ctrOf = (c: number, i: number) => (i > 0 ? (c / i) * 100 : 0);
 type SortKey = "decay" | "clicks" | "impressions" | "position" | "ctr";
 
 function Explorer({ snap }: { snap: Snapshot }) {
-  const rows = snap.raw_data?.rows ?? [];
+  const rows = useMemo(() => {
+    const raw = snap.raw_data?.rows ?? [];
+    const seen = new Set<string>();
+    const unique: ScoredDecayRow[] = [];
+    for (const r of raw) {
+      const u = r.url?.trim().toLowerCase();
+      if (!u || seen.has(u)) continue;
+      seen.add(u);
+      unique.push(r);
+    }
+    return unique;
+  }, [snap.raw_data?.rows]);
+
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("decay");
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -797,10 +826,10 @@ function Explorer({ snap }: { snap: Snapshot }) {
                 </td>
               </tr>
             )}
-            {list.map((r) => {
+            {list.map((r, rIdx) => {
               const isOpen = !!open[r.url];
               return (
-                <Fragment key={r.url}>
+                <Fragment key={`${r.url}-${rIdx}`}>
                   <tr
                     className="cursor-pointer border-t border-border hover:bg-background"
                     onClick={() => setOpen((o) => ({ ...o, [r.url]: !isOpen }))}
@@ -842,9 +871,9 @@ function Explorer({ snap }: { snap: Snapshot }) {
                     </td>
                   </tr>
                   {isOpen &&
-                    r.topQueries.map((x) => (
+                    r.topQueries.map((x, xIdx) => (
                       <tr
-                        key={r.url + x.query}
+                        key={`${r.url}-${x.query || "empty"}-${xIdx}`}
                         className="bg-background/60 text-secondary-foreground"
                       >
                         <td className="py-1.5 pl-9 pr-3">„{x.query}“</td>
@@ -878,20 +907,28 @@ const expectedCtr = (pos: number) =>
   pos <= 1 ? 28 : pos <= 2 ? 15 : pos <= 3 ? 11 : pos <= 5 ? 7 : pos <= 10 ? 3 : 1.2;
 
 function CtrBooster({ snap }: { snap: Snapshot }) {
-  const candidates = useMemo(
-    () =>
-      (snap.raw_data?.rows ?? [])
-        .filter((r) => r.impressionsNow >= 100 && r.positionNow <= 15)
-        .map((r) => ({
-          r,
-          ctr: ctrOf(r.clicksNow, r.impressionsNow),
-          exp: expectedCtr(r.positionNow),
-        }))
-        .filter((x) => x.ctr < x.exp)
-        .sort((a, b) => b.r.impressionsNow * (b.exp - b.ctr) - a.r.impressionsNow * (a.exp - a.ctr))
-        .slice(0, 8),
-    [snap],
-  );
+  const candidates = useMemo(() => {
+    const raw = snap.raw_data?.rows ?? [];
+    const seen = new Set<string>();
+    const unique: ScoredDecayRow[] = [];
+    for (const r of raw) {
+      const u = r.url?.trim().toLowerCase();
+      if (!u || seen.has(u)) continue;
+      seen.add(u);
+      unique.push(r);
+    }
+
+    return unique
+      .filter((r) => r.impressionsNow >= 100 && r.positionNow <= 15)
+      .map((r) => ({
+        r,
+        ctr: ctrOf(r.clicksNow, r.impressionsNow),
+        exp: expectedCtr(r.positionNow),
+      }))
+      .filter((x) => x.ctr < x.exp)
+      .sort((a, b) => b.r.impressionsNow * (b.exp - b.ctr) - a.r.impressionsNow * (a.exp - a.ctr))
+      .slice(0, 8);
+  }, [snap]);
   const [active, setActive] = useState<string | null>(null);
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState(false);
@@ -939,9 +976,9 @@ function CtrBooster({ snap }: { snap: Snapshot }) {
       ) : (
         <div className="mt-3 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
           <ul className="divide-y divide-border rounded-lg bg-card ring-1 ring-border/5">
-            {candidates.map(({ r, ctr, exp }) => (
+            {candidates.map(({ r, ctr, exp }, idx) => (
               <li
-                key={r.url}
+                key={`${r.url}-${idx}`}
                 className={
                   "flex items-center justify-between gap-3 px-4 py-3 text-sm " +
                   (active === r.url ? "bg-background" : "")

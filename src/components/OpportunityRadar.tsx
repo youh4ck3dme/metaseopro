@@ -141,8 +141,8 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
               </tr>
             </thead>
             <tbody>
-              {ranked.slice(0, 20).map((p) => (
-                <tr key={p.url} className="border-t border-border align-top">
+              {ranked.slice(0, 20).map((p, pIdx) => (
+                <tr key={`${p.url}-${pIdx}`} className="border-t border-border align-top">
                   <td className="p-3 max-w-[260px]">
                     <div className="truncate font-medium">{p.path}</div>
                     <div className="text-xs text-muted-foreground">{p.action}</div>
@@ -164,8 +164,11 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
                   </td>
                   <td className="p-3">
                     <div className="flex flex-wrap gap-1">
-                      {p.categories.map((c) => (
-                        <span key={c} className="rounded bg-muted px-1.5 py-0.5 text-[11px]">
+                      {p.categories.map((c, cIdx) => (
+                        <span
+                          key={`${c}-${cIdx}`}
+                          className="rounded bg-muted px-1.5 py-0.5 text-[11px]"
+                        >
                           {CATEGORY_LABEL[c]}
                         </span>
                       ))}
@@ -205,8 +208,8 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
             </p>
           ) : (
             <ul className="mt-2 space-y-2 text-xs">
-              {cannibal.slice(0, 8).map((c) => (
-                <li key={c.query}>
+              {cannibal.slice(0, 8).map((c, cIdx) => (
+                <li key={`${c.query}-${cIdx}`}>
                   <b>{c.query}</b> →{" "}
                   {c.urls
                     .map((u) => {
@@ -229,7 +232,7 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
           ) : (
             <ul className="mt-2 space-y-2 text-xs">
               {links.map((l, i) => (
-                <li key={i}>
+                <li key={`link-${l.source}-${l.target}-${i}`}>
                   <b>{l.anchor}</b>: {l.source} → {l.target}{" "}
                   <span className="text-muted-foreground">
                     ({l.priority}) {l.reason}
@@ -260,7 +263,7 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
               </tr>
             </thead>
             <tbody>
-              {exps.map((e) => {
+              {exps.map((e, eIdx) => {
                 const now = ranked.find((p) => p.url === e.page_url);
                 const days = Math.floor(
                   (Date.now() - new Date(e.implemented_at).getTime()) / 86400000,
@@ -273,7 +276,7 @@ export function OpportunityRadar({ snap, userId }: { snap: Snap; userId: string 
                     )
                   : "INSUFFICIENT DATA";
                 return (
-                  <tr key={e.id} className="border-t border-border">
+                  <tr key={`${e.id}-${eIdx}`} className="border-t border-border">
                     <td className="py-1.5">
                       {(() => {
                         try {
