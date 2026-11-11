@@ -74,5 +74,8 @@
 
 ## 7. Nasledujúce vylepšenia (Plánované 🚀)
 
+- [x] Aplikovať chýbajúce tabuľky cache, predplatného a agentúry s grantmi a RLS.
+- [ ] Zjednotiť navigáciu existujúcich nástrojov a zobraziť aktuálny balík používateľa.
+- [ ] Overiť uloženie profilu agentúry a navigáciu na počítači aj mobile.
 - [ ] **SuperFaktúra / Fakturoid API konektor:** Priame automatické vystavenie a odoslanie slovenskej faktúry na e-mail klienta po úspešnej Stripe platbe.
 - [ ] **WordPress REST API exportér:** Automatické publikovanie a aktualizácia meta značiek priamo do Yoast / RankMath na klientovom webe.
