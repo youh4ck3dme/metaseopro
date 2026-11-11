@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
 import { PaywallModal } from "@/components/PaywallModal";
 
-export const Route = createFileRoute("/audit")({
+export const Route = createFileRoute("/$locale/audit")({
   head: () => ({
     meta: [
       { title: "SEO Audit — SEO4WEB" },

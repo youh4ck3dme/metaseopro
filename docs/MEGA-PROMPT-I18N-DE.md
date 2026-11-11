@@ -47,4 +47,13 @@ Na každej stránke:
 - PR s popisom zmien
 - Overenie: `/sk`, `/en`, `/de` majú správne meta a prepínač funguje
 
-**Aktuálny stav (táto vetva):** DE dictionary pridaný, switcher v AppHeader, root hreflang sk/en/de, og:image aktualizovaný. Ďalší krok = plný `$locale` routing alebo cookie-based UI preklad na existujúcich routách.
+**Aktuálny stav (táto vetva):** 
+- DE dictionary hotový
+- Language switcher v AppHeader (SK|EN|DE) s cookie + swapLocale
+- Root `/` redirectuje na `/$locale` podľa cookie / navigator
+- Všetky hlavné routy presunuté pod `$locale` (`/sk`, `/en`, `/de`)
+- hreflang sk/en/de + x-default na root a homepage/login
+- Brand seo.vorkei, og:image aktualizovaný
+- Homepage a login majú locale-aware head a canonical
+
+Ďalší krok: doplniť t() do zvyšných UI stringov na audit/brief/dashboard/decay/plan/raketa a overiť generovanie routeTree.

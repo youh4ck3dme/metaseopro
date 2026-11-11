@@ -37,35 +37,35 @@ import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PaywallModal } from "@/components/PaywallModal";
 import type { PlanId } from "@/lib/slovak-billing";
-import { isLocale, readLocaleCookie, writeLocaleCookie, type Locale } from "@/lib/i18n";
+import { isLocale, readLocaleCookie, writeLocaleCookie, swapLocale, type Locale } from "@/lib/i18n";
 
 const SEO_TOOLS = [
   {
-    to: "/dashboard",
+    to: "/$locale/dashboard",
     label: "Dashboard",
     desc: "Centrálny prehľad KPI, Opportunity Radar a domény",
     icon: LayoutDashboard,
   },
   {
-    to: "/raketa",
+    to: "/$locale/raketa",
     label: "SEO Raketa",
     desc: "Technická on-page inšpekcia URL a porovnanie",
     icon: Rocket,
   },
   {
-    to: "/decay",
+    to: "/$locale/decay",
     label: "Decay Radar",
     desc: "Detekcia poklesu návštevnosti v Google Search Console",
     icon: TrendingDown,
   },
   {
-    to: "/audit",
+    to: "/$locale/audit",
     label: "SEO Audit",
     desc: "Konkurenčná analýza a keyword gap cez Semrush",
     icon: Search,
   },
   {
-    to: "/",
+    to: "/$locale",
     label: "Blog Writer",
     desc: "AI tvorba článkov a živý Google SERP Lab",
     icon: PenTool,
@@ -74,19 +74,19 @@ const SEO_TOOLS = [
 
 const CONTENT_TOOLS = [
   {
-    to: "/plan",
+    to: "/$locale/plan",
     label: "Content Plan",
     desc: "30-dňový publikačný kalendár a pillar klastre",
     icon: Calendar,
   },
   {
-    to: "/brief",
+    to: "/$locale/brief",
     label: "SEO Brief",
     desc: "Kompletné zadanie pre copywritera s E-E-A-T",
     icon: FileCheck,
   },
   {
-    to: "/history",
+    to: "/$locale/history",
     label: "História",
     desc: "Archív všetkých vygenerovaných analýz a článkov",
     icon: History,
@@ -95,13 +95,13 @@ const CONTENT_TOOLS = [
 
 const AGENCY_TOOLS = [
   {
-    to: "/settings/agency",
+    to: "/$locale/settings/agency",
     label: "Whitelabel Agentúra",
     desc: "Vlastné logo, primárna farba a pätička reportu",
     icon: Building2,
   },
   {
-    to: "/dashboard",
+    to: "/$locale/dashboard",
     label: "Klientsky PDF Report",
     desc: "Reprezentatívny mesačný report pre klienta na Dashboarde",
     icon: Printer,
@@ -155,7 +155,8 @@ export function AppHeader() {
     writeLocaleCookie(next);
     setLocale(next);
     if (typeof document !== "undefined") document.documentElement.lang = next;
-    window.location.reload();
+    const target = swapLocale(pathname, next);
+    window.location.assign(target);
   };
 
   // Load user subscription tier
@@ -195,36 +196,38 @@ export function AppHeader() {
   const handleSignOut = async () => {
     await signOut();
     setMobileOpen(false);
-    navigate({ to: "/login", search: { redirect: "/" } });
+    navigate({ to: "/$locale/login", params: { locale }, search: { redirect: `/${locale}` } });
   };
 
   const isSeoActive =
-    pathname === "/dashboard" ||
-    pathname === "/raketa" ||
-    pathname === "/decay" ||
-    pathname === "/audit" ||
-    pathname === "/";
+    pathname === `/${locale}/dashboard` ||
+    pathname === `/${locale}/raketa` ||
+    pathname === `/${locale}/decay` ||
+    pathname === `/${locale}/audit` ||
+    pathname === `/${locale}` ||
+    pathname === `/${locale}/`;
 
-  const isContentActive = pathname === "/plan" || pathname === "/brief" || pathname === "/history";
+  const isContentActive = pathname === `/${locale}/plan` || pathname === `/${locale}/brief` || pathname === `/${locale}/history`;
 
-  const isAgencyActive = pathname.startsWith("/settings/agency");
+  const isAgencyActive = pathname.startsWith(`/${locale}/settings/agency`);
 
   return (
     <header className="app-header mb-8 px-4 md:px-6 border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-40">
       <div className="mx-auto flex min-h-16 max-w-screen-xl items-center justify-between gap-4">
         {/* Brand Logo */}
         <Link
-          to="/"
+          to="/$locale"
+          params={{ locale }}
           className="flex shrink-0 items-center gap-2.5 group"
           onClick={() => setMobileOpen(false)}
-          aria-label="SEO4WEB — AI SEO Command Center"
+          aria-label="seo.vorkei — AI SEO Command Center"
         >
           <span className="brand-mark flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform group-hover:scale-105">
             <ChartNoAxesCombined className="size-5" />
           </span>
           <div className="flex flex-col">
             <span className="font-display text-xl font-bold leading-none tracking-tight text-foreground">
-              SEO4WEB
+              seo.vorkei
             </span>
             <span className="text-[10px] text-muted-foreground font-medium tracking-wider uppercase mt-0.5 hidden sm:inline">
               AI SEO Command Center
@@ -236,11 +239,11 @@ export function AppHeader() {
         <nav aria-label="Hlavná navigácia" className="hidden lg:flex items-center gap-1">
           {/* 1. Dashboard Direct Link */}
           <Link
-            to="/dashboard"
-            aria-current={pathname === "/dashboard" ? "page" : undefined}
+            to="/$locale/dashboard" params={{ locale }}
+            aria-current={pathname === `/${locale}/dashboard` ? "page" : undefined}
             className={
               "inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors " +
-              (pathname === "/dashboard"
+              (pathname === `/${locale}/dashboard`
                 ? "bg-secondary text-primary shadow-xs"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground")
             }
@@ -275,11 +278,12 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {SEO_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const active = pathname === item.to;
+                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
                     <Link
-                      to={item.to}
+                      to={item.to} params={{ locale }}
                       className={
                         "flex items-start gap-3 p-2 rounded-md transition-colors w-full cursor-pointer " +
                         (active ? "bg-secondary text-primary" : "hover:bg-muted text-foreground")
@@ -327,11 +331,12 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {CONTENT_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const active = pathname === item.to;
+                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
                     <Link
-                      to={item.to}
+                      to={item.to} params={{ locale }}
                       className={
                         "flex items-start gap-3 p-2 rounded-md transition-colors w-full cursor-pointer " +
                         (active ? "bg-secondary text-primary" : "hover:bg-muted text-foreground")
@@ -379,11 +384,12 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {AGENCY_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const active = pathname === item.to;
+                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
                     <Link
-                      to={item.to}
+                      to={item.to} params={{ locale }}
                       className={
                         "flex items-start gap-3 p-2 rounded-md transition-colors w-full cursor-pointer " +
                         (active ? "bg-secondary text-primary" : "hover:bg-muted text-foreground")
@@ -463,7 +469,7 @@ export function AppHeader() {
 
                   <DropdownMenuItem asChild>
                     <Link
-                      to="/settings/agency"
+                      to="/$locale/settings/agency" params={{ locale }}
                       className="flex items-center gap-2 cursor-pointer text-xs"
                     >
                       <Building2 className="size-3.5 text-muted-foreground" />
@@ -503,7 +509,7 @@ export function AppHeader() {
                 Cenník
               </Button>
               <Button asChild size="sm" className="h-8 gap-1 text-xs font-semibold">
-                <Link to="/login" search={{ redirect: "/" }}>
+                <Link to="/$locale/login" params={{ locale }} search={{ redirect: "/" }}>
                   Prihlásiť <ArrowUpRight className="size-3" />
                 </Link>
               </Button>
@@ -532,7 +538,7 @@ export function AppHeader() {
                     <span className="brand-mark flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
                       <ChartNoAxesCombined className="size-4" />
                     </span>
-                    <SheetTitle className="font-display text-lg font-bold">SEO4WEB</SheetTitle>
+                    <SheetTitle className="font-display text-lg font-bold">seo.vorkei</SheetTitle>
                   </div>
                 </SheetHeader>
 
@@ -570,11 +576,12 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {SEO_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const active = pathname === item.to;
+                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
                             key={item.to}
-                            to={item.to}
+                            to={item.to} params={{ locale }}
                             onClick={() => setMobileOpen(false)}
                             className={
                               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors " +
@@ -599,11 +606,12 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {CONTENT_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const active = pathname === item.to;
+                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
                             key={item.to}
-                            to={item.to}
+                            to={item.to} params={{ locale }}
                             onClick={() => setMobileOpen(false)}
                             className={
                               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors " +
@@ -628,11 +636,12 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {AGENCY_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const active = pathname === item.to;
+                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
                             key={item.to}
-                            to={item.to}
+                            to={item.to} params={{ locale }}
                             onClick={() => setMobileOpen(false)}
                             className={
                               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-colors " +
@@ -664,7 +673,7 @@ export function AppHeader() {
                 ) : (
                   <Button asChild className="w-full text-xs font-semibold gap-1.5">
                     <Link
-                      to="/login"
+                      to="/$locale/login" params={{ locale }}
                       search={{ redirect: "/" }}
                       onClick={() => setMobileOpen(false)}
                     >

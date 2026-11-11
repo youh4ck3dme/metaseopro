@@ -33,7 +33,7 @@ import { ClientReportModal } from "@/components/ClientReportModal";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
-export const Route = createFileRoute("/dashboard")({
+export const Route = createFileRoute("/$locale/dashboard")({
   head: () => ({
     meta: [
       { title: "SEO Dashboard — SEO4WEB" },

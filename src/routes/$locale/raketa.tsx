@@ -23,7 +23,7 @@ import {
   type RaketaOutput,
 } from "@/lib/raketa-schema";
 
-export const Route = createFileRoute("/raketa")({
+export const Route = createFileRoute("/$locale/raketa")({
   head: () => ({
     meta: [
       { title: "SEO Raketa — automatický SEO workflow | SEO4WEB" },

@@ -22,7 +22,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { listOutputs, getOutput, deleteOutput } from "@/lib/outputs.functions";
 
-export const Route = createFileRoute("/history")({
+export const Route = createFileRoute("/$locale/history")({
   head: () => ({
     meta: [
       { title: "História — SEO4WEB" },

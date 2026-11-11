@@ -40,7 +40,7 @@ import {
   type ScoredDecayRow,
 } from "@/lib/decay-schema";
 
-export const Route = createFileRoute("/decay")({
+export const Route = createFileRoute("/$locale/decay")({
   head: () => ({
     meta: [
       { title: "Decay Radar — nájdi klesajúci obsah | SEO4WEB" },

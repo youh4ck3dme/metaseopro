@@ -14,7 +14,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
 import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
-export const Route = createFileRoute("/brief")({
+export const Route = createFileRoute("/$locale/brief")({
   head: () => ({
     meta: [
       { title: "SEO Content Brief — SEO4WEB" },

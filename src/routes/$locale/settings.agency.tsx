@@ -32,7 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 import { CmsConnectionsSection } from "@/components/CmsConnectionsSection";
 
-export const Route = createFileRoute("/settings/agency")({
+export const Route = createFileRoute("/$locale/settings/agency")({
   head: () => ({
     meta: [
       { title: "Nastavenia agentúry & Whitelabel Branding — SEO4WEB" },

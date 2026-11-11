@@ -77,11 +77,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0284c7" },
       { name: "robots", content: "index, follow" },
-      { title: "SEO4WEB — All-in-One SEO Command Center pre slovenský a český trh" },
+      { title: "seo.vorkei — AI SEO Command Center" },
       {
         name: "description",
         content:
-          "SEO4WEB: Inteligentný SEO audit, detekcia prepadov návštevnosti (Content Decay), CTR booster a 1-klikové nasadzovanie optimalizácií do WordPressu.",
+          "Audit, brief, 30-day plan and SEO article. One workflow for agencies, freelancers and SMBs. SK / EN / DE.",
       },
       {
         name: "keywords",

@@ -13,7 +13,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { generateContentPlan, checkContentPlanAccess } from "@/lib/content-plan.functions";
 import { saveOutput } from "@/lib/outputs.functions";
 
-export const Route = createFileRoute("/plan")({
+export const Route = createFileRoute("/$locale/plan")({
   head: () => ({
     meta: [
       { title: "30-dňový Content Plan — SEO4WEB" },
