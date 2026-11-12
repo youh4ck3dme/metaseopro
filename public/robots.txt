@@ -1,8 +1,15 @@
 User-agent: *
 Allow: /
-Disallow: /settings/
-Disallow: /dashboard
-Disallow: /history
-Disallow: /api/
 
-Sitemap: https://seo.vorkei.com/api/public/sitemap.xml
+Disallow: /api/
+Disallow: /sk/dashboard
+Disallow: /en/dashboard
+Disallow: /de/dashboard
+Disallow: /sk/history
+Disallow: /en/history
+Disallow: /de/history
+Disallow: /sk/settings/
+Disallow: /en/settings/
+Disallow: /de/settings/
+
+Sitemap: https://seo.vorkei.com/sitemap.xml

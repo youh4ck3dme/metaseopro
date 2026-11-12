@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { publicSeoHead } from "@/lib/seo-head";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
@@ -41,23 +42,7 @@ import {
 } from "@/lib/decay-schema";
 
 export const Route = createFileRoute("/$locale/decay")({
-  head: () => ({
-    meta: [
-      { title: "Decay Radar — nájdi klesajúci obsah | SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "Odhaľ stránky, ktoré strácajú organický traffic. Decay Radar analyzuje pokles kliknutí a pozícií a vygeneruje AI refresh plán. Funguje aj v demo režime.",
-      },
-      { property: "og:title", content: "Decay Radar — nájdi klesajúci obsah" },
-      {
-        property: "og:description",
-        content: "Odhaľ stránky, ktoré strácajú organický traffic, a získaj AI refresh plán.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => publicSeoHead(params.locale, "/decay", "meta.decayTitle", "meta.decayDesc"),
   component: DecayPage,
 });
 

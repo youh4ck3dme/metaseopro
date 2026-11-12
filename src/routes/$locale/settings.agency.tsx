@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { privateSeoHead } from "@/lib/seo-head";
 import { AppHeader } from "@/components/AppHeader";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -33,23 +34,8 @@ import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 import { CmsConnectionsSection } from "@/components/CmsConnectionsSection";
 
 export const Route = createFileRoute("/$locale/settings/agency")({
-  head: () => ({
-    meta: [
-      { title: "Nastavenia agentúry & Whitelabel Branding — SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "Nastavte si logo, farby a kontaktné údaje vašej marketingovej agentúry pre automatické mesačné SEO reporty pre klientov.",
-      },
-      { property: "og:title", content: "Nastavenia agentúry — SEO4WEB" },
-      {
-        property: "og:description",
-        content: "Identita agentúry, vlastné logo a branding klientskych SEO reportov.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: ({ params }) =>
+    privateSeoHead(params.locale, "/settings/agency", "meta.agencyTitle", "meta.agencyDesc"),
   component: AgencySettingsPage,
 });
 

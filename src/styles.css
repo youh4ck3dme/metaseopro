@@ -5,6 +5,24 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face {
+  font-family: "Figtree Fallback";
+  src: local("Arial");
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
+@font-face {
+  font-family: "Outfit Fallback";
+  src: local("Arial");
+  size-adjust: 112%;
+  ascent-override: 88%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
 /*
  * Design system definition.
  *
@@ -20,8 +38,8 @@
  */
 
 @theme inline {
-  --font-sans: "Figtree", ui-sans-serif, system-ui, sans-serif;
-  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", "Figtree Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", "Outfit Fallback", ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --color-page-bg: var(--background);
   --color-success: var(--success);
@@ -211,7 +229,7 @@
     letter-spacing: 0;
   }
   main {
-    animation: page-enter 320ms ease-out both;
+    animation: none;
   }
   :is(input, textarea, select) {
     transition:

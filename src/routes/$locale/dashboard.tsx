@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { privateSeoHead } from "@/lib/seo-head";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import {
@@ -34,23 +35,8 @@ import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
 import { CmsDeployDialog } from "@/components/CmsDeployDialog";
 
 export const Route = createFileRoute("/$locale/dashboard")({
-  head: () => ({
-    meta: [
-      { title: "SEO Dashboard — SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "SEO veliace centrum: KPI, história snapshotov a porovnanie zmien URL a kľúčových slov.",
-      },
-      { property: "og:title", content: "SEO Dashboard — SEO4WEB" },
-      {
-        property: "og:description",
-        content: "Sleduj kliky, impresie a pozície svojej domény a porovnávaj snapshoty v čase.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-    ],
-  }),
+  head: ({ params }) =>
+    privateSeoHead(params.locale, "/dashboard", "meta.dashboardTitle", "meta.dashboardDesc"),
   component: DashboardPage,
 });
 

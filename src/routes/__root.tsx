@@ -6,13 +6,14 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
-import { OG_IMAGE, SITE, pageUrl } from "@/lib/i18n";
+import { OG_IMAGE, SITE } from "@/lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -77,7 +78,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "theme-color", content: "#0f1214" },
-      { name: "robots", content: "index, follow" },
       { title: "seo.vorkei — AI SEO Command Center" },
       {
         name: "description",
@@ -112,11 +112,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
-      { rel: "canonical", href: SITE },
-      { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/") },
-      { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
-      { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
-      { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
@@ -125,7 +120,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700&family=Figtree:wght@400;500;600&display=swap",
       },
       {
         rel: "stylesheet",
@@ -140,8 +135,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: React.ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const lang = pathname.match(/^\/(en|de|sk)(?=\/|$)/)?.[1] ?? "sk";
   return (
-    <html lang="sk">
+    <html lang={lang}>
       <head>
         <HeadContent />
       </head>

@@ -74,6 +74,8 @@ const sk = {
   "meta.decayDesc": "Nájdi klesajúci obsah a priprav refresh.",
   "meta.raketaTitle": "SEO Raketa — seo.vorkei",
   "meta.raketaDesc": "Automatický SEO workflow od analýzy webu po výstup.",
+  "meta.agencyTitle": "Nastavenia agentúry — seo.vorkei",
+  "meta.agencyDesc": "Logo, farby a kontakt agentúry pre klientské SEO reporty.",
   "home.badge": "AI SEO Command Center",
   "home.h1": "Audit, brief, plán a článok v slovenčine.",
   "home.lead":
@@ -229,6 +231,8 @@ const en: Record<keyof typeof sk, string> = {
   "meta.decayDesc": "Find declining content and prepare a refresh.",
   "meta.raketaTitle": "SEO Rocket — seo.vorkei",
   "meta.raketaDesc": "Automatic SEO workflow from site analysis to output.",
+  "meta.agencyTitle": "Agency settings — seo.vorkei",
+  "meta.agencyDesc": "Logo, colors and contact details for client SEO reports.",
   "home.badge": "AI SEO Command Center",
   "home.h1": "Audit, brief, plan and article.",
   "home.lead":
@@ -383,6 +387,8 @@ const de: Record<keyof typeof sk, string> = {
   "meta.decayDesc": "Finde sinkenden Content und erstelle einen Refresh.",
   "meta.raketaTitle": "SEO Rakete — seo.vorkei",
   "meta.raketaDesc": "Automatischer SEO-Workflow von der Analyse bis zum Output.",
+  "meta.agencyTitle": "Agentur-Einstellungen — seo.vorkei",
+  "meta.agencyDesc": "Logo, Farben und Kontaktdaten für SEO-Kundenberichte.",
   "home.badge": "AI SEO Command Center",
   "home.h1": "Audit, Brief, Plan und Artikel.",
   "home.lead":

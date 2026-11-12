@@ -12,26 +12,10 @@ import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
 import { generateContentPlan, checkContentPlanAccess } from "@/lib/content-plan.functions";
 import { saveOutput } from "@/lib/outputs.functions";
+import { publicSeoHead } from "@/lib/seo-head";
 
 export const Route = createFileRoute("/$locale/plan")({
-  head: () => ({
-    meta: [
-      { title: "30-dňový Content Plan — SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné.",
-      },
-      { property: "og:title", content: "30-dňový Content Plan — SEO4WEB" },
-      {
-        property: "og:description",
-        content:
-          "AI-generovaný 30-dňový SEO obsahový kalendár. Prvý deň zadarmo, potom predplatné.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => publicSeoHead(params.locale, "/plan", "meta.planTitle", "meta.planDesc"),
   component: PlanPage,
 });
 

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { privateSeoHead } from "@/lib/seo-head";
 import { useEffect, useState, useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import ReactMarkdown from "react-markdown";
@@ -23,22 +24,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { listOutputs, getOutput, deleteOutput } from "@/lib/outputs.functions";
 
 export const Route = createFileRoute("/$locale/history")({
-  head: () => ({
-    meta: [
-      { title: "História — SEO4WEB" },
-      {
-        name: "description",
-        content: "Tvoje vygenerované články, audity, plány a briefy na jednom mieste.",
-      },
-      { property: "og:title", content: "História — SEO4WEB" },
-      {
-        property: "og:description",
-        content: "Tvoje vygenerované články, audity, plány a briefy na jednom mieste.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) =>
+    privateSeoHead(params.locale, "/history", "meta.historyTitle", "meta.historyDesc"),
   component: HistoryPage,
 });
 

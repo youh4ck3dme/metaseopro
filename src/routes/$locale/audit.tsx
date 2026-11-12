@@ -13,26 +13,10 @@ import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
 import { PaywallModal } from "@/components/PaywallModal";
+import { publicSeoHead } from "@/lib/seo-head";
 
 export const Route = createFileRoute("/$locale/audit")({
-  head: () => ({
-    meta: [
-      { title: "SEO Audit — SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
-      },
-      { property: "og:title", content: "SEO Audit — SEO4WEB" },
-      {
-        property: "og:description",
-        content:
-          "Zadaj 1 až 5 domén. SEO4WEB SEO Audit zanalyzuje konkurenciu cez reálne Semrush dáta a navrhne keyword príležitosti.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => publicSeoHead(params.locale, "/audit", "meta.auditTitle", "meta.auditDesc"),
   component: AuditPage,
 });
 

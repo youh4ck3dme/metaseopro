@@ -11,6 +11,7 @@ import { AppHeader } from "@/components/AppHeader";
 import { useAuth } from "@/hooks/use-auth";
 import { streamSSE } from "@/lib/stream-sse";
 import { saveOutput } from "@/lib/outputs.functions";
+import { publicSeoHead } from "@/lib/seo-head";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LANGUAGE_LABEL,
@@ -24,24 +25,7 @@ import {
 } from "@/lib/raketa-schema";
 
 export const Route = createFileRoute("/$locale/raketa")({
-  head: () => ({
-    meta: [
-      { title: "SEO Raketa — automatický SEO workflow | SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "Zadaj web a konkurenciu. SEO4WEB zanalyzuje obsah, nájde SEO medzery a vygeneruje audit, článok, brief alebo 30-dňový content plán.",
-      },
-      { property: "og:title", content: "SEO Raketa — automatický SEO workflow" },
-      {
-        property: "og:description",
-        content:
-          "Analyzuj vlastný web, konkurenciu alebo oboje. Výstup: audit, článok, brief alebo content plán.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => publicSeoHead(params.locale, "/raketa", "meta.raketaTitle", "meta.raketaDesc"),
   component: RaketaPage,
 });
 

@@ -13,26 +13,10 @@ import { streamSSE } from "@/lib/stream-sse";
 import { useAuth } from "@/hooks/use-auth";
 import { saveOutput } from "@/lib/outputs.functions";
 import { CmsDeployDialog } from "@/components/CmsDeployDialog";
+import { publicSeoHead } from "@/lib/seo-head";
 
 export const Route = createFileRoute("/$locale/brief")({
-  head: () => ({
-    meta: [
-      { title: "SEO Content Brief — SEO4WEB" },
-      {
-        name: "description",
-        content:
-          "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh.",
-      },
-      { property: "og:title", content: "SEO Content Brief — SEO4WEB" },
-      {
-        property: "og:description",
-        content:
-          "Vygeneruj profesionálny SEO content brief: keywordy, štruktúru, meta tagy, FAQ a CTA pre slovenský trh.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: ({ params }) => publicSeoHead(params.locale, "/brief", "meta.briefTitle", "meta.briefDesc"),
   component: BriefPage,
 });
 

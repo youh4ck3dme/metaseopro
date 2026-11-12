@@ -7,7 +7,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
-import { isLocale, OG_IMAGE, pageUrl, t, type Locale } from "@/lib/i18n";
+import { isLocale, t, type Locale } from "@/lib/i18n";
+import { privateSeoHead } from "@/lib/seo-head";
 
 export const Route = createFileRoute("/$locale/login")({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -19,29 +20,7 @@ export const Route = createFileRoute("/$locale/login")({
         ? search.redirect
         : "/",
   }),
-  head: ({ params }) => {
-    const locale = (isLocale(params.locale) ? params.locale : "sk") as Locale;
-    const canonical = pageUrl(locale, "/login");
-    return {
-      meta: [
-        { title: t(locale, "meta.loginTitle") },
-        { name: "description", content: t(locale, "meta.loginDesc") },
-        { property: "og:title", content: t(locale, "meta.loginTitle") },
-        { property: "og:description", content: t(locale, "meta.loginDesc") },
-        { property: "og:url", content: canonical },
-        { property: "og:image", content: OG_IMAGE },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: OG_IMAGE },
-      ],
-      links: [
-        { rel: "canonical", href: canonical },
-        { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/login") },
-        { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/login") },
-        { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/login") },
-        { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/login") },
-      ],
-    };
-  },
+  head: ({ params }) => privateSeoHead(params.locale, "/login", "meta.loginTitle", "meta.loginDesc"),
   component: LoginPage,
 });
 

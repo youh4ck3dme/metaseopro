@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import { Toaster } from "@/components/ui/sonner";
 import {
@@ -22,36 +20,31 @@ import { streamSSE } from "@/lib/stream-sse";
 import { AppHeader } from "@/components/AppHeader";
 import { SidebarTips } from "@/components/SidebarTips";
 import { useAuth } from "@/hooks/use-auth";
-import { SerpLab } from "@/components/SerpLab";
 import { saveOutput } from "@/lib/outputs.functions";
-import { CmsDeployDialog } from "@/components/CmsDeployDialog";
-import { isLocale, OG_IMAGE, outputLanguage, pageUrl, t, type Locale } from "@/lib/i18n";
+import { isLocale, outputLanguage, t, type Locale } from "@/lib/i18n";
+import { publicSeoHead } from "@/lib/seo-head";
+
+const ArticleMarkdown = lazy(async () => {
+  const [{ default: ReactMarkdown }, { default: remarkGfm }] = await Promise.all([
+    import("react-markdown"),
+    import("remark-gfm"),
+  ]);
+  function View({ markdown }: { markdown: string }) {
+    return <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>;
+  }
+  return { default: View };
+});
+
+const SerpLab = lazy(() =>
+  import("@/components/SerpLab").then((mod) => ({ default: mod.SerpLab })),
+);
+
+const CmsDeployDialog = lazy(() =>
+  import("@/components/CmsDeployDialog").then((mod) => ({ default: mod.CmsDeployDialog })),
+);
 
 export const Route = createFileRoute("/$locale/")({
-  head: ({ params }) => {
-    const locale = (isLocale(params.locale) ? params.locale : "sk") as Locale;
-    const canonical = pageUrl(locale, "/");
-    return {
-      meta: [
-        { title: t(locale, "meta.homeTitle") },
-        { name: "description", content: t(locale, "meta.homeDesc") },
-        { property: "og:title", content: t(locale, "meta.ogTitle") },
-        { property: "og:description", content: t(locale, "meta.ogDesc") },
-        { property: "og:url", content: canonical },
-        { property: "og:image", content: OG_IMAGE },
-        { property: "og:type", content: "website" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:image", content: OG_IMAGE },
-      ],
-      links: [
-        { rel: "canonical", href: canonical },
-        { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/") },
-        { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
-        { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
-        { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
-      ],
-    };
-  },
+  head: ({ params }) => publicSeoHead(params.locale, "/", "meta.homeTitle", "meta.homeDesc"),
   component: Index,
 });
 
@@ -198,7 +191,7 @@ function Index() {
                 AI SEO Command Center
               </span>
               <h1 className="mt-5 mb-6 font-display text-4xl md:text-5xl lg:text-6xl leading-tight text-balance text-foreground">
-                SEO4WEB
+                seo.vorkei
               </h1>
               <p className="mb-8 text-base md:text-lg text-secondary-foreground text-pretty">
                 Audit konkurencie, content brief, 30-dňový plán a hotový článok — jeden workflow pre
@@ -270,7 +263,7 @@ function Index() {
         <section className="mt-20 px-6">
           <div className="mx-auto max-w-screen-xl">
             <div className="border-y border-border py-8 md:py-10">
-              <h2 className="mb-2 font-display text-2xl md:text-3xl">Workflow SEO4WEB</h2>
+              <h2 className="mb-2 font-display text-2xl md:text-3xl">Workflow seo.vorkei</h2>
               <p className="mb-8 text-sm text-muted-foreground max-w-[60ch]">
                 Štandardná postupnosť, ktorú reálne používajú SEO špecialisti — len rýchlejšie.
               </p>
@@ -308,7 +301,7 @@ function Index() {
               ],
               [
                 "Pre malé firmy",
-                "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — SEO4WEB dorobí SEO časť.",
+                "Vlastný marketing bez agentúry. Píš o tom, čomu rozumieš — seo.vorkei dorobí SEO časť.",
               ],
             ].map(([t, d]) => (
               <div key={t} className="rounded-lg bg-card p-5 ring-1 ring-border/5">
@@ -325,7 +318,7 @@ function Index() {
             <div className="max-w-[44ch] mb-8">
               <h2 className="mb-3 font-display text-3xl md:text-4xl">Blog Writer</h2>
               <p className="text-secondary-foreground text-pretty">
-                Zadaj 2–3 vety o téme alebo vlož brief. SEO4WEB vygeneruje hĺbkový SEO článok s
+                Zadaj 2–3 vety o téme alebo vlož brief. seo.vorkei vygeneruje hĺbkový SEO článok s
                 kompletnou štruktúrou.
               </p>
             </div>
@@ -449,7 +442,7 @@ function Index() {
           <section className="mt-12 px-6">
             <div className="mx-auto grid max-w-screen-xl grid-cols-12 gap-8 lg:gap-12">
               <SidebarTips
-                title="Ako SEO4WEB pracuje"
+                title="Ako seo.vorkei pracuje"
                 steps={[
                   "Analyzuje sémantické jadro slovenskej SEO scény pre danú tému.",
                   "Navrhuje štruktúru H1-H3, ktorá prirodzene vedie k akcii.",
@@ -497,7 +490,9 @@ function Index() {
                 <div className="min-h-[600px] rounded-lg bg-card p-6 shadow-sm ring-1 ring-border/5 md:p-12">
                   {article ? (
                     <article className="prose prose-neutral max-w-[68ch] prose-headings:font-display prose-h1:text-3xl md:prose-h1:text-4xl prose-h1:leading-tight prose-h2:text-xl md:prose-h2:text-2xl prose-h2:font-medium prose-h2:mt-10 prose-h3:text-base md:prose-h3:text-lg prose-p:text-secondary-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-a:text-foreground">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{article}</ReactMarkdown>
+                      <Suspense fallback={null}>
+                        <ArticleMarkdown markdown={article} />
+                      </Suspense>
                       {status === "streaming" && (
                         <span className="ml-0.5 inline-block h-4 w-1 animate-pulse bg-primary align-middle" />
                       )}
@@ -516,7 +511,9 @@ function Index() {
           </section>
         )}
         {status === "done" && article && (
-          <SerpLab key={article.length} article={article} primary={primaryKeyword} />
+          <Suspense fallback={null}>
+            <SerpLab key={article.length} article={article} primary={primaryKeyword} />
+          </Suspense>
         )}
       </main>
 
@@ -557,13 +554,17 @@ function Index() {
         </div>
       )}
 
-      <CmsDeployDialog
-        open={deployOpen}
-        onOpenChange={setDeployOpen}
-        initialTitle={primaryKeyword || topic.slice(0, 60)}
-        initialContent={article}
-        status="draft"
-      />
+      {deployOpen && (
+        <Suspense fallback={null}>
+          <CmsDeployDialog
+            open={deployOpen}
+            onOpenChange={setDeployOpen}
+            initialTitle={primaryKeyword || topic.slice(0, 60)}
+            initialContent={article}
+            status="draft"
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
