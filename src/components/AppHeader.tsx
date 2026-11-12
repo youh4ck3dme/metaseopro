@@ -278,7 +278,7 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {SEO_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
@@ -331,7 +331,7 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {CONTENT_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
@@ -384,7 +384,7 @@ export function AppHeader() {
               </DropdownMenuLabel>
               {AGENCY_TOOLS.map((item) => {
                 const Icon = item.icon;
-                const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                 return (
                   <DropdownMenuItem key={item.to} asChild className="p-0">
@@ -576,7 +576,7 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {SEO_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                        const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
@@ -606,7 +606,7 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {CONTENT_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                        const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
@@ -636,7 +636,7 @@ export function AppHeader() {
                     <div className="space-y-0.5">
                       {AGENCY_TOOLS.map((item) => {
                         const Icon = item.icon;
-                        const href = item.to === "/\$locale" ? \`/\${locale}\` : \`/\${locale}/\${item.to.split("/").pop()}\`;
+                        const href = item.to === "/$locale" ? `/${locale}` : `/${locale}/${item.to.split("/").pop()}`;
                 const active = pathname === href || pathname === href + "/";
                         return (
                           <Link
