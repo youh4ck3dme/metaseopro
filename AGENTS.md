@@ -2,7 +2,7 @@
 
 ## 1. Architecture & Security Rules
 
-- **Shared Visual Tokens & CSS:** Shared visual roles and motion belong in `src/styles.css`. Feature components must use semantic tokens so presentation remains consistent across dark/light modes.
+- **Shared Visual Tokens & CSS:** Shared visual roles and motion belong in `src/styles.css`. Feature components must use semantic tokens so presentation remains consistent across dark/light modes. The agent-facing contract for those tokens is [`DESIGN.md`](DESIGN.md) (Google DESIGN.md spec). Refresh it with [`.agents/skills/design-md/SKILL.md`](.agents/skills/design-md/SKILL.md) when the visual system changes. Do not invent a parallel palette in components.
 - **Tailwind CSS v4 & Lightning CSS:** All `@import` rules must remain strictly at the very top of `src/styles.css` before any `@theme` declarations. External fonts (Outfit, Figtree) are loaded via `<link>` in `src/routes/__root.tsx`.
 - **API Contracts & Storage:** Preserve existing storage identifiers, Zod schemas, and API contracts during changes to avoid breaking saved context, database records, and integrations.
 - **Server Functions:** Use the installed TanStack Start server-function `.validator(...)` API. Never use `.inputValidator(...)`.
