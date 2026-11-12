@@ -11,7 +11,7 @@ import {
 
 function getSupabaseAdmin() {
   const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key) return null;
   return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
@@ -59,7 +59,7 @@ async function handleCron(request: Request): Promise<Response> {
     authHeader?.replace(/^Bearer\s+/i, "").trim() || xCronSecret?.trim() || querySecret?.trim();
 
   // If CRON_SECRET is configured in environment, strictly require it
-  if (expectedSecret && providedSecret !== expectedSecret) {
+  if (!expectedSecret || !providedSecret || providedSecret !== expectedSecret) {
     return new Response(JSON.stringify({ error: "Unauthorized: Invalid or missing CRON_SECRET" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },

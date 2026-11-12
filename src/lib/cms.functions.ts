@@ -166,7 +166,41 @@ export const testConnectionBeforeSave = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
+    // Bound outbound requests to hosts the caller has verified in Search Console.
+    let host: string;
+    try {
+      host = new URL(data.apiEndpoint).hostname.toLowerCase().replace(/^www\./, "");
+    } catch {
+      return { ok: false, message: "Neplatná URL adresa API." };
+    }
+    const { listUserVerifiedProperties } = await import("./gsc.server");
+    const claims = context.claims as { email?: string } | undefined;
+    let props: { siteUrl: string }[] = [];
+    try {
+      props = await listUserVerifiedProperties(context.userId, claims?.email);
+    } catch {
+      props = [];
+    }
+    const allowed = props.some((p) => {
+      const raw = p.siteUrl.startsWith("sc-domain:")
+        ? p.siteUrl.slice("sc-domain:".length)
+        : (() => {
+            try {
+              return new URL(p.siteUrl).hostname;
+            } catch {
+              return "";
+            }
+          })();
+      const d = raw.toLowerCase().replace(/^www\./, "");
+      return !!d && (host === d || host.endsWith(`.${d}`));
+    });
+    if (!allowed) {
+      return {
+        ok: false,
+        message: "Test spojenia je povolený len pre weby overené vo vašom Search Console.",
+      };
+    }
     return await testWordPressConnection({
       apiEndpoint: data.apiEndpoint,
       credentials: data.credentials,
