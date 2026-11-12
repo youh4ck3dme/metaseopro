@@ -1,4 +1,5 @@
 import type { ErrorComponentProps } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -75,7 +76,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { name: "theme-color", content: "#0284c7" },
+      { name: "theme-color", content: "#0f1214" },
       { name: "robots", content: "index, follow" },
       { title: "seo.vorkei — AI SEO Command Center" },
       {
@@ -116,6 +117,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
       { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
       { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
+      { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32.png" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/apple-touch-icon.png" },
@@ -157,8 +159,19 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <PwaRegistrar />
         <Outlet />
       </AuthProvider>
     </QueryClientProvider>
   );
+}
+
+function PwaRegistrar() {
+  useEffect(() => {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(() => {
+      // Registration failure must not break the app.
+    });
+  }, []);
+  return null;
 }

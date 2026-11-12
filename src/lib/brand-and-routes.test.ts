@@ -14,6 +14,32 @@ describe("brand and public assets", () => {
     expect(root).toContain("/favicon.svg");
     expect(root).toContain("/favicon-32.png");
     expect(root).toContain("/apple-touch-icon.png");
+    expect(root).toContain("/manifest.json");
+  });
+
+  it("ships an installable web app manifest and network-first service worker", () => {
+    const manifest = JSON.parse(readFileSync(join(ROOT, "public/manifest.json"), "utf-8"));
+    expect(manifest.name).toBe("seo.vorkei");
+    expect(manifest.short_name).toBe("seo.vorkei");
+    expect(manifest.start_url).toBe("/sk");
+    expect(manifest.display).toBe("standalone");
+    expect(manifest.theme_color).toBe("#0f1214");
+    expect(manifest.background_color).toBe("#0f1214");
+    expect(manifest.icons.map((icon: { sizes: string }) => icon.sizes)).toEqual([
+      "192x192",
+      "512x512",
+    ]);
+    expect(existsSync(join(ROOT, "public/icon-192.png"))).toBe(true);
+    expect(existsSync(join(ROOT, "public/icon-512.png"))).toBe(true);
+
+    const worker = readFileSync(join(ROOT, "public/sw.js"), "utf-8");
+    expect(worker).toContain("networkFirstHtml");
+    const start = worker.indexOf("async function networkFirstHtml");
+    const end = worker.indexOf("async function cacheFirstStatic");
+    const htmlStrategy = worker.slice(start, end);
+    expect(htmlStrategy).toContain("fetch(request)");
+    expect(htmlStrategy).not.toContain("cache.put");
+    expect(existsSync(join(ROOT, "public/offline.html"))).toBe(true);
   });
 
   it("root head uses seo.vorkei brand in title and og:site_name", () => {
