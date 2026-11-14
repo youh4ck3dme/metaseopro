@@ -2,6 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeUrl } from "./raketa-schema";
 import { analyzePage, runAnalysis } from "./site-analyze.server";
 
+const DNS_OK = {
+  ok: true,
+  status: 200,
+  json: async () => ({ Answer: [{ type: 1, data: "93.184.216.34" }] }),
+};
+
+const dnsAware = (impl: (url: string, init?: RequestInit) => unknown) =>
+  vi.fn((url: unknown, init?: RequestInit) =>
+    String(url).includes("dns-query") ? DNS_OK : impl(String(url), init),
+  ) as unknown as typeof fetch;
+
 describe("Site Analyze & Parser (Unit & Regression)", () => {
   const originalFetch = globalThis.fetch;
 
@@ -63,12 +74,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
-        text: () => Promise.resolve(mockHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+          text: () => Promise.resolve(mockHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://mojweb.sk");
 
@@ -103,12 +116,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html" }),
-        text: () => Promise.resolve(mockHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html" }),
+          text: () => Promise.resolve(mockHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://ogtest.sk");
       expect(analysis.metaDescription).toBe("Popis z OpenGraph tagu pre sociálne siete.");
@@ -124,12 +139,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html" }),
-        text: () => Promise.resolve(thinHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html" }),
+          text: () => Promise.resolve(thinHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://spa-app.sk");
       expect(analysis.ok).toBe(false);
@@ -138,15 +155,18 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
     });
 
     it("handles HTTP errors (e.g. 404/500) gracefully", async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        headers: new Headers({ "content-type": "text/html" }),
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: false,
+          status: 404,
+          headers: new Headers({ "content-type": "text/html" }),
+        }),
+      );
 
-      const analysis = await analyzePage("https://mojweb.sk/non-existent");
-      expect(analysis.ok).toBe(false);
-      expect(analysis.note).toContain("404");
+      await expect(analyzePage("https://mojweb.sk/non-existent")).rejects.toMatchObject({
+        name: "AnalyzeError",
+        code: "HTTP_ERROR",
+      });
     });
   });
 
@@ -185,7 +205,7 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+      globalThis.fetch = dnsAware((url: string) => {
         const isComp = url.includes("konkurent");
         return Promise.resolve({
           ok: true,
@@ -208,5 +228,78 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
       expect(result.comparison.ctaIssues.length).toBeGreaterThan(0);
       expect(result.comparison.contentGaps.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe("fail-closed: every error is a typed AnalyzeError, never mock data", () => {
+  it("rejects invalid URL with INVALID_URL", async () => {
+    await expect(analyzePage("not-a-domain")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "INVALID_URL",
+    });
+  });
+
+  it("rejects SSRF-blocked URL with SSRF_BLOCKED and never calls fetch", async () => {
+    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("x", { status: 200 })));
+    await expect(analyzePage("http://10.1.2.3/")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "SSRF_BLOCKED",
+    });
+    await expect(analyzePage("http://10.1.2.3/")).rejects.toThrow(/SSRF/);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects network/timeout failure with FETCH_FAILED", async () => {
+    globalThis.fetch = dnsAware(() => Promise.reject(new Error("ECONNREFUSED")));
+    await expect(analyzePage("https://mojweb.sk")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "FETCH_FAILED",
+    });
+  });
+
+  it("maps TimeoutError to FETCH_FAILED", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.reject(new DOMException("The operation timed out.", "TimeoutError")),
+    );
+    await expect(analyzePage("https://mojweb.sk")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "FETCH_FAILED",
+    });
+  });
+
+  it("rejects a redirect to an internal target with SSRF_BLOCKED and returns no data", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.resolve(
+        new Response(null, { status: 302, headers: { location: "http://10.0.0.1/" } }),
+      ),
+    );
+    await expect(analyzePage("https://mojweb.sk/")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "SSRF_BLOCKED",
+    });
+    await expect(analyzePage("https://mojweb.sk/")).rejects.toThrow(/SSRF/);
+  });
+
+  it("rejects non-HTML response with NOT_HTML", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        text: () => Promise.resolve('{"a":1}'),
+        body: null,
+      }),
+    );
+    await expect(analyzePage("https://mojweb.sk/api")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "NOT_HTML",
+    });
+  });
+
+  it("runAnalysis propagates the typed error instead of returning mock analysis", async () => {
+    globalThis.fetch = dnsAware(() => Promise.reject(new Error("timeout")));
+    await expect(
+      runAnalysis("https://mojweb.sk", "https://konkurent.sk", "seo"),
+    ).rejects.toMatchObject({ name: "AnalyzeError", code: "FETCH_FAILED" });
   });
 });

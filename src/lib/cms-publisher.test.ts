@@ -10,6 +10,29 @@ import {
   assertSafePublicUrl,
 } from "./cms-publisher.server";
 
+const DNS_OK = {
+  ok: true,
+  status: 200,
+  json: async () => ({ Answer: [{ type: 1, data: "93.184.216.34" }] }),
+};
+
+const isDnsQuery = (url: unknown) => String(url).includes("dns-query");
+
+const dnsAwareResolved = (value: unknown) =>
+  vi.fn((url: unknown) => (isDnsQuery(url) ? Promise.resolve(DNS_OK) : Promise.resolve(value)));
+
+const dnsAwareQueue = (values: unknown[]) => {
+  const queue = [...values];
+  return vi.fn((url: unknown) =>
+    isDnsQuery(url)
+      ? Promise.resolve(DNS_OK)
+      : Promise.resolve(queue.shift() ?? values[values.length - 1]),
+  );
+};
+
+const httpCallsOf = (mock: ReturnType<typeof vi.fn>) =>
+  mock.mock.calls.filter((c) => !isDnsQuery(c[0]));
+
 describe("CMS Publisher & WordPress Connector", () => {
   describe("Slug & Endpoint utilities", () => {
     it("extracts clean slugs from full URLs and relative paths", () => {
@@ -104,7 +127,7 @@ describe("CMS Publisher & WordPress Connector", () => {
 
   describe("WordPress API Execution (Mocked)", () => {
     it("updates existing post by ID successfully", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: true,
         status: 200,
         json: async () => ({
@@ -125,8 +148,9 @@ describe("CMS Publisher & WordPress Connector", () => {
         fetchFn: mockFetch as unknown as typeof fetch,
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const call = mockFetch.mock.calls[0]!;
+      const httpCalls = httpCallsOf(mockFetch);
+      expect(httpCalls).toHaveLength(1);
+      const call = httpCalls[0]!;
       expect(call[0]).toBe("https://mojweb.sk/wp-json/wp/v2/posts/42");
       expect(call[1]?.method).toBe("POST");
 
@@ -143,16 +167,15 @@ describe("CMS Publisher & WordPress Connector", () => {
     });
 
     it("finds post by slug and updates it", async () => {
-      const mockFetch = vi
-        .fn()
-        // First call: GET search by slug
-        .mockResolvedValueOnce({
+      const mockFetch = dnsAwareQueue([
+        // First HTTP call: GET search by slug
+        {
           ok: true,
           status: 200,
           json: async () => [{ id: 108, slug: "moj-stary-clanok" }],
-        })
-        // Second call: POST update post 108
-        .mockResolvedValueOnce({
+        },
+        // Second HTTP call: POST update post 108
+        {
           ok: true,
           status: 200,
           json: async () => ({
@@ -160,7 +183,8 @@ describe("CMS Publisher & WordPress Connector", () => {
             link: "https://mojweb.sk/moj-stary-clanok",
             status: "draft",
           }),
-        });
+        },
+      ]);
 
       const result = await publishToWordPress({
         siteUrl: "https://mojweb.sk",
@@ -173,9 +197,10 @@ describe("CMS Publisher & WordPress Connector", () => {
         fetchFn: mockFetch as unknown as typeof fetch,
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(mockFetch.mock.calls[0]![0]).toContain("slug=moj-stary-clanok");
-      expect(mockFetch.mock.calls[1]![0]).toBe("https://mojweb.sk/wp-json/wp/v2/posts/108");
+      const httpCalls = httpCallsOf(mockFetch);
+      expect(httpCalls).toHaveLength(2);
+      expect(httpCalls[0]![0]).toContain("slug=moj-stary-clanok");
+      expect(httpCalls[1]![0]).toBe("https://mojweb.sk/wp-json/wp/v2/posts/108");
 
       expect(result.success).toBe(true);
       expect(result.action).toBe("updated");
@@ -183,16 +208,15 @@ describe("CMS Publisher & WordPress Connector", () => {
     });
 
     it("creates a new post when post is not found", async () => {
-      const mockFetch = vi
-        .fn()
+      const mockFetch = dnsAwareQueue([
         // Search by slug returns empty array
-        .mockResolvedValueOnce({
+        {
           ok: true,
           status: 200,
           json: async () => [],
-        })
+        },
         // Create new post returns id 205
-        .mockResolvedValueOnce({
+        {
           ok: true,
           status: 201,
           json: async () => ({
@@ -200,7 +224,8 @@ describe("CMS Publisher & WordPress Connector", () => {
             link: "https://mojweb.sk/novy-prispevok",
             status: "draft",
           }),
-        });
+        },
+      ]);
 
       const result = await publishToWordPress({
         siteUrl: "https://mojweb.sk",
@@ -213,15 +238,16 @@ describe("CMS Publisher & WordPress Connector", () => {
         fetchFn: mockFetch as unknown as typeof fetch,
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-      expect(mockFetch.mock.calls[1]![0]).toBe("https://mojweb.sk/wp-json/wp/v2/posts");
+      const httpCalls = httpCallsOf(mockFetch);
+      expect(httpCalls).toHaveLength(2);
+      expect(httpCalls[1]![0]).toBe("https://mojweb.sk/wp-json/wp/v2/posts");
       expect(result.success).toBe(true);
       expect(result.action).toBe("created");
       expect(result.postId).toBe(205);
     });
 
     it("handles 401/403 unauthorized credentials with friendly Slovak message", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: false,
         status: 401,
         json: async () => ({
@@ -245,7 +271,7 @@ describe("CMS Publisher & WordPress Connector", () => {
     });
 
     it("handles 404 not found cleanly", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: false,
         status: 404,
         json: async () => ({ message: "Not found" }),
@@ -281,7 +307,7 @@ describe("CMS Publisher & WordPress Connector", () => {
 
   describe("Custom Webhook Publisher", () => {
     it("delivers payload to webhook endpoint with bearer token", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: true,
         status: 200,
         text: async () => "OK",
@@ -298,8 +324,9 @@ describe("CMS Publisher & WordPress Connector", () => {
         fetchFn: mockFetch as unknown as typeof fetch,
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(1);
-      const call = mockFetch.mock.calls[0]!;
+      const httpCalls = httpCallsOf(mockFetch);
+      expect(httpCalls).toHaveLength(1);
+      const call = httpCalls[0]!;
       expect(call[0]).toBe("https://webhook.site/my-hook");
       expect(call[1]?.headers).toEqual({
         "Content-Type": "application/json",
@@ -319,7 +346,7 @@ describe("CMS Publisher & WordPress Connector", () => {
 
   describe("Connection Testing", () => {
     it("validates credentials via /users/me", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: true,
         status: 200,
         json: async () => ({ name: "Erik Šéfredaktor" }),
@@ -337,7 +364,7 @@ describe("CMS Publisher & WordPress Connector", () => {
     });
 
     it("returns clear message on invalid credentials", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
+      const mockFetch = dnsAwareResolved({
         ok: false,
         status: 401,
       });
