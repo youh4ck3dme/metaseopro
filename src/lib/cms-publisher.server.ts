@@ -44,6 +44,16 @@ export interface PublishResult {
 import { assertSafePublicUrl, safeFetch } from "./safe-url";
 export { assertSafePublicUrl, safeFetch };
 
+const CMS_FETCH_TIMEOUT_MS = 15_000;
+const MAX_RESPONSE_BYTES = 5_000_000; // 5MB cap on CMS API responses
+
+function assertResponseSize(res: Response): void {
+  const len = Number(res.headers?.get?.("content-length") ?? "0");
+  if (Number.isFinite(len) && len > MAX_RESPONSE_BYTES) {
+    throw new Error(`Odpoveď z CMS presiahla limit ${MAX_RESPONSE_BYTES} bajtov.`);
+  }
+}
+
 /**
  * Extracts a clean post slug from a full URL or path.
  * e.g. "https://example.sk/blog/ako-zacat-behat/" -> "ako-zacat-behat"
@@ -215,7 +225,12 @@ export async function publishToWordPress(params: WordPressPublishParams): Promis
     if (!targetPostId && targetSlug) {
       try {
         const queryUrl = `${endpoint}?slug=${encodeURIComponent(targetSlug)}&status=any`;
-        const searchRes = await safeFetch(queryUrl, { method: "GET", headers }, { fetchFn });
+        const searchRes = await safeFetch(
+          queryUrl,
+          { method: "GET", headers },
+          { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+        );
+        assertResponseSize(searchRes);
         if (searchRes.ok) {
           const posts = (await searchRes.json()) as Array<{ id: number }>;
           if (Array.isArray(posts) && posts.length > 0 && posts[0]?.id) {
@@ -248,8 +263,9 @@ export async function publishToWordPress(params: WordPressPublishParams): Promis
         headers,
         body: JSON.stringify(payload),
       },
-      { fetchFn },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
     );
+    assertResponseSize(response);
 
     if (!response.ok) {
       let errorMessage = `WordPress REST API chyba (${response.status})`;
@@ -385,8 +401,9 @@ export async function publishToCustomWebhook(params: WebhookPublishParams): Prom
         headers,
         body: JSON.stringify(payload),
       },
-      { fetchFn },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
     );
+    assertResponseSize(res);
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
@@ -447,8 +464,9 @@ export async function testWordPressConnection(params: {
           Accept: "application/json",
         },
       },
-      { fetchFn },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
     );
+    assertResponseSize(res);
 
     if (res.ok) {
       const user = (await res.json()) as { name?: string; slug?: string };
@@ -474,8 +492,9 @@ export async function testWordPressConnection(params: {
       {
         headers: { Authorization: authHeader },
       },
-      { fetchFn },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
     );
+    assertResponseSize(testPostsRes);
     if (testPostsRes.ok) {
       return {
         ok: true,

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   assertSafePublicUrl,
+  createDohResolver,
   isBlockedIp,
   isSafePublicUrl,
   safeFetch,
@@ -72,11 +73,13 @@ describe("URL hardening (ports, userinfo, hostname normalization, extra ranges)"
     expect(isSafePublicUrl("https://token@example.com/")).toBe(false);
   });
 
-  it("blocks 198.18.0.0/15 and 192.0.0.0/24", () => {
+  it("blocks 198.18.0.0/15, 192.0.0.0/24 and all TEST-NETs", () => {
     expect(isSafePublicUrl("http://198.18.0.1/")).toBe(false);
     expect(isSafePublicUrl("http://198.19.255.255/")).toBe(false);
     expect(isSafePublicUrl("http://192.0.0.8/")).toBe(false);
-    expect(isSafePublicUrl("http://192.0.2.1/")).toBe(true); // TEST-NET-1, verejná syntakticky
+    expect(isSafePublicUrl("http://192.0.2.1/")).toBe(false); // TEST-NET-1
+    expect(isSafePublicUrl("http://198.51.100.1/")).toBe(false); // TEST-NET-2
+    expect(isSafePublicUrl("http://203.0.113.1/")).toBe(false); // TEST-NET-3
   });
 
   it("isBlockedIp covers loopback, private, link-local, CGNAT, reserved and IPv4-mapped IPv6", () => {
@@ -351,5 +354,159 @@ describe("safeFetch DNS rebinding protection (injectable resolver)", () => {
     const res = await safeFetch("https://mojweb.sk/", {}, { fetchFn: fn, resolver });
     expect(res.status).toBe(200);
     expect(calls.filter((c) => !c.includes("dns-query"))).toHaveLength(1);
+  });
+});
+
+describe("P1-A: IPv6 with embedded IPv4 is blocked via full URL and DoH AAAA", () => {
+  const blockedV6 = [
+    "[::ffff:7f00:1]", // ::ffff:127.0.0.1 hex
+    "[::ffff:a9fe:a9fe]", // ::ffff:169.254.169.254 hex
+    "[::7f00:1]", // ::/96 → 127.0.0.1
+    "[64:ff9b::7f00:1]", // NAT64 → 127.0.0.1
+    "[2002:7f00:1::]", // 6to4 → 127.0.0.1
+    "[fec0::1]", // site-local fec0::/10
+    "[ff02::1]", // multicast ff00::/8
+    "[2001:db8::1]", // documentation
+    "[::1]",
+    "[fe80::1]",
+  ];
+
+  it("blocks every dangerous IPv6 literal through isSafePublicUrl on a full URL", () => {
+    for (const addr of blockedV6) {
+      expect(isSafePublicUrl(`http://${addr}/`)).toBe(false);
+    }
+    expect(isSafePublicUrl("http://[2606:4700:4700::1111]/")).toBe(true); // public 2000::/3
+  });
+
+  it("blocks the same addresses when safeFetch sees them as URL literals", async () => {
+    for (const addr of blockedV6) {
+      const fn = vi.fn(() =>
+        Promise.resolve(new Response("x", { status: 200 })),
+      ) as unknown as typeof fetch;
+      await expect(
+        safeFetch(`http://${addr}/`, {}, { fetchFn: fn, resolver: publicResolver }),
+      ).rejects.toBeInstanceOf(SsrfBlockedError);
+      expect(fn).not.toHaveBeenCalled();
+    }
+  });
+
+  it("blocks the same addresses returned as DoH AAAA answers", async () => {
+    for (const addr of blockedV6) {
+      const resolver: DnsResolver = { resolve: async () => [addr.replace(/^\[|\]$/g, "")] };
+      const fn = vi.fn(() =>
+        Promise.resolve(new Response("x", { status: 200 })),
+      ) as unknown as typeof fetch;
+      await expect(
+        safeFetch("https://mojweb.sk/", {}, { fetchFn: fn, resolver }),
+      ).rejects.toBeInstanceOf(SsrfBlockedError);
+      expect(fn).not.toHaveBeenCalled();
+    }
+  });
+});
+
+describe("P2-C: DoH fail-closed on HTTP error or bad Status", () => {
+  const dohFetch = (a: () => unknown, aaaa: () => unknown) => {
+    const mock = vi.fn((url: unknown) => {
+      const u = String(url);
+      if (u.includes("dns-query")) {
+        if (u.includes("type=AAAA")) return Promise.resolve(aaaa());
+        if (u.includes("type=A")) return Promise.resolve(a());
+      }
+      return Promise.resolve(new Response("ok", { status: 200 }));
+    });
+    return { fn: mock as unknown as typeof fetch, mock };
+  };
+
+  const publicA = () => ({
+    ok: true,
+    status: 200,
+    json: async () => ({ Status: 0, Answer: [{ type: 1, data: "93.184.216.34" }] }),
+  });
+
+  it("blocks when the AAAA query returns HTTP 500 even though A returned a public IP", async () => {
+    const { fn, mock } = dohFetch(publicA, () => ({ ok: false, status: 500 }));
+    await expect(safeFetch("https://mojweb.sk/", {}, { fetchFn: fn })).rejects.toBeInstanceOf(
+      SsrfBlockedError,
+    );
+    expect(mock.mock.calls.some((c) => !String(c[0]).includes("dns-query"))).toBe(false);
+  });
+
+  it("blocks when a DoH query returns Status 2 (SERVFAIL) with an Answer", async () => {
+    const { fn } = dohFetch(
+      () => ({
+        ok: true,
+        status: 200,
+        json: async () => ({ Status: 2, Answer: [{ type: 1, data: "93.184.216.34" }] }),
+      }),
+      () => ({ ok: true, status: 200, json: async () => ({ Status: 0, Answer: [] }) }),
+    );
+    await expect(safeFetch("https://mojweb.sk/", {}, { fetchFn: fn })).rejects.toBeInstanceOf(
+      SsrfBlockedError,
+    );
+  });
+
+  it("DoH resolver has its own timeout", async () => {
+    const slow = vi.fn(
+      (_url: unknown, init?: RequestInit) =>
+        new Promise((_res, rej) => {
+          init?.signal?.addEventListener("abort", () => rej(init.signal?.reason));
+        }),
+    ) as unknown as typeof fetch;
+    const resolver = createDohResolver(slow, 50);
+    await expect(resolver.resolve("mojweb.sk")).rejects.toThrow();
+  });
+});
+
+describe("P2-B/P3: safeFetch timeout, https→http downgrade, redirect body cancel", () => {
+  it("aborts the whole operation after timeoutMs", async () => {
+    const fn = vi.fn(
+      (_url: unknown, init?: RequestInit) =>
+        new Promise((_res, rej) => {
+          init?.signal?.addEventListener("abort", () => rej(init.signal?.reason));
+        }),
+    ) as unknown as typeof fetch;
+    await expect(
+      safeFetch("https://mojweb.sk/", {}, { fetchFn: fn, resolver: publicResolver, timeoutMs: 50 }),
+    ).rejects.toThrow();
+  });
+
+  it("rejects a redirect from https:// to http://", async () => {
+    const fn = vi.fn(() =>
+      Promise.resolve(
+        new Response(null, { status: 302, headers: { location: "http://mojweb.sk/x" } }),
+      ),
+    ) as unknown as typeof fetch;
+    await expect(
+      safeFetch("https://mojweb.sk/", {}, { fetchFn: fn, resolver: publicResolver }),
+    ).rejects.toBeInstanceOf(SsrfBlockedError);
+  });
+
+  it("cancels the body of a redirect response", async () => {
+    let cancelled = false;
+    const stream = new ReadableStream({
+      cancel() {
+        cancelled = true;
+      },
+    });
+    const mockFetch = vi.fn((url: unknown) => {
+      if (String(url).includes("dns-query"))
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({ Answer: [{ type: 1, data: "93.184.216.34" }] }),
+        });
+      if (!String(url).includes("/ok"))
+        return Promise.resolve(
+          new Response(stream, { status: 302, headers: { location: "https://mojweb.sk/ok" } }),
+        );
+      return Promise.resolve(new Response("ok", { status: 200 }));
+    }) as unknown as typeof fetch;
+    const res = await safeFetch(
+      "https://mojweb.sk/",
+      {},
+      { fetchFn: mockFetch, resolver: publicResolver },
+    );
+    expect(res.status).toBe(200);
+    expect(cancelled).toBe(true);
   });
 });
