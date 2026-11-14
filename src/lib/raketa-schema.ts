@@ -103,7 +103,7 @@ export const AnalyzeBodySchema = z.object({
 export type PageAnalysis = {
   url: string;
   ok: boolean;
-  estimated: boolean; // true => mock/fallback data
+  estimated: boolean; // true => real but thin/JS-heavy page (never mocked data)
   title: string;
   metaDescription: string;
   h1: string[];

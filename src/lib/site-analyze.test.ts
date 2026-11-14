@@ -144,9 +144,10 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         headers: new Headers({ "content-type": "text/html" }),
       });
 
-      const analysis = await analyzePage("https://mojweb.sk/non-existent");
-      expect(analysis.ok).toBe(false);
-      expect(analysis.note).toContain("404");
+      await expect(analyzePage("https://mojweb.sk/non-existent")).rejects.toMatchObject({
+        name: "AnalyzeError",
+        code: "HTTP_ERROR",
+      });
     });
   });
 
@@ -208,5 +209,53 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
       expect(result.comparison.ctaIssues.length).toBeGreaterThan(0);
       expect(result.comparison.contentGaps.length).toBeGreaterThan(0);
     });
+  });
+});
+
+describe("fail-closed: every error is a typed AnalyzeError, never mock data", () => {
+  it("rejects invalid URL with INVALID_URL", async () => {
+    await expect(analyzePage("not-a-domain")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "INVALID_URL",
+    });
+  });
+
+  it("rejects SSRF-blocked URL with SSRF_BLOCKED and never calls fetch", async () => {
+    globalThis.fetch = vi.fn(() => Promise.resolve(new Response("x", { status: 200 })));
+    await expect(analyzePage("http://10.1.2.3/")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "SSRF_BLOCKED",
+    });
+    await expect(analyzePage("http://10.1.2.3/")).rejects.toThrow(/SSRF/);
+    expect(globalThis.fetch).not.toHaveBeenCalled();
+  });
+
+  it("rejects network/timeout failure with FETCH_FAILED", async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error("ECONNREFUSED")));
+    await expect(analyzePage("https://mojweb.sk")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "FETCH_FAILED",
+    });
+  });
+
+  it("rejects non-HTML response with NOT_HTML", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      headers: new Headers({ "content-type": "application/json" }),
+      text: () => Promise.resolve('{"a":1}'),
+      body: null,
+    });
+    await expect(analyzePage("https://mojweb.sk/api")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "NOT_HTML",
+    });
+  });
+
+  it("runAnalysis propagates the typed error instead of returning mock analysis", async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error("timeout")));
+    await expect(
+      runAnalysis("https://mojweb.sk", "https://konkurent.sk", "seo"),
+    ).rejects.toMatchObject({ name: "AnalyzeError", code: "FETCH_FAILED" });
   });
 });

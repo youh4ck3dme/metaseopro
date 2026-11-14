@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AnalyzeBodySchema, normalizeUrl } from "@/lib/raketa-schema";
-import { runAnalysis } from "@/lib/site-analyze.server";
+import { AnalyzeError, runAnalysis } from "@/lib/site-analyze.server";
 import { requireUser } from "@/lib/api-auth.server";
 import { checkRateLimit } from "@/lib/rate-limit.server";
 import { assertSafePublicUrl } from "@/lib/ssrf";
@@ -57,8 +57,8 @@ export const Route = createFileRoute("/api/raketa-analyze")({
           if (!ownUrl) return err(400, "Neplatná URL vlastného webu.");
           try {
             assertSafePublicUrl(ownUrl);
-          } catch (e) {
-            return err(400, e instanceof Error ? e.message : "Nepovolená URL vlastného webu.");
+          } catch {
+            return err(400, "URL nie je povolená (SSRF ochrana).");
           }
           const competitorUrl = parsed.data.competitorUrl
             ? normalizeUrl(parsed.data.competitorUrl)
@@ -69,12 +69,24 @@ export const Route = createFileRoute("/api/raketa-analyze")({
           if (competitorUrl) {
             try {
               assertSafePublicUrl(competitorUrl);
-            } catch (e) {
-              return err(400, e instanceof Error ? e.message : "Nepovolená URL konkurencie.");
+            } catch {
+              return err(400, "URL nie je povolená (SSRF ochrana).");
             }
           }
 
-          const analysis = await runAnalysis(ownUrl, competitorUrl || "", parsed.data.keyword);
+          let analysis;
+          try {
+            analysis = await runAnalysis(ownUrl, competitorUrl || "", parsed.data.keyword);
+          } catch (e) {
+            if (e instanceof AnalyzeError) {
+              const status = e.code === "INVALID_URL" || e.code === "SSRF_BLOCKED" ? 400 : 502;
+              return new Response(JSON.stringify({ error: e.message, code: e.code }), {
+                status,
+                headers: { "Content-Type": "application/json" },
+              });
+            }
+            throw e;
+          }
 
           return new Response(JSON.stringify({ analysis }), {
             headers: { "Content-Type": "application/json" },

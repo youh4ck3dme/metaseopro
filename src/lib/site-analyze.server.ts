@@ -115,38 +115,34 @@ function bodyText(html: string): string {
   return stripTags(bodyMatch ? bodyMatch[1] : noScript);
 }
 
-function mockAnalysis(url: string, note: string): PageAnalysis {
-  return {
-    url,
-    ok: false,
-    estimated: true,
-    title: "",
-    metaDescription: "",
-    h1: [],
-    h2: [],
-    h3: [],
-    ctas: [],
-    wordCount: 0,
-    textSummary: "",
-    note,
-  };
+export type AnalyzeErrorCode =
+  "INVALID_URL" | "SSRF_BLOCKED" | "FETCH_FAILED" | "HTTP_ERROR" | "NOT_HTML";
+
+/**
+ * Fail-closed: every analysis error is a typed error. The caller must never
+ * receive mocked/fabricated data — only a real parse or this error.
+ */
+export class AnalyzeError extends Error {
+  code: AnalyzeErrorCode;
+  constructor(code: AnalyzeErrorCode, message: string) {
+    super(message);
+    this.name = "AnalyzeError";
+    this.code = code;
+  }
 }
 
 export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
   const url = normalizeUrl(rawUrl);
-  if (!url) return mockAnalysis(rawUrl, "Neplatná URL.");
+  if (!url) throw new AnalyzeError("INVALID_URL", "Neplatná URL adresa.");
 
   if (!isSafePublicUrl(url)) {
-    return mockAnalysis(
-      url,
-      "URL adresa bola zablokovaná z bezpečnostných dôvodov (SSRF ochrana).",
-    );
+    throw new AnalyzeError("SSRF_BLOCKED", "URL nie je povolená (SSRF ochrana).");
   }
 
   let html = "";
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const res = await fetch(url, {
       signal: controller.signal,
       redirect: "follow",
@@ -155,13 +151,12 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    clearTimeout(timer);
     if (!res.ok) {
-      return mockAnalysis(url, `Stránka vrátila stav ${res.status}.`);
+      throw new AnalyzeError("HTTP_ERROR", `Stránka vrátila stav ${res.status}.`);
     }
     const ct = res.headers.get("content-type") ?? "";
     if (ct && !ct.includes("html")) {
-      return mockAnalysis(url, "Obsah nie je HTML stránka.");
+      throw new AnalyzeError("NOT_HTML", "Obsah nie je HTML stránka.");
     }
     const reader = res.body?.getReader();
     if (!reader) {
@@ -180,8 +175,14 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
         }
       }
     }
-  } catch {
-    return mockAnalysis(url, "Web sa nepodarilo načítať (timeout alebo blokovanie).");
+  } catch (e) {
+    if (e instanceof AnalyzeError) throw e;
+    throw new AnalyzeError(
+      "FETCH_FAILED",
+      "Web sa nepodarilo načítať (timeout alebo sieťová chyba).",
+    );
+  } finally {
+    clearTimeout(timer);
   }
 
   const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(html);
