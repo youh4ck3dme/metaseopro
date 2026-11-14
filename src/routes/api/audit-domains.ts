@@ -1,3 +1,4 @@
+import { AI_CHAT_URL, AI_DEFAULT_MODEL } from "@/lib/ai-provider";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { AUDIT_SYSTEM_PROMPT } from "@/lib/audit-prompt";
@@ -101,8 +102,8 @@ export const Route = createFileRoute("/api/audit-domains")({
             throw e;
           }
 
-          const apiKey = process.env.LOVABLE_API_KEY;
-          if (!apiKey) return err(500, "LOVABLE_API_KEY nie je nakonfigurovaný.");
+          const apiKey = process.env.MISTRAL_API_KEY;
+          if (!apiKey) return err(500, "MISTRAL_API_KEY nie je nakonfigurovaný.");
 
           const userPrompt =
             `Analyzuj nasledujúce domény podľa systémového promptu. ` +
@@ -113,14 +114,14 @@ export const Route = createFileRoute("/api/audit-domains")({
             `Semrush database: ${parsed.data.database || "auto-detekcia podľa TLD"}\n\n` +
             `Reálne dáta (JSON):\n\`\`\`json\n${JSON.stringify(snapshots, null, 2)}\n\`\`\``;
 
-          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const upstream = await fetch(AI_CHAT_URL, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${apiKey}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-pro",
+              model: AI_DEFAULT_MODEL,
               stream: true,
               messages: [
                 { role: "system", content: AUDIT_SYSTEM_PROMPT },
