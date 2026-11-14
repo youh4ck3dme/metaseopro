@@ -2,6 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeUrl } from "./raketa-schema";
 import { analyzePage, runAnalysis } from "./site-analyze.server";
 
+const DNS_OK = {
+  ok: true,
+  status: 200,
+  json: async () => ({ Answer: [{ type: 1, data: "93.184.216.34" }] }),
+};
+
+const dnsAware = (impl: (url: string, init?: RequestInit) => unknown) =>
+  vi.fn((url: unknown, init?: RequestInit) =>
+    String(url).includes("dns-query") ? DNS_OK : impl(String(url), init),
+  ) as unknown as typeof fetch;
+
 describe("Site Analyze & Parser (Unit & Regression)", () => {
   const originalFetch = globalThis.fetch;
 
@@ -63,12 +74,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
-        text: () => Promise.resolve(mockHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html; charset=utf-8" }),
+          text: () => Promise.resolve(mockHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://mojweb.sk");
 
@@ -103,12 +116,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html" }),
-        text: () => Promise.resolve(mockHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html" }),
+          text: () => Promise.resolve(mockHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://ogtest.sk");
       expect(analysis.metaDescription).toBe("Popis z OpenGraph tagu pre sociálne siete.");
@@ -124,12 +139,14 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        headers: new Headers({ "content-type": "text/html" }),
-        text: () => Promise.resolve(thinHtml),
-        body: null,
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: true,
+          headers: new Headers({ "content-type": "text/html" }),
+          text: () => Promise.resolve(thinHtml),
+          body: null,
+        }),
+      );
 
       const analysis = await analyzePage("https://spa-app.sk");
       expect(analysis.ok).toBe(false);
@@ -138,11 +155,13 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
     });
 
     it("handles HTTP errors (e.g. 404/500) gracefully", async () => {
-      globalThis.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        headers: new Headers({ "content-type": "text/html" }),
-      });
+      globalThis.fetch = dnsAware(() =>
+        Promise.resolve({
+          ok: false,
+          status: 404,
+          headers: new Headers({ "content-type": "text/html" }),
+        }),
+      );
 
       const analysis = await analyzePage("https://mojweb.sk/non-existent");
       expect(analysis.ok).toBe(false);
@@ -185,7 +204,7 @@ describe("Site Analyze & Parser (Unit & Regression)", () => {
         </html>
       `;
 
-      globalThis.fetch = vi.fn().mockImplementation((url: string) => {
+      globalThis.fetch = dnsAware((url: string) => {
         const isComp = url.includes("konkurent");
         return Promise.resolve({
           ok: true,
