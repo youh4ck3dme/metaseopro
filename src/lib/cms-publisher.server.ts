@@ -41,8 +41,18 @@ export interface PublishResult {
   details?: Record<string, string | number | boolean | null>;
 }
 
-import { assertSafePublicUrl } from "./safe-url";
-export { assertSafePublicUrl };
+import { assertSafePublicUrl, safeFetch } from "./safe-url";
+export { assertSafePublicUrl, safeFetch };
+
+const CMS_FETCH_TIMEOUT_MS = 15_000;
+const MAX_RESPONSE_BYTES = 5_000_000; // 5MB cap on CMS API responses
+
+function assertResponseSize(res: Response): void {
+  const len = Number(res.headers?.get?.("content-length") ?? "0");
+  if (Number.isFinite(len) && len > MAX_RESPONSE_BYTES) {
+    throw new Error(`Odpoveď z CMS presiahla limit ${MAX_RESPONSE_BYTES} bajtov.`);
+  }
+}
 
 /**
  * Extracts a clean post slug from a full URL or path.
@@ -215,7 +225,12 @@ export async function publishToWordPress(params: WordPressPublishParams): Promis
     if (!targetPostId && targetSlug) {
       try {
         const queryUrl = `${endpoint}?slug=${encodeURIComponent(targetSlug)}&status=any`;
-        const searchRes = await fetchFn(queryUrl, { method: "GET", headers });
+        const searchRes = await safeFetch(
+          queryUrl,
+          { method: "GET", headers },
+          { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+        );
+        assertResponseSize(searchRes);
         if (searchRes.ok) {
           const posts = (await searchRes.json()) as Array<{ id: number }>;
           if (Array.isArray(posts) && posts.length > 0 && posts[0]?.id) {
@@ -241,11 +256,16 @@ export async function publishToWordPress(params: WordPressPublishParams): Promis
     const requestUrl = targetPostId ? `${endpoint}/${targetPostId}` : endpoint;
     const action: "created" | "updated" = targetPostId ? "updated" : "created";
 
-    const response = await fetchFn(requestUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const response = await safeFetch(
+      requestUrl,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+    );
+    assertResponseSize(response);
 
     if (!response.ok) {
       let errorMessage = `WordPress REST API chyba (${response.status})`;
@@ -374,11 +394,16 @@ export async function publishToCustomWebhook(params: WebhookPublishParams): Prom
   };
 
   try {
-    const res = await fetchFn(webhookUrl, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const res = await safeFetch(
+      webhookUrl,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+    );
+    assertResponseSize(res);
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
@@ -431,12 +456,17 @@ export async function testWordPressConnection(params: {
   try {
     // Try requesting /wp/v2/users/me which verifies both REST API and auth credentials
     const meUrl = `${baseWpJson}/wp/v2/users/me`;
-    const res = await fetchFn(meUrl, {
-      headers: {
-        Authorization: authHeader,
-        Accept: "application/json",
+    const res = await safeFetch(
+      meUrl,
+      {
+        headers: {
+          Authorization: authHeader,
+          Accept: "application/json",
+        },
       },
-    });
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+    );
+    assertResponseSize(res);
 
     if (res.ok) {
       const user = (await res.json()) as { name?: string; slug?: string };
@@ -457,9 +487,14 @@ export async function testWordPressConnection(params: {
     }
 
     // Fallback: check if public posts endpoint is at least reachable
-    const testPostsRes = await fetchFn(`${endpoint}?per_page=1`, {
-      headers: { Authorization: authHeader },
-    });
+    const testPostsRes = await safeFetch(
+      `${endpoint}?per_page=1`,
+      {
+        headers: { Authorization: authHeader },
+      },
+      { fetchFn, timeoutMs: CMS_FETCH_TIMEOUT_MS },
+    );
+    assertResponseSize(testPostsRes);
     if (testPostsRes.ok) {
       return {
         ok: true,
