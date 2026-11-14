@@ -211,7 +211,7 @@ export function AppHeader() {
 
   return (
     <header className="app-header mb-8 px-4 md:px-6 border-b border-border/40 bg-background/95 backdrop-blur-md sticky top-0 z-40">
-      <div className="mx-auto flex min-h-16 max-w-screen-xl items-center justify-between gap-4">
+      <div className="mx-auto flex min-h-14 max-w-screen-xl items-center justify-between gap-2 lg:min-h-16 lg:gap-4">
         {/* Brand Logo */}
         <Link
           to="/"
@@ -407,8 +407,8 @@ export function AppHeader() {
         </nav>
 
         {/* ================= RIGHT CORNER: LOCALE + USER STATUS & PLAN PILL ================= */}
-        <div className="flex items-center gap-2.5">
-          <LocaleSwitch locale={locale} onSwitch={switchLocale} />
+        <div className="flex items-center gap-1.5 lg:gap-2.5">
+          <div className="hidden lg:block"><LocaleSwitch locale={locale} onSwitch={switchLocale} /></div>
           {user ? (
             <div className="flex items-center gap-2">
               {/* Plan Badge */}
@@ -421,7 +421,7 @@ export function AppHeader() {
                 variant="outline"
                 size="sm"
                 onClick={() => setPaywallOpen(true)}
-                className="h-8 gap-1.5 text-xs font-semibold border-border hover:bg-muted"
+                className="hidden lg:inline-flex h-8 gap-1.5 text-xs font-semibold border-border hover:bg-muted"
                 title="Cenník a možnosti predplatného"
               >
                 <Sparkles className="size-3.5 text-primary" />
@@ -497,7 +497,7 @@ export function AppHeader() {
                 variant="ghost"
                 size="sm"
                 onClick={() => setPaywallOpen(true)}
-                className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                className="hidden lg:inline-flex h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
               >
                 <Sparkles className="size-3.5 text-primary" />
                 Cenník
@@ -652,7 +652,18 @@ export function AppHeader() {
               </div>
 
               {/* Mobile Drawer Footer */}
-              <div className="p-4 border-t border-border/60 bg-muted/20">
+              <div className="p-4 border-t border-border/60 bg-muted/20 space-y-3 safe-bottom">
+                <div className="flex items-center justify-between gap-2">
+                  <LocaleSwitch locale={locale} onSwitch={switchLocale} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => { setMobileOpen(false); setPaywallOpen(true); }}
+                    className="h-9 gap-1.5 text-xs font-semibold"
+                  >
+                    <Sparkles className="size-3.5 text-primary" /> Cenník / Upgrade
+                  </Button>
+                </div>
                 {user ? (
                   <Button
                     variant="ghost"
