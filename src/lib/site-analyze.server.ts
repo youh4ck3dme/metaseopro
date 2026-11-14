@@ -2,7 +2,7 @@
 // .server.ts suffix blocks this from client bundles.
 import type { PageAnalysis, ComparisonResult, RaketaAnalysis } from "@/lib/raketa-schema";
 import { normalizeUrl } from "@/lib/raketa-schema";
-import { isSafePublicUrl } from "@/lib/ssrf";
+import { isSafePublicUrl, safeFetch } from "@/lib/ssrf";
 
 const FETCH_TIMEOUT_MS = 12_000;
 const MAX_BYTES = 1_500_000; // ~1.5MB cap on downloaded HTML
@@ -147,9 +147,8 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       signal: controller.signal,
-      redirect: "follow",
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; SEO4WEBBot/1.0)",
         Accept: "text/html,application/xhtml+xml",

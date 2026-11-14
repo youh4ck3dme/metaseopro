@@ -107,3 +107,73 @@ export function assertSafePublicUrl(rawUrl: string): void {
     throw new Error("Nepovolená sieťová adresa (SSRF ochrana).");
   }
 }
+
+export class SsrfBlockedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SsrfBlockedError";
+  }
+}
+
+export class TooManyRedirectsError extends Error {
+  constructor(maxRedirects: number) {
+    super(`Príliš veľa presmerovaní (max ${maxRedirects}).`);
+    this.name = "TooManyRedirectsError";
+  }
+}
+
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const DEFAULT_MAX_REDIRECTS = 5;
+
+export interface SafeFetchOptions {
+  maxRedirects?: number;
+  fetchFn?: typeof fetch;
+}
+
+function assertSafePublicUrlTyped(rawUrl: string): void {
+  try {
+    assertSafePublicUrl(rawUrl);
+  } catch (err) {
+    throw new SsrfBlockedError(err instanceof Error ? err.message : String(err));
+  }
+}
+
+/**
+ * fetch() wrapper that never trusts redirects: every request goes out with
+ * redirect: "manual" and each Location header is resolved and re-validated
+ * with assertSafePublicUrl before the next hop, so a 302 to an internal or
+ * private address is rejected instead of followed.
+ */
+export async function safeFetch(
+  input: string,
+  init: RequestInit = {},
+  options: SafeFetchOptions = {},
+): Promise<Response> {
+  const maxRedirects = options.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
+  const fetchFn = options.fetchFn ?? fetch;
+
+  let currentUrl = input;
+  let currentInit: RequestInit = { ...init, redirect: "manual" };
+
+  assertSafePublicUrlTyped(currentUrl);
+
+  for (let hop = 0; ; hop++) {
+    const res = await fetchFn(currentUrl, currentInit);
+    if (!REDIRECT_STATUSES.has(res.status)) {
+      return res;
+    }
+    if (hop >= maxRedirects) {
+      throw new TooManyRedirectsError(maxRedirects);
+    }
+    const location = res.headers.get("location");
+    if (!location) {
+      throw new SsrfBlockedError("Presmerovanie bez hlavičky Location.");
+    }
+    const nextUrl = new URL(location, currentUrl).toString();
+    assertSafePublicUrlTyped(nextUrl);
+    currentUrl = nextUrl;
+    if (res.status === 303) {
+      currentInit = { ...currentInit, method: "GET", body: undefined };
+    }
+  }
+}
