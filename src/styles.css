@@ -459,3 +459,39 @@ main a.block.rounded-lg:hover {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+
+/* Native app feel (all modes) */
+html, body {
+  overscroll-behavior: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  body, body * {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  /* Keep forms and SEO results selectable/copyable */
+  input, textarea, select, [contenteditable="true"], [contenteditable="true"] *,
+  pre, pre *, code, .prose, .prose *, td, td *, .selectable, .selectable * {
+    -webkit-user-select: text !important;
+    user-select: text !important;
+    -webkit-touch-callout: default !important;
+  }
+  .native-scroll {
+    scrollbar-width: none;
+  }
+  .native-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.native-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.safe-top { padding-top: env(safe-area-inset-top, 0px); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }

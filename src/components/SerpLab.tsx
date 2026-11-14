@@ -68,7 +68,7 @@ export function SerpLab({
   };
 
   return (
-    <section className="mx-auto mt-10 max-w-screen-xl px-6">
+    <section className="selectable mx-auto mt-10 max-w-screen-xl px-6">
       <div className="rounded-lg bg-card p-6 ring-1 ring-border/5">
         <div className="flex items-center justify-between">
           <h3 className="font-display text-2xl">SERP Lab</h3>
