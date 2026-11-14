@@ -250,21 +250,46 @@ describe("fail-closed: every error is a typed AnalyzeError, never mock data", ()
   });
 
   it("rejects network/timeout failure with FETCH_FAILED", async () => {
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error("ECONNREFUSED")));
+    globalThis.fetch = dnsAware(() => Promise.reject(new Error("ECONNREFUSED")));
     await expect(analyzePage("https://mojweb.sk")).rejects.toMatchObject({
       name: "AnalyzeError",
       code: "FETCH_FAILED",
     });
   });
 
-  it("rejects non-HTML response with NOT_HTML", async () => {
-    globalThis.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      headers: new Headers({ "content-type": "application/json" }),
-      text: () => Promise.resolve('{"a":1}'),
-      body: null,
+  it("maps TimeoutError to FETCH_FAILED", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.reject(new DOMException("The operation timed out.", "TimeoutError")),
+    );
+    await expect(analyzePage("https://mojweb.sk")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "FETCH_FAILED",
     });
+  });
+
+  it("rejects a redirect to an internal target with SSRF_BLOCKED and returns no data", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.resolve(
+        new Response(null, { status: 302, headers: { location: "http://10.0.0.1/" } }),
+      ),
+    );
+    await expect(analyzePage("https://mojweb.sk/")).rejects.toMatchObject({
+      name: "AnalyzeError",
+      code: "SSRF_BLOCKED",
+    });
+    await expect(analyzePage("https://mojweb.sk/")).rejects.toThrow(/SSRF/);
+  });
+
+  it("rejects non-HTML response with NOT_HTML", async () => {
+    globalThis.fetch = dnsAware(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        headers: new Headers({ "content-type": "application/json" }),
+        text: () => Promise.resolve('{"a":1}'),
+        body: null,
+      }),
+    );
     await expect(analyzePage("https://mojweb.sk/api")).rejects.toMatchObject({
       name: "AnalyzeError",
       code: "NOT_HTML",
@@ -272,7 +297,7 @@ describe("fail-closed: every error is a typed AnalyzeError, never mock data", ()
   });
 
   it("runAnalysis propagates the typed error instead of returning mock analysis", async () => {
-    globalThis.fetch = vi.fn(() => Promise.reject(new Error("timeout")));
+    globalThis.fetch = dnsAware(() => Promise.reject(new Error("timeout")));
     await expect(
       runAnalysis("https://mojweb.sk", "https://konkurent.sk", "seo"),
     ).rejects.toMatchObject({ name: "AnalyzeError", code: "FETCH_FAILED" });

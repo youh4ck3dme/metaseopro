@@ -7,8 +7,8 @@ import { assertSafePublicUrl } from "@/lib/ssrf";
 
 const MAX_BODY_BYTES = 8 * 1024;
 
-function err(status: number, message: string): Response {
-  return new Response(JSON.stringify({ error: message }), {
+function err(status: number, message: string, code?: string): Response {
+  return new Response(JSON.stringify(code ? { error: message, code } : { error: message }), {
     status,
     headers: { "Content-Type": "application/json" },
   });
@@ -54,23 +54,23 @@ export const Route = createFileRoute("/api/raketa-analyze")({
           if (!parsed.success) return err(400, "Neplatný vstup. Skontroluj URL a keyword.");
 
           const ownUrl = normalizeUrl(parsed.data.ownUrl);
-          if (!ownUrl) return err(400, "Neplatná URL vlastného webu.");
+          if (!ownUrl) return err(400, "Neplatná URL vlastného webu.", "INVALID_URL");
           try {
             assertSafePublicUrl(ownUrl);
           } catch {
-            return err(400, "URL nie je povolená (SSRF ochrana).");
+            return err(400, "URL nie je povolená (SSRF ochrana).", "SSRF_BLOCKED");
           }
           const competitorUrl = parsed.data.competitorUrl
             ? normalizeUrl(parsed.data.competitorUrl)
             : "";
           if (parsed.data.competitorUrl && !competitorUrl) {
-            return err(400, "Neplatná URL konkurencie.");
+            return err(400, "Neplatná URL konkurencie.", "INVALID_URL");
           }
           if (competitorUrl) {
             try {
               assertSafePublicUrl(competitorUrl);
             } catch {
-              return err(400, "URL nie je povolená (SSRF ochrana).");
+              return err(400, "URL nie je povolená (SSRF ochrana).", "SSRF_BLOCKED");
             }
           }
 
