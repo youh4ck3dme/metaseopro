@@ -18,6 +18,26 @@ export function isGscConfigured(): boolean {
   return creds() !== null;
 }
 
+/**
+ * Platform admin e-mails come exclusively from the ADMIN_EMAILS env variable
+ * (comma-separated, trimmed, lowercased). Fail-closed: when the variable is
+ * missing or empty, the list is empty and nobody is treated as an admin.
+ * Admin addresses must never be hardcoded in source.
+ */
+function getAdminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS || "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function getAdminUserIds(): string[] {
+  return (process.env.ADMIN_USER_IDS || "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter(Boolean);
+}
+
 async function gscFetch(path: string, init?: RequestInit): Promise<Response> {
   const c = creds();
   if (!c) throw new Error("GSC_NOT_CONNECTED");
@@ -63,20 +83,11 @@ export async function listUserVerifiedProperties(
   userId: string,
   email?: string,
 ): Promise<VerifiedProperty[]> {
-  const adminEmails = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  const adminUserIds = (process.env.ADMIN_USER_IDS || "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
+  const adminEmails = getAdminEmails();
+  const adminUserIds = getAdminUserIds();
 
   const isPlatformOwner =
-    (email &&
-      (adminEmails.includes(email.toLowerCase()) ||
-        ["h4ck3d@h4ck3d.me", "erikbabcan@gmail.com"].includes(email.toLowerCase()))) ||
-    adminUserIds.includes(userId);
+    (email && adminEmails.includes(email.toLowerCase())) || adminUserIds.includes(userId);
 
   if (isPlatformOwner) {
     return listVerifiedProperties();
@@ -115,20 +126,11 @@ export async function assertUserPropertyAccess(
 ): Promise<string> {
   const verified = await assertVerifiedProperty(siteUrl);
 
-  const adminEmails = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  const adminUserIds = (process.env.ADMIN_USER_IDS || "")
-    .split(",")
-    .map((id) => id.trim())
-    .filter(Boolean);
+  const adminEmails = getAdminEmails();
+  const adminUserIds = getAdminUserIds();
 
   const isPlatformOwner =
-    (email &&
-      (adminEmails.includes(email.toLowerCase()) ||
-        ["h4ck3d@h4ck3d.me", "erikbabcan@gmail.com"].includes(email.toLowerCase()))) ||
-    adminUserIds.includes(userId);
+    (email && adminEmails.includes(email.toLowerCase())) || adminUserIds.includes(userId);
 
   if (isPlatformOwner) {
     return verified;
