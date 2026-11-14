@@ -5,7 +5,7 @@ import { normalizeUrl } from "@/lib/raketa-schema";
 import { isSafePublicUrl, safeFetch } from "@/lib/ssrf";
 
 const FETCH_TIMEOUT_MS = 12_000;
-const MAX_BYTES = 1_500_000; // ~1.5MB cap on downloaded HTML
+const MAX_BYTES = 5_000_000; // 5MB cap on downloaded HTML
 
 function decodeEntities(s: string): string {
   return s
@@ -144,9 +144,9 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
   }
 
   let html = "";
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
     const res = await safeFetch(url, {
       signal: controller.signal,
       headers: {
@@ -154,7 +154,6 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    clearTimeout(timer);
     if (!res.ok) {
       return mockAnalysis(url, `Stránka vrátila stav ${res.status}.`);
     }
@@ -181,6 +180,8 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
     }
   } catch {
     return mockAnalysis(url, "Web sa nepodarilo načítať (timeout alebo blokovanie).");
+  } finally {
+    clearTimeout(timer);
   }
 
   const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(html);
