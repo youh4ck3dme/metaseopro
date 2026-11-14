@@ -19,8 +19,11 @@ dist-ssr/
 .nitro/
 
 # Environment files & Local Secrets
-# NOTE: .env contains public Lovable/Supabase config needed by Lovable web client and SSR.
-# Never commit private keys to .env! Use .env.local for local secret overrides.
+# NOTE: .env and any .env.* variant are never committed (only .env.example is).
+# Never commit private keys! Use .env.local / platform secrets for local overrides.
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
 .env.development.local
