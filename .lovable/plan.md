@@ -1,35 +1,21 @@
-# Stav projektu SEO4WEB (Aktuálny stav & Plán)
+# Natívny "appkový" pocit na mobile pre SEO4WEB
 
-## ✅ Dokončené a plne funkčné (Overené)
+Aplikovať pravidlá z nahraného Master Promptu, upravené pre našu appku (TanStack Start, nie Next.js) a pre SEO nástroj, kde ľudia kopírujú výsledky.
 
-- **Kompletný modulárny systém:**
-  - `/` — Blog Writer + SERP Lab (generovanie SEO článkov, reálny Google SERP náhľad s presnou slovenskou diakritikou, A/B/C varianty titulkov a meta popisov, Schema.org JSON-LD).
-  - `/dashboard` — SEO Dashboard (Opportunity Radar, CTR Booster, KPI metriky, snapshoty, live skenovanie overených webov zo Search Console).
-  - `/decay` — Content Decay Radar (porovnanie dvoch 90-dňových periód s paralelizáciou concurrency: 4, decay skóre, query recovery mapa, AI refresh plán, demo aj live režim).
-  - `/audit` — SEO Audit domén (1–5 domén cez Semrush, content gap, quick wins, 30/60/90 dňový akčný plán).
-  - `/plan` — 30-dňový obsahový plán (pillar/cluster štruktúra, search intent, limit 1. dňa zadarmo).
-  - `/brief` — SEO Brief pre copywritera (SERP analýza, nadpisy H1-H3, E-E-A-T odporúčania).
-  - `/raketa` — SEO Raketa (kontrola on-page faktorov a URL, serverové načítanie HTML, porovnanie s konkurentom, AI odporúčania).
-  - `/history` — Centrálna história všetkých vygenerovaných výstupov s filtrami podľa typu.
-  - `/login` — Prihlásenie a registrácia (Supabase Auth: email + Google OAuth).
-- **Bezpečnosť & Multi-Tenancy:**
-  - Multi-tenant izolácia Google Search Console v `gsc.server.ts` (`listUserVerifiedProperties`, `assertUserPropertyAccess`) zabraňujúca krížovému úniku dát medzi používateľmi.
-  - Edge-safe Rate Limiter s LRU stropom `MAX_BUCKETS = 2000`, auto-pruningom a extrakciou klientskej IP z Cloudflare hlavičiek.
-- **Slovenská NLP & Geografická inteligencia:**
-  - Plná podpora všetkých krajských a okresných miest SR v `LOCATIONS`.
-  - Odstránený hardkód Bratislavy; dynamická validácia podľa zámeru dopytu a e-shopových potrieb.
-  - Kalibrovaný výpočet pixelových šírok fontu Arial (`textPixelWidth`) s precíznym zohľadnením úzkych a širokých znakov s diakritikou (`í`, `ĺ`, `ť`, `Á`, `Č`, `Ď`...).
-- **Technická integrita & Caching:**
-  - TypeScript kontrola (`tsc --noEmit` = 0 chýb).
-  - Vitest automatické testy (`bunx vitest run` = 7 súborov, 35/35 testov úspešných).
-  - Semrush L1/L2 medzipamäťové vrstvenie (`semrush_domain_cache` v Supabase s expiráciou 7 dní) a Circuit Breaker pre chyby 429 / ERROR 134.
-  - Tailwind CSS v4 s Lightning CSS a sémantickými OKLCH tokenmi v `src/styles.css`.
-  - TanStack Start v1 (React 19 + SSR + Vite 8).
-  - Supabase PostgreSQL s Row Level Security (RLS) a zabezpečenými JWT server endpointmi.
-  - Obojsmerná synchronizácia GitHub ↔ Lovable na vetve `main`.
+## Čo sa zmení
+1. **Pevná obrazovka** – zákaz pinch/double-tap zoomu, `viewport-fit=cover`, bez gumového odskakovania a pull-to-refresh, podpora výrezov iPhonu (safe-area).
+2. **Bez náhodného označovania** – dlhé podržanie na tlačidlách, kartách, menu už neoznačí text ani neotvorí systémové menu; zmizne modrý preblik pri ťuknutí.
+3. **Výnimky (dôležité pre SEO appku)** – označovanie a kopírovanie zostáva povolené v:
+   - poliach formulárov (input, textarea, select, editovateľný text),
+   - vygenerovaných výsledkoch: články Blog Writera, title/meta varianty CTR Boostera, SERP náhľady, URL a kľúčové slová v tabuľkách, kód/HTML/Markdown exporty.
+4. **Tlmené skrolovanie** – skrolovacie oblasti (menu drawer, modály, tabuľky) nepretečú na celú stránku; skryté desktopové scrollbary len na mobile/dotyku.
+5. Desktop sa správa ako doteraz (pravidlá anti-select a skryté scrollbary platia iba na dotykových zariadeniach).
 
-## 🔄 Nasledujúce kroky (Roadmapa k 9 000 €+ MRR)
+## Technické detaily
+- `src/routes/__root.tsx`: viewport meta `width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover`; `theme-color` z tmavého tokenu.
+- `src/styles.css` (za existujúce @import, bez narušenia poradia): blok pod `@media (hover: none) and (pointer: coarse)` s `user-select: none`, `-webkit-touch-callout: none`, `-webkit-tap-highlight-color: transparent`; výnimky `input, textarea, select, [contenteditable], pre, code, .prose, .selectable` s `user-select: text !important`.
+- `html, body { overscroll-behavior: none }`; utility `.native-scroll` (overscroll contain, touch pan-y, skrytý scrollbar) a `.safe-top/.safe-bottom`, ak už neexistujú z responzívneho kroku.
+- Pridať triedu `selectable` na výstupné bloky (Blog Writer výstup, CtrBooster varianty, Explorer URL/query bunky, SERP Lab) a `native-scroll` na drawer/modály.
+- Overenie: Playwright na 390px mobile (dlhé podržanie, písanie a vkladanie do polí, kopírovanie výsledku), desktop 1280px bez zmeny; vitest.
 
-1. **Fáza 2 (Semrush Cache & Quota Guard):** Implementácia 7-dňovej medzivrstvy v databáze pre ukladanie snapshotov Semrush auditov, eliminácia chýb 429.
-2. **Fáza 3 (Slovenský B2B Checkout & Paywall):** Integrácia Stripe s poľami pre IČO/DIČ/IČ DPH, webhook na generovanie slovenských faktúr (SuperFaktúra) a paywall brána nad 3 bezplatné URL.
-3. **Fáza 4 (Whitelabel Agency Engine):** Serverový generátor klientskych PDF reportov s logom agentúry a vlastnými farbami pre balík 249 €/mesiac.
+Poznámka: zákaz zoomu zhoršuje prístupnosť pre slabozrakých – ak chceš, môžeme zoom ponechať a zamknúť len double-tap.
