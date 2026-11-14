@@ -151,4 +151,20 @@ describe("ADMIN_EMAILS env-based admin resolution (fail-closed, no hardcoded add
       assertUserPropertyAccess("user-9", "https://vip-client.sk/", "stranger@example.com"),
     ).rejects.toThrow("GSC_USER_UNAUTHORIZED_FOR_PROPERTY");
   });
+
+  it("treats nobody as admin when ADMIN_EMAILS is completely unset", async () => {
+    stubCreds();
+    const original = process.env.ADMIN_EMAILS;
+    delete process.env.ADMIN_EMAILS;
+    try {
+      stubSites();
+      const props = await listUserVerifiedProperties("user-2", "whoever@example.com");
+      expect(props).toEqual([]);
+      await expect(
+        assertUserPropertyAccess("user-2", "https://vip-client.sk/", "whoever@example.com"),
+      ).rejects.toThrow("GSC_USER_UNAUTHORIZED_FOR_PROPERTY");
+    } finally {
+      if (original !== undefined) process.env.ADMIN_EMAILS = original;
+    }
+  });
 });
