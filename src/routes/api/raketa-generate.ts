@@ -1,3 +1,4 @@
+import { AI_CHAT_URL, AI_DEFAULT_MODEL } from "@/lib/ai-provider";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { RAKETA_LANGUAGES, RAKETA_OUTPUTS, type RaketaAnalysis } from "@/lib/raketa-schema";
@@ -85,8 +86,8 @@ export const Route = createFileRoute("/api/raketa-generate")({
           const parsed = InputSchema.safeParse(raw);
           if (!parsed.success) return err(400, "Neplatný vstup pre generovanie.");
 
-          const apiKey = process.env.LOVABLE_API_KEY;
-          if (!apiKey) return err(500, "LOVABLE_API_KEY nie je nakonfigurovaný.");
+          const apiKey = process.env.MISTRAL_API_KEY;
+          if (!apiKey) return err(500, "MISTRAL_API_KEY nie je nakonfigurovaný.");
 
           const userPrompt = buildRaketaUserPrompt({
             keyword: parsed.data.keyword,
@@ -95,14 +96,14 @@ export const Route = createFileRoute("/api/raketa-generate")({
             analysis: parsed.data.analysis as RaketaAnalysis,
           });
 
-          const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          const upstream = await fetch(AI_CHAT_URL, {
             method: "POST",
             headers: {
               Authorization: `Bearer ${apiKey}`,
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              model: "google/gemini-2.5-pro",
+              model: AI_DEFAULT_MODEL,
               stream: true,
               messages: [
                 { role: "system", content: RAKETA_SYSTEM_PROMPT },
