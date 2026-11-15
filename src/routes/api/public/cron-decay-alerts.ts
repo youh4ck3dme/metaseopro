@@ -8,11 +8,17 @@ import {
   sendDecayAlertEmail,
   type SiteAlertEvaluation,
 } from "@/lib/decay-alerts.server";
+import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "@/lib/supabase-server-env";
 
 function getSupabaseAdmin() {
-  const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !key) return null;
+  if (!key) return null;
+  let url: string;
+  try {
+    url = getServerSupabaseUrl();
+  } catch {
+    return null;
+  }
   return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });

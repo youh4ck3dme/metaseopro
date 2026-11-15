@@ -2,16 +2,23 @@
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import type { DecayDataset } from "./decay-schema";
+import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "./supabase-server-env";
 
 export async function saveDecaySnapshot(
   request: Request,
   userId: string,
   dataset: DecayDataset,
 ): Promise<string | null> {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_PUBLISHABLE_KEY;
+  let url: string;
+  let key: string;
+  try {
+    url = getServerSupabaseUrl();
+    key = getServerSupabasePublishableKey();
+  } catch {
+    return null;
+  }
   const token = request.headers.get("authorization")?.slice(7).trim();
-  if (!url || !key || !token) return null;
+  if (!token) return null;
 
   const supabase = createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
