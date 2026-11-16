@@ -139,6 +139,7 @@ function fixture(livemode = true) {
     price(id, livemode),
   );
   const listSubscriptions = vi.fn(async (_params: Stripe.SubscriptionListParams) => listing());
+  const retrieveSubscription = vi.fn(async (_id: string) => subscription("canceled", livemode));
   const retrieveSession = vi.fn(async (_id: string) => session(livemode, { id: "cs_previous" }));
   const expireSession = vi.fn(async (id: string) =>
     session(livemode, { id, status: "expired", url: null }),
@@ -174,7 +175,7 @@ function fixture(livemode = true) {
   const stripe = {
     customers: { retrieve: retrieveCustomer, create: createCustomer },
     prices: { retrieve: retrievePrice },
-    subscriptions: { list: listSubscriptions },
+    subscriptions: { list: listSubscriptions, retrieve: retrieveSubscription },
     checkout: {
       sessions: { retrieve: retrieveSession, expire: expireSession, create: createSession },
     },
@@ -189,11 +190,31 @@ function fixture(livemode = true) {
     createCustomer,
     retrievePrice,
     listSubscriptions,
+    retrieveSubscription,
     retrieveSession,
     expireSession,
     createSession,
     createPortal,
   };
+}
+
+function completedHistoricalCheckout() {
+  const f = fixture();
+  f.store.claim.mockResolvedValue(
+    claimed(true, { checkoutSessionId: "cs_previous", currentSubscriptionId: "sub_existing" }),
+  );
+  f.listSubscriptions.mockResolvedValue(listing([subscription("canceled")]));
+  f.retrieveSession.mockResolvedValue(
+    session(true, {
+      id: "cs_previous",
+      status: "complete",
+      url: null,
+      payment_status: "paid",
+      subscription: "sub_existing",
+      metadata: { checkoutOperationId: OLD_OPERATION },
+    }),
+  );
+  return f;
 }
 
 let networkGuard: ReturnType<typeof vi.fn<typeof fetch>>;
@@ -559,6 +580,129 @@ describe("preventing duplicate subscriptions and uncertain success", () => {
     expect(f.expireSession).not.toHaveBeenCalled();
     expect(f.createSession).not.toHaveBeenCalled();
     expect(f.store.finalize).not.toHaveBeenCalled();
+  });
+
+  it.each(["paid", "no_payment_required"] as const)(
+    "allows a new operation after an owned %s historical checkout and confirmed cancellation",
+    async (paymentStatus) => {
+      const f = completedHistoricalCheckout();
+      f.retrieveSession.mockResolvedValue(
+        session(true, {
+          id: "cs_previous",
+          status: "complete",
+          url: null,
+          payment_status: paymentStatus,
+          subscription: "sub_existing",
+          metadata: { checkoutOperationId: OLD_OPERATION },
+        }),
+      );
+      await expect(startCheckout(input, OWNER, f.deps)).resolves.toMatchObject({
+        sessionId: "cs_created",
+        mock: false,
+      });
+      expect(f.retrieveSubscription).toHaveBeenCalledWith("sub_existing");
+      expect(f.retrieveSubscription.mock.invocationCallOrder[0]).toBeLessThan(
+        f.createSession.mock.invocationCallOrder[0],
+      );
+      expect(f.createSession).toHaveBeenCalledTimes(1);
+      expect(f.createSession.mock.calls[0][1]?.idempotencyKey).toBe(
+        `seo4web:checkout:${OPERATION}`,
+      );
+      expect(f.expireSession).not.toHaveBeenCalled();
+      expect(f.store.finalize).toHaveBeenCalledWith(expect.anything(), "cs_created");
+    },
+  );
+
+  it("keeps an unpaid completed checkout blocked even when its subscription is terminal", async () => {
+    const f = completedHistoricalCheckout();
+    f.retrieveSession.mockResolvedValue(
+      session(true, {
+        id: "cs_previous",
+        status: "complete",
+        url: null,
+        payment_status: "unpaid",
+        subscription: "sub_existing",
+        metadata: { checkoutOperationId: OLD_OPERATION },
+      }),
+    );
+    await expect(startCheckout(input, OWNER, f.deps)).rejects.toMatchObject({
+      code: "PAYMENT_PENDING",
+    });
+    expect(f.retrieveSubscription).not.toHaveBeenCalled();
+    expect(f.createSession).not.toHaveBeenCalled();
+  });
+
+  it.each<{ label: string; metadata?: Stripe.Metadata; subscription?: null }>([
+    { label: "same operation", metadata: { checkoutOperationId: OPERATION } },
+    { label: "legacy operation", metadata: {} },
+    { label: "invalid operation", metadata: { checkoutOperationId: "not-an-operation-uuid" } },
+    { label: "missing subscription", subscription: null },
+  ])("does not bypass completion with $label evidence", async ({ label: _label, ...changes }) => {
+    const f = completedHistoricalCheckout();
+    f.retrieveSession.mockResolvedValue(
+      session(true, {
+        id: "cs_previous",
+        status: "complete",
+        url: null,
+        payment_status: "paid",
+        subscription: "sub_existing",
+        metadata: { checkoutOperationId: OLD_OPERATION },
+        ...changes,
+      }),
+    );
+    await expect(startCheckout(input, OWNER, f.deps)).rejects.toMatchObject({
+      code: "PAYMENT_PENDING",
+    });
+    expect(f.retrieveSubscription).not.toHaveBeenCalled();
+    expect(f.createSession).not.toHaveBeenCalled();
+  });
+
+  it("does not replay a completed operation even with a different historical pointer", async () => {
+    const f = completedHistoricalCheckout();
+    f.store.claim.mockResolvedValue(
+      claimed(true, { checkoutSessionId: "cs_previous", checkoutOperationCompleted: true }),
+    );
+    await expect(startCheckout(input, OWNER, f.deps)).rejects.toMatchObject({
+      code: "PAYMENT_PENDING",
+    });
+    expect(f.retrieveSubscription).not.toHaveBeenCalled();
+    expect(f.createSession).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: "wrong ID", id: "sub_other" },
+    { label: "wrong customer", customer: "cus_other" },
+    { label: "wrong mode", livemode: false },
+    { label: "wrong metadata owner", metadata: { userId: OTHER } },
+  ])("rejects historical subscription with $label", async ({ label: _label, ...changes }) => {
+    const f = completedHistoricalCheckout();
+    f.retrieveSubscription.mockResolvedValue({ ...subscription("canceled"), ...changes });
+    await expect(startCheckout(input, OWNER, f.deps)).rejects.toMatchObject({
+      code: "SUBSCRIPTION_OWNER_MISMATCH",
+    });
+    expect(f.createSession).not.toHaveBeenCalled();
+    expect(f.store.fail).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["active", "incomplete", "past_due", "paused"] as const)(
+    "does not bypass a completed checkout when refreshed subscription is %s",
+    async (status) => {
+      const f = completedHistoricalCheckout();
+      f.retrieveSubscription.mockResolvedValue(subscription(status));
+      await expect(startCheckout(input, OWNER, f.deps)).rejects.toMatchObject({
+        code: "PAYMENT_PENDING",
+      });
+      expect(f.createSession).not.toHaveBeenCalled();
+      expect(f.store.fail).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("does not create when historical subscription verification is unavailable", async () => {
+    const f = completedHistoricalCheckout();
+    f.retrieveSubscription.mockRejectedValue(new Error("Fixture lookup unavailable"));
+    await expect(startCheckout(input, OWNER, f.deps)).rejects.toThrow("Fixture lookup unavailable");
+    expect(f.createSession).not.toHaveBeenCalled();
+    expect(f.store.fail).toHaveBeenCalledTimes(1);
   });
 
   it("does not replace a session unless Stripe confirms expiration of that owned session", async () => {

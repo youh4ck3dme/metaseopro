@@ -335,12 +335,62 @@ export async function startCheckout(
           "Vlastníka predchádzajúcej platby sa nepodarilo overiť.",
         );
       }
-      if (previous.status === "complete")
-        billingError(
-          "PAYMENT_PENDING",
-          "Predchádzajúca platba sa spracúva. Obnov stav predplatného.",
-        );
-      if (previous.status !== "open" && previous.status !== "expired") {
+      let resolvedHistoricalCheckout = false;
+      if (previous.status === "complete") {
+        const previousOperationId = z
+          .string()
+          .uuid()
+          .safeParse(previous.metadata?.checkoutOperationId);
+        const subscriptionId =
+          typeof previous.subscription === "string"
+            ? previous.subscription
+            : previous.subscription?.id;
+        // A completed session remains complete after its subscription ends. Only a new
+        // operation may pass that historical pointer; an unsettled/legacy result needs review.
+        if (
+          claim.checkoutOperationCompleted ||
+          !previousOperationId.success ||
+          previousOperationId.data === claim.checkoutOperationId ||
+          (previous.payment_status !== "paid" &&
+            previous.payment_status !== "no_payment_required") ||
+          !subscriptionId ||
+          !/^sub_[A-Za-z0-9_]+$/.test(subscriptionId)
+        ) {
+          billingError(
+            "PAYMENT_PENDING",
+            "Predchádzajúca platba sa spracúva alebo čaká na overenie. Obnov stav predplatného.",
+          );
+        }
+        const historicalSubscription = await stripe.subscriptions.retrieve(subscriptionId);
+        const historicalCustomer =
+          typeof historicalSubscription.customer === "string"
+            ? historicalSubscription.customer
+            : historicalSubscription.customer.id;
+        if (
+          historicalSubscription.id !== subscriptionId ||
+          historicalCustomer !== customerId ||
+          historicalSubscription.livemode !== deps.livemode ||
+          (historicalSubscription.metadata?.userId &&
+            historicalSubscription.metadata.userId !== userId)
+        ) {
+          billingError(
+            "SUBSCRIPTION_OWNER_MISMATCH",
+            "Vlastníka predchádzajúceho predplatného sa nepodarilo overiť.",
+          );
+        }
+        if (blocksNewCheckout(historicalSubscription.status)) {
+          billingError(
+            "PAYMENT_PENDING",
+            "Predchádzajúce predplatné ešte nie je ukončené. Obnov stav predplatného.",
+          );
+        }
+        resolvedHistoricalCheckout = true;
+      }
+      if (
+        previous.status !== "open" &&
+        previous.status !== "expired" &&
+        !resolvedHistoricalCheckout
+      ) {
         billingError(
           "RECONCILIATION_REQUIRED",
           "Stav predchádzajúcej platby nie je známy. Najprv ho musí overiť podpora.",

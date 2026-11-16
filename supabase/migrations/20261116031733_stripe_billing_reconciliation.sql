@@ -28,8 +28,9 @@ CREATE UNIQUE INDEX IF NOT EXISTS billing_subscription_customer_unique
 CREATE UNIQUE INDEX IF NOT EXISTS billing_subscription_id_unique
   ON public.subscriptions(stripe_subscription_id) WHERE stripe_subscription_id IS NOT NULL;
 
+-- User UUIDs stay application-owned references; do not add FKs into the managed auth schema.
 CREATE TABLE public.billing_customers (
-  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid PRIMARY KEY,
   stripe_customer_id text NOT NULL UNIQUE CHECK (stripe_customer_id ~ '^cus_[A-Za-z0-9_]+$'),
   livemode boolean NOT NULL,
   checkout_session_id text,
@@ -50,10 +51,12 @@ CREATE TABLE public.billing_customers (
         OR (lease_kind='checkout' AND lease_event_id IS NULL AND lease_checkout_operation_id IS NOT NULL)))
   )
 );
+REVOKE ALL ON public.billing_customers FROM public, anon, authenticated;
+GRANT ALL ON public.billing_customers TO service_role;
 
 CREATE TABLE public.billing_checkout_operations (
   operation_id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
   customer_id text NOT NULL REFERENCES public.billing_customers(stripe_customer_id),
   livemode boolean NOT NULL,
   request_hash text NOT NULL CHECK (request_hash ~ '^[a-f0-9]{64}$'),
@@ -63,21 +66,25 @@ CREATE TABLE public.billing_checkout_operations (
   updated_at timestamptz NOT NULL DEFAULT now(),
   CHECK (status <> 'completed' OR checkout_session_id IS NOT NULL)
 );
+REVOKE ALL ON public.billing_checkout_operations FROM public, anon, authenticated;
+GRANT ALL ON public.billing_checkout_operations TO service_role;
 CREATE UNIQUE INDEX billing_checkout_one_pending
   ON public.billing_checkout_operations(customer_id) WHERE status='pending';
 
 CREATE TABLE public.billing_checkout_requests (
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
   request_id uuid NOT NULL,
   request_hash text NOT NULL CHECK (request_hash ~ '^[a-f0-9]{64}$'),
   operation_id uuid NOT NULL REFERENCES public.billing_checkout_operations(operation_id) ON DELETE CASCADE,
   created_at timestamptz NOT NULL DEFAULT now(),
   PRIMARY KEY (user_id,request_id)
 );
+REVOKE ALL ON public.billing_checkout_requests FROM public, anon, authenticated;
+GRANT ALL ON public.billing_checkout_requests TO service_role;
 
 CREATE TABLE public.billing_webhook_events (
   event_id text PRIMARY KEY CHECK (event_id ~ '^evt_[A-Za-z0-9_]+$'),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
   customer_id text NOT NULL REFERENCES public.billing_customers(stripe_customer_id),
   livemode boolean NOT NULL,
   event_type text NOT NULL CHECK (event_type IN (
@@ -95,10 +102,12 @@ CREATE TABLE public.billing_webhook_events (
   updated_at timestamptz NOT NULL DEFAULT now(),
   completed_at timestamptz
 );
+REVOKE ALL ON public.billing_webhook_events FROM public, anon, authenticated;
+GRANT ALL ON public.billing_webhook_events TO service_role;
 
 CREATE TABLE public.billing_invoice_references (
   invoice_id text PRIMARY KEY CHECK (invoice_id ~ '^in_[A-Za-z0-9_]+$'),
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL,
   customer_id text NOT NULL REFERENCES public.billing_customers(stripe_customer_id),
   livemode boolean NOT NULL,
   subscription_id text,
@@ -111,6 +120,9 @@ CREATE TABLE public.billing_invoice_references (
   stripe_created bigint NOT NULL CHECK (stripe_created BETWEEN 0 AND 253402300799),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+REVOKE ALL ON public.billing_invoice_references FROM public, anon, authenticated;
+GRANT ALL ON public.billing_invoice_references TO service_role;
+GRANT SELECT ON public.billing_invoice_references TO authenticated;
 CREATE INDEX billing_invoice_owner_created
   ON public.billing_invoice_references(user_id,stripe_created DESC,invoice_id DESC);
 
@@ -124,13 +136,6 @@ ALTER TABLE public.billing_webhook_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.billing_webhook_events FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.billing_invoice_references ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.billing_invoice_references FORCE ROW LEVEL SECURITY;
-REVOKE ALL ON public.billing_customers, public.billing_checkout_operations,
-  public.billing_checkout_requests, public.billing_webhook_events, public.billing_invoice_references
-  FROM public, anon, authenticated;
-GRANT ALL ON public.billing_customers, public.billing_checkout_operations,
-  public.billing_checkout_requests, public.billing_webhook_events, public.billing_invoice_references
-  TO service_role;
-GRANT SELECT ON public.billing_invoice_references TO authenticated;
 CREATE POLICY billing_invoice_owner_read ON public.billing_invoice_references
   FOR SELECT TO authenticated USING ((SELECT auth.uid())=user_id);
 
