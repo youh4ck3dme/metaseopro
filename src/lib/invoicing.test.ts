@@ -7,6 +7,7 @@ import {
   resolveCountryId,
   sendInvoiceEmail,
   REVERSE_CHARGE_NOTICE,
+  type InvoiceResult,
   type VerifiedTaxDecision,
 } from "./invoicing.server";
 
@@ -35,6 +36,26 @@ function successBody() {
       Summary: { invoice_total: 39 },
     },
   };
+}
+function emailSuccessBody() {
+  return {
+    error: 0,
+    data: {
+      Invoice: {
+        invoice_id: "98765",
+        recipient: "fixture@example.invalid",
+        email: "fixture@example.invalid",
+      },
+    },
+  };
+}
+function configureFixtureProvider() {
+  vi.stubEnv("SUPERFAKTURA_INVOICING_ENABLED", "true");
+  vi.stubEnv("SUPERFAKTURA_EMAIL_ENABLED", "true");
+  vi.stubEnv("SUPERFAKTURA_EMAIL", "fixture@example.invalid");
+  vi.stubEnv("SUPERFAKTURA_API_KEY", "synthetic-fixture-only");
+  vi.stubEnv("SUPERFAKTURA_COMPANY_ID", "1");
+  vi.stubEnv("SUPERFAKTURA_API_URL", "https://sandbox.superfaktura.sk");
 }
 function fixtureFetch(body: unknown = successBody(), status = 200) {
   return vi.fn<typeof fetch>().mockResolvedValue(
@@ -297,7 +318,7 @@ describe("SuperFaktura provider boundary", () => {
 describe("invoice delivery", () => {
   it("does not simulate delivery without a confirmed invoice", async () => {
     const request = fixtureFetch();
-    expect(await sendInvoiceEmail(98765, "fixture@example.invalid", request)).toEqual({
+    expect(await sendInvoiceEmail(98765, "fixture@example.invalid", request)).toMatchObject({
       success: false,
       mock: false,
       message: "CONFIRMED_INVOICE_REQUIRED",
@@ -328,25 +349,161 @@ describe("invoice delivery", () => {
 
   it("uses the documented /invoices/send route and requires an application success result", async () => {
     const receipt = await createSuperfakturaInvoice(payload(), fixtureFetch(), testOptions);
-    const request = fixtureFetch({ error: 0 });
+    const request = fixtureFetch(emailSuccessBody());
     expect(
       await sendInvoiceEmail(98765, receipt.client.email, request, {
         mode: "test",
         confirmedInvoice: receipt,
       }),
-    ).toEqual({ success: true, mock: true });
+    ).toEqual({ success: true, mock: true, status: "mock", requiresReconciliation: false });
     expect(request.mock.calls[0][0]).toBe("https://superfaktura.invalid/invoices/send");
+    expect(JSON.parse(String(request.mock.calls[0][1]?.body))).toEqual({
+      Email: { invoice_id: 98765, to: receipt.client.email, pdf_language: "slo" },
+    });
     expect(
       await sendInvoiceEmail(98765, receipt.client.email, fixtureFetch({ error: 13 }), {
         mode: "test",
         confirmedInvoice: receipt,
       }),
-    ).toEqual({ success: false, mock: false, message: "EMAIL_NOT_CONFIRMED" });
+    ).toEqual({
+      success: false,
+      mock: false,
+      status: "not_sent",
+      message: "EMAIL_NOT_CONFIRMED",
+      requiresReconciliation: false,
+    });
     expect(
       await sendInvoiceEmail(98765, receipt.client.email, fixtureFetch({}), {
         mode: "test",
         confirmedInvoice: receipt,
       }),
-    ).toEqual({ success: false, mock: false, message: "EMAIL_NOT_CONFIRMED" });
+    ).toEqual({
+      success: false,
+      mock: false,
+      status: "unknown",
+      message: "EMAIL_OUTCOME_UNKNOWN",
+      requiresReconciliation: true,
+    });
+  });
+
+  it.each([
+    { error: 0 },
+    { error: 0, data: { Invoice: {} } },
+    { error: 0, data: { Invoice: { invoice_id: "123", recipient: "fixture@example.invalid" } } },
+    { error: 0, data: { Invoice: { invoice_id: "98765", recipient: "other@example.invalid" } } },
+    { error: 0, data: { Invoice: { invoice_id: "98765" } } },
+    { error: "0" },
+    null,
+  ])(
+    "does not confirm delivery from an incomplete or unrelated acknowledgement: %j",
+    async (body) => {
+      const receipt = await createSuperfakturaInvoice(payload(), fixtureFetch(), testOptions);
+      const request = fixtureFetch(body);
+      expect(
+        await sendInvoiceEmail(98765, receipt.client.email, request, {
+          mode: "test",
+          confirmedInvoice: receipt,
+        }),
+      ).toMatchObject({ success: false, status: "unknown", requiresReconciliation: true });
+      expect(request).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("keeps the confirmed recipient independent of a subsequently edited payload", async () => {
+    const input = payload();
+    const receipt = await createSuperfakturaInvoice(input, fixtureFetch(), testOptions);
+    input.Client.email = "changed@example.invalid";
+    expect(receipt.client.email).toBe("fixture@example.invalid");
+    const request = fixtureFetch(emailSuccessBody());
+    expect(
+      await sendInvoiceEmail(98765, input.Client.email, request, {
+        mode: "test",
+        confirmedInvoice: receipt,
+      }),
+    ).toMatchObject({ success: false, status: "not_sent" });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { success: true, mock: false, invoiceId: "98765" },
+    { success: true, mock: false, invoiceId: "98765", client: null },
+    { success: true, mock: false, invoiceId: "98765", client: { email: 123 } },
+    { success: true, mock: false, invoiceId: "98765", client: { email: "" } },
+  ])("rejects incomplete stored receipts without throwing: %j", async (receipt) => {
+    const request = fixtureFetch(emailSuccessBody());
+    await expect(
+      sendInvoiceEmail(98765, "fixture@example.invalid", request, {
+        mode: "test",
+        confirmedInvoice: receipt as InvoiceResult,
+      }),
+    ).resolves.toMatchObject({ success: false, status: "not_sent" });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each(["", " ", "not-an-email", "first@example.invalid,second@example.invalid"])(
+    "rejects an invalid invoice recipient before creating any invoice: %s",
+    async (email) => {
+      const input = payload();
+      input.Client.email = email;
+      const request = fixtureFetch();
+      expect(await createSuperfakturaInvoice(input, request, testOptions)).toMatchObject({
+        success: false,
+        errorCode: "INVALID_CLIENT",
+      });
+      expect(request).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["origin", "company"])(
+    "does not send an invoice after its provider %s changes",
+    async (change) => {
+      configureFixtureProvider();
+      const receipt = await createSuperfakturaInvoice(payload(), fixtureFetch(), {
+        taxDecision: taxable,
+      });
+      expect(receipt.success).toBe(true);
+      if (change === "origin")
+        vi.stubEnv("SUPERFAKTURA_API_URL", "https://sandbox.superfaktura.cz");
+      else vi.stubEnv("SUPERFAKTURA_COMPANY_ID", "2");
+      const request = fixtureFetch(emailSuccessBody());
+      expect(
+        await sendInvoiceEmail(98765, receipt.client.email, request, { confirmedInvoice: receipt }),
+      ).toMatchObject({ success: false, status: "not_sent", message: "INVOICE_PROVIDER_MISMATCH" });
+      expect(request).not.toHaveBeenCalled();
+    },
+  );
+
+  it("reports provider acceptance separately from inbox delivery", async () => {
+    configureFixtureProvider();
+    const receipt = await createSuperfakturaInvoice(payload(), fixtureFetch(), {
+      taxDecision: taxable,
+    });
+    const request = fixtureFetch(emailSuccessBody());
+    expect(
+      await sendInvoiceEmail(98765, receipt.client.email, request, { confirmedInvoice: receipt }),
+    ).toEqual({ success: true, mock: false, status: "accepted", requiresReconciliation: false });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves uncertainty after an HTTP error, invalid JSON or timeout and never retries", async () => {
+    const receipt = await createSuperfakturaInvoice(payload(), fixtureFetch(), testOptions);
+    for (const request of [
+      fixtureFetch({ error: 0 }, 500),
+      vi.fn<typeof fetch>().mockResolvedValue(new Response("not JSON")),
+      vi.fn<typeof fetch>().mockRejectedValue(new Error("sensitive provider details")),
+    ]) {
+      const result = await sendInvoiceEmail(98765, receipt.client.email, request, {
+        mode: "test",
+        confirmedInvoice: receipt,
+      });
+      expect(result).toEqual({
+        success: false,
+        mock: false,
+        status: "unknown",
+        message: "EMAIL_OUTCOME_UNKNOWN",
+        requiresReconciliation: true,
+      });
+      expect(request).toHaveBeenCalledTimes(1);
+    }
   });
 });

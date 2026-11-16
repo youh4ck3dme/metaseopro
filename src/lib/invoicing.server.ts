@@ -2,6 +2,8 @@
 // Tax decisions must come from a reviewed server-side accounting record;
 // this module validates their shape, not their legal correctness.
 
+import { z } from "zod";
+
 export interface InvoicingClient {
   name: string;
   ico?: string;
@@ -63,6 +65,8 @@ export interface InvoiceResult {
   taxRate: number;
   reverseCharge: boolean;
   client: InvoicingClient;
+  /** Provider scope of a trusted server-side create receipt; contains no credentials. */
+  provider?: Readonly<{ origin: string; companyId: string }>;
   error?: string;
   errorCode?: string;
   requiresReconciliation?: boolean;
@@ -72,6 +76,31 @@ export interface InvoiceExecutionOptions {
   taxDecision?: VerifiedTaxDecision;
   /** Test fixtures require NODE_ENV=test and an injected fetch. No real credentials are used. */
   mode?: "test";
+}
+
+export type InvoiceEmailResult =
+  | { success: true; mock: false; status: "accepted"; requiresReconciliation: false }
+  | { success: true; mock: true; status: "mock"; requiresReconciliation: false }
+  | {
+      success: false;
+      mock: false;
+      status: "not_sent";
+      message: string;
+      requiresReconciliation: false;
+    }
+  | {
+      success: false;
+      mock: false;
+      status: "unknown";
+      message: string;
+      requiresReconciliation: true;
+    };
+
+const InvoiceEmailSchema = z.string().trim().max(254).email();
+
+function invoiceEmail(value: unknown): string | undefined {
+  const parsed = InvoiceEmailSchema.safeParse(value);
+  return parsed.success ? parsed.data : undefined;
 }
 
 export const REVERSE_CHARGE_NOTICE = "Prenesenie daňovej povinnosti";
@@ -204,7 +233,7 @@ export function buildSuperfakturaPayload(options: {
   if (options.client.country_id !== undefined && options.client.country_id !== countryId) {
     throw new Error("COUNTRY_MISMATCH: Krajina a provider country_id sa nezhodujú.");
   }
-  if (!options.plan.trim() || !options.client.name.trim() || !options.client.email.trim()) {
+  if (!options.plan.trim() || !options.client.name.trim() || !invoiceEmail(options.client.email)) {
     throw new Error("INVALID_INVOICE_INPUT: Chýbajú identifikačné údaje faktúry.");
   }
   const calculation = calculateInvoiceAmounts(options.amountTotal, decision);
@@ -235,7 +264,7 @@ export function buildSuperfakturaPayload(options: {
   };
 }
 
-type ProviderConfig = { baseUrl: string; authorization: string; test: boolean };
+type ProviderConfig = { baseUrl: string; companyId: string; authorization: string; test: boolean };
 
 function providerConfig(fetchFn: typeof fetch | undefined, mode?: "test"): ProviderConfig {
   if (mode === "test") {
@@ -244,6 +273,7 @@ function providerConfig(fetchFn: typeof fetch | undefined, mode?: "test"): Provi
     }
     return {
       baseUrl: "https://superfaktura.invalid",
+      companyId: "1",
       authorization:
         "SFAPI email=fixture%40example.invalid&apikey=fixture&module=SEO4WEB%20test&company_id=1",
       test: true,
@@ -277,7 +307,7 @@ function providerConfig(fetchFn: typeof fetch | undefined, mode?: "test"): Provi
     Object.entries(fields)
       .map(([key, value]) => key + "=" + encodeURIComponent(value))
       .join("&");
-  return { baseUrl: configuredUrl.replace(/\/$/, ""), authorization, test: false };
+  return { baseUrl: configuredUrl.replace(/\/$/, ""), companyId, authorization, test: false };
 }
 
 function checkedPayload(payload: CreateInvoicePayload, decision: VerifiedTaxDecision): number {
@@ -297,7 +327,7 @@ function checkedPayload(payload: CreateInvoicePayload, decision: VerifiedTaxDeci
     throw new Error("INVALID_REVERSE_CHARGE_NOTICE");
   if (
     !payload.Client.name?.trim() ||
-    !payload.Client.email?.trim() ||
+    !invoiceEmail(payload.Client.email) ||
     payload.Client.country_id !== resolveCountryId(payload.Client.country)
   )
     throw new Error("INVALID_CLIENT");
@@ -340,6 +370,9 @@ export async function createSuperfakturaInvoice(
 ): Promise<InvoiceResult> {
   let decision: VerifiedTaxDecision | undefined;
   let totalAmount = 0;
+  // The caller can reuse/edit its payload while awaiting the provider. Keep the confirmed client
+  // independent of that mutable object so later edits cannot redirect an existing invoice.
+  const client = Object.freeze({ ...payload.Client });
   const fail = (
     errorCode: string,
     requiresReconciliation = false,
@@ -353,7 +386,7 @@ export async function createSuperfakturaInvoice(
     totalAmount,
     taxRate: decision?.taxRate ?? 0,
     reverseCharge: decision?.treatment === "reverse_charge",
-    client: payload.Client,
+    client,
     errorCode,
     // No provider bodies, customer details, URLs or exception messages enter logs/errors.
     error: requiresReconciliation
@@ -431,54 +464,90 @@ export async function createSuperfakturaInvoice(
       totalAmount: roundMoney(providerTotal),
       taxRate: decision.taxRate,
       reverseCharge: decision.treatment === "reverse_charge",
-      client: payload.Client,
+      client,
+      provider: Object.freeze({ origin: config.baseUrl, companyId: config.companyId }),
     };
   } catch {
     return fail("PROVIDER_OUTCOME_UNKNOWN", true);
   }
 }
 
-/** Explicitly enabled delivery of a confirmed invoice; never used by the checkout webhook. */
+/**
+ * Explicitly enabled sending of a confirmed invoice; never used by the checkout webhook.
+ * A receipt must come from trusted server-side storage, not a caller-supplied JSON object.
+ * "accepted" confirms the provider acknowledgement, not delivery to the recipient's inbox.
+ * Reconcile an unknown result before retrying; this function never retries or recreates invoices.
+ */
 export async function sendInvoiceEmail(
   invoiceId: number | string,
   recipientEmail: string,
   fetchFn?: typeof fetch,
   options: { mode?: "test"; confirmedInvoice?: InvoiceResult } = {},
-): Promise<{ success: boolean; mock: boolean; message?: string }> {
-  const receipt = options.confirmedInvoice;
+): Promise<InvoiceEmailResult> {
+  const fail = (message: string, uncertain = false): InvoiceEmailResult =>
+    uncertain
+      ? { success: false, mock: false, status: "unknown", message, requiresReconciliation: true }
+      : { success: false, mock: false, status: "not_sent", message, requiresReconciliation: false };
+  const receipt = record(options.confirmedInvoice);
+  const invoice = numericId(invoiceId);
+  const recipient = invoiceEmail(recipientEmail);
+  const confirmedRecipient = invoiceEmail(record(receipt?.client)?.email);
+  const provider = record(receipt?.provider);
   if (
-    !numericId(invoiceId) ||
-    !receipt?.success ||
-    String(receipt.invoiceId) !== String(invoiceId) ||
-    receipt.client.email.trim().toLowerCase() !== recipientEmail.trim().toLowerCase() ||
-    (options.mode !== "test" && receipt.mock)
+    !invoice ||
+    !recipient ||
+    !confirmedRecipient ||
+    receipt?.success !== true ||
+    (receipt.mock !== true && receipt.mock !== false) ||
+    receipt.requiresReconciliation === true ||
+    numericId(receipt.invoiceId) !== invoice ||
+    confirmedRecipient.toLowerCase() !== recipient.toLowerCase() ||
+    typeof provider?.origin !== "string" ||
+    typeof provider.companyId !== "string" ||
+    (options.mode !== "test" && receipt.mock === true)
   )
-    return { success: false, mock: false, message: "CONFIRMED_INVOICE_REQUIRED" };
+    return fail("CONFIRMED_INVOICE_REQUIRED");
   if (options.mode !== "test" && process.env.SUPERFAKTURA_EMAIL_ENABLED !== "true") {
-    return { success: false, mock: false, message: "INVOICE_EMAIL_DISABLED" };
+    return fail("INVOICE_EMAIL_DISABLED");
   }
   let config: ProviderConfig;
   try {
     config = providerConfig(fetchFn, options.mode);
   } catch {
-    return { success: false, mock: false, message: "INVOICING_NOT_CONFIGURED" };
+    return fail("INVOICING_NOT_CONFIGURED");
   }
+  if (provider.origin !== config.baseUrl || provider.companyId !== config.companyId)
+    return fail("INVOICE_PROVIDER_MISMATCH");
   try {
     const res = await (fetchFn ?? fetch)(config.baseUrl + "/invoices/send", {
       method: "POST",
       redirect: "error",
       headers: { Authorization: config.authorization, "Content-Type": "application/json" },
       body: JSON.stringify({
-        Email: { invoice_id: Number(invoiceId), to: recipientEmail, pdf_language: "slo" },
+        Email: { invoice_id: Number(invoice), to: recipient, pdf_language: "slo" },
       }),
       signal: AbortSignal.timeout(15_000),
     });
-    if (!res.ok) return { success: false, mock: false, message: "EMAIL_OUTCOME_UNKNOWN" };
+    if (!res.ok) return fail("EMAIL_OUTCOME_UNKNOWN", true);
     const response = record(await res.json());
-    if (response?.error !== 0)
-      return { success: false, mock: false, message: "EMAIL_NOT_CONFIRMED" };
-    return { success: true, mock: config.test };
+    if (
+      typeof response?.error === "number" &&
+      Number.isSafeInteger(response.error) &&
+      response.error > 0
+    )
+      return fail("EMAIL_NOT_CONFIRMED");
+    const acknowledgement = record(record(response?.data)?.Invoice);
+    const acknowledgedRecipient = invoiceEmail(acknowledgement?.recipient);
+    if (
+      response?.error !== 0 ||
+      numericId(acknowledgement?.invoice_id) !== invoice ||
+      acknowledgedRecipient?.toLowerCase() !== recipient.toLowerCase()
+    )
+      return fail("EMAIL_OUTCOME_UNKNOWN", true);
+    return config.test
+      ? { success: true, mock: true, status: "mock", requiresReconciliation: false }
+      : { success: true, mock: false, status: "accepted", requiresReconciliation: false };
   } catch {
-    return { success: false, mock: false, message: "EMAIL_OUTCOME_UNKNOWN" };
+    return fail("EMAIL_OUTCOME_UNKNOWN", true);
   }
 }
