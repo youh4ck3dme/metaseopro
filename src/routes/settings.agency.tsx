@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { AppHeader } from "@/components/AppHeader";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
@@ -30,9 +31,26 @@ import { PaywallModal } from "@/components/PaywallModal";
 import { ClientReportModal } from "@/components/ClientReportModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BillingInvoiceSection } from "@/components/BillingInvoiceSection";
+import { BillingPortalCard } from "@/components/BillingPortalCard";
 import { CmsConnectionsSection } from "@/components/CmsConnectionsSection";
+import { createCustomerPortalSession, getUserSubscription } from "@/lib/billing.functions";
+import { checkoutPlanLabel } from "@/lib/billing-ui";
+import { PLANS, type PlanId } from "@/lib/slovak-billing";
+
+type SettingsTab = "branding" | "cms" | "billing";
+type SettingsSearch = { tab?: SettingsTab };
+type SubscriptionState =
+  | { userId: string; status: "loading" }
+  | { userId: string; status: "error"; message: string }
+  | { userId: string; status: "ready"; plan: PlanId; hasStripeCustomer: boolean };
 
 export const Route = createFileRoute("/settings/agency")({
+  validateSearch: (search: Record<string, unknown>): SettingsSearch => ({
+    tab:
+      search.tab === "branding" || search.tab === "cms" || search.tab === "billing"
+        ? search.tab
+        : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Nastavenia agentúry & Whitelabel Branding — SEO4WEB" },
@@ -67,6 +85,11 @@ const COLOR_PRESETS = [
 function AgencySettingsPage() {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { tab = "branding" } = Route.useSearch();
+  const loadSubscription = useServerFn(getUserSubscription);
+  const startPortal = useServerFn(createCustomerPortalSession);
+  const userId = user?.id;
+  const activeUserId = useRef(userId);
 
   const [agencyName, setAgencyName] = useState(DEFAULT_AGENCY_PROFILE.agency_name);
   const [logoUrl, setLogoUrl] = useState<string>("");
@@ -78,18 +101,65 @@ function AgencySettingsPage() {
 
   const [saving, setSaving] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
-  const [userPlan, setUserPlan] = useState<"free" | "pro" | "agency">("free");
+  const [subscriptionState, setSubscriptionState] = useState<SubscriptionState | null>(null);
+  const [subscriptionRetry, setSubscriptionRetry] = useState(0);
+  const [openingPortal, setOpeningPortal] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  const currentSubscription = subscriptionState?.userId === userId ? subscriptionState : null;
+  const userPlan = currentSubscription?.status === "ready" ? currentSubscription.plan : undefined;
+
+  useEffect(() => {
+    activeUserId.current = userId;
+    setOpeningPortal(false);
+    return () => {
+      activeUserId.current = undefined;
+    };
+  }, [userId]);
 
   // Authentication redirect guard - immediately redirect unauthenticated users
   useEffect(() => {
     if (!authLoading && !user) {
-      void navigate({ to: "/login", search: { redirect: "/settings/agency" } });
+      void navigate({ to: "/login", search: { redirect: `/settings/agency?tab=${tab}` } });
     }
-  }, [user, authLoading, navigate]);
+  }, [user, authLoading, navigate, tab]);
 
-  // Load existing profile and subscription
+  // Billing errors remain visible and do not block independent branding data.
+  useEffect(() => {
+    if (!userId) return;
+    const currentUserId = userId;
+    let active = true;
+    setSubscriptionState({ userId: currentUserId, status: "loading" });
+
+    void loadSubscription()
+      .then((subscription) => {
+        if (!active) return;
+        setSubscriptionState({
+          userId: currentUserId,
+          status: "ready",
+          plan: subscription.plan,
+          hasStripeCustomer: subscription.hasStripeCustomer,
+        });
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setSubscriptionState({
+          userId: currentUserId,
+          status: "error",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Nepodarilo sa načítať predplatné. Skúste to znova.",
+        });
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [userId, loadSubscription, subscriptionRetry]);
+
+  // Load existing agency profile independently of the Stripe subscription.
   useEffect(() => {
     if (!user) return;
     const currentUserId = user.id;
@@ -98,22 +168,6 @@ function AgencySettingsPage() {
     async function fetchData() {
       setLoadingData(true);
       try {
-        // 1. Fetch user subscription
-        const { data: sub, error: subError } = await supabase
-          .from("subscriptions")
-          .select("plan, status")
-          .eq("user_id", currentUserId)
-          .maybeSingle();
-
-        if (subError) throw subError;
-        if (active && sub) {
-          const p = sub.plan;
-          if (p === "agency" || p === "pro" || p === "free") {
-            setUserPlan(p);
-          }
-        }
-
-        // 2. Fetch agency profile
         const { data: profile, error: profileError } = await supabase
           .from("agency_profiles")
           .select("*")
@@ -145,6 +199,37 @@ function AgencySettingsPage() {
       active = false;
     };
   }, [user]);
+
+  const handleOpenPortal = async () => {
+    if (
+      !userId ||
+      currentSubscription?.status !== "ready" ||
+      !currentSubscription.hasStripeCustomer ||
+      openingPortal
+    ) {
+      return;
+    }
+
+    const currentUserId = userId;
+    setOpeningPortal(true);
+    try {
+      // The server chooses the canonical return URL and the authenticated user's customer.
+      const session = await startPortal({ data: {} });
+      if (activeUserId.current !== currentUserId) return;
+      if (!session.url) throw new Error("Nepodarilo sa otvoriť zákaznícky portál Stripe.");
+      window.location.assign(session.url);
+    } catch (error) {
+      if (activeUserId.current === currentUserId) {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Nepodarilo sa otvoriť zákaznícky portál Stripe.",
+        );
+      }
+    } finally {
+      if (activeUserId.current === currentUserId) setOpeningPortal(false);
+    }
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -260,12 +345,12 @@ function AgencySettingsPage() {
         </div>
 
         {/* Agency Plan Status Banner */}
-        {!isAgencyPlan && (
+        {userPlan && !isAgencyPlan && (
           <div className="mt-6 rounded-xl border border-primary/20 bg-primary/5 p-4 md:p-5 flex flex-wrap items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                  Váš aktuálny balík: {userPlan.toUpperCase()}
+                  Váš aktuálny balík: {PLANS[userPlan].name}
                 </span>
                 <span className="text-xs text-muted-foreground">
                   · Whitelabel PDF je funkcia balíka Agency
@@ -282,12 +367,20 @@ function AgencySettingsPage() {
               style={{ backgroundColor: primaryColor }}
             >
               <Sparkles className="size-3.5" />
-              Aktivovať Agency (89 € / mes.)
+              Aktivovať {checkoutPlanLabel("agency")}
             </Button>
           </div>
         )}
 
-        <Tabs defaultValue="branding" className="mt-8">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            if (value === "branding" || value === "cms" || value === "billing") {
+              void navigate({ to: "/settings/agency", search: { tab: value }, replace: true });
+            }
+          }}
+          className="mt-8"
+        >
           <TabsList className="mb-6 grid w-full max-w-xl grid-cols-3">
             <TabsTrigger value="branding" className="gap-2">
               <Building2 className="size-4" />
@@ -570,7 +663,13 @@ function AgencySettingsPage() {
           </TabsContent>
 
           <TabsContent value="billing" className="space-y-6">
-            <BillingInvoiceSection />
+            <BillingPortalCard
+              state={currentSubscription ?? { status: "loading" }}
+              opening={openingPortal}
+              onOpen={handleOpenPortal}
+              onRetry={() => setSubscriptionRetry((value) => value + 1)}
+            />
+            {currentSubscription?.status === "ready" && <BillingInvoiceSection />}
           </TabsContent>
         </Tabs>
       </main>

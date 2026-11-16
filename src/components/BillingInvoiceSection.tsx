@@ -18,7 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import { getUserSubscription, updateCompanyBillingDetails } from "@/lib/billing.functions";
-import { isValidDIC, isValidICDPH, isValidICO, type PlanId } from "@/lib/slovak-billing";
+import { isValidDIC, isValidICDPH, isValidICO, PLANS, type PlanId } from "@/lib/slovak-billing";
+import { checkoutPlanLabel } from "@/lib/billing-ui";
 import { PaywallModal } from "@/components/PaywallModal";
 
 interface BillingAddressState {
@@ -31,12 +32,15 @@ interface BillingAddressState {
 export function BillingInvoiceSection() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
+  const [loadedUserId, setLoadedUserId] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<{ userId: string; message: string } | null>(null);
+  const [loadRetry, setLoadRetry] = useState(0);
   const [saving, setSaving] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
 
   // Plan info
   const [plan, setPlan] = useState<PlanId>("free");
-  const [status, setStatus] = useState<string>("active");
+  const [status, setStatus] = useState<string>("unknown");
   const [currentPeriodEnd, setCurrentPeriodEnd] = useState<string | null>(null);
   const [lastInvoiceNumber, setLastInvoiceNumber] = useState<string | null>(null);
   const [lastInvoiceUrl, setLastInvoiceUrl] = useState<string | null>(null);
@@ -59,17 +63,21 @@ export function BillingInvoiceSection() {
   useEffect(() => {
     if (!user) {
       setLoading(false);
+      setLoadedUserId(null);
       return;
     }
+    const currentUserId = user.id;
     let active = true;
 
     async function fetchSubscription() {
       setLoading(true);
+      setLoadError(null);
       try {
         const sub = await getUserSubscription();
+        if (!sub) throw new Error("Nepodarilo sa načítať fakturačné údaje.");
         if (active && sub) {
           setPlan(sub.plan);
-          setStatus(sub.status || "active");
+          setStatus(sub.status || "unknown");
           setCurrentPeriodEnd(sub.currentPeriodEnd);
           setCompanyName(sub.companyName || "");
           setIco(sub.ico || "");
@@ -79,15 +87,22 @@ export function BillingInvoiceSection() {
           setLastInvoiceUrl(sub.lastInvoiceUrl || null);
 
           const addr = sub.billingAddress as BillingAddressState | null;
-          if (addr) {
-            setAddress(addr.line1 || "");
-            setCity(addr.city || "");
-            setZip(addr.postal_code || "");
-            setCountry(addr.country || "Slovensko");
-          }
+          setAddress(addr?.line1 || "");
+          setCity(addr?.city || "");
+          setZip(addr?.postal_code || "");
+          setCountry(addr?.country || "Slovensko");
+          setIcoError("");
+          setDicError("");
+          setIcDphError("");
+          setLoadedUserId(currentUserId);
         }
       } catch (err) {
-        console.error("Error loading subscription in BillingInvoiceSection:", err);
+        if (active) {
+          setLoadError({
+            userId: currentUserId,
+            message: err instanceof Error ? err.message : "Nepodarilo sa načítať fakturačné údaje.",
+          });
+        }
       } finally {
         if (active) setLoading(false);
       }
@@ -98,7 +113,7 @@ export function BillingInvoiceSection() {
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, loadRetry]);
 
   // Live validators
   const handleIcoChange = (val: string) => {
@@ -176,7 +191,20 @@ export function BillingInvoiceSection() {
     }
   };
 
-  if (loading) {
+  if (!user) return null;
+
+  if (loadError?.userId === user.id) {
+    return (
+      <div role="alert" className="space-y-3 rounded-xl border border-danger-border bg-card p-5">
+        <p className="text-sm">{loadError.message}</p>
+        <Button type="button" variant="outline" onClick={() => setLoadRetry((value) => value + 1)}>
+          Skúsiť načítať znova
+        </Button>
+      </div>
+    );
+  }
+
+  if (loading || loadedUserId !== user.id) {
     return (
       <div className="rounded-xl border border-[#2c2c2c] bg-[#212121] p-6 flex items-center justify-center gap-3 text-zinc-400 text-sm shadow-xl shadow-black/40">
         <Loader2 className="size-4 animate-spin motion-reduce:animate-none text-emerald-400" />
@@ -209,9 +237,9 @@ export function BillingInvoiceSection() {
                         : "border-[#333333] bg-[#262626] text-zinc-400"
                   }
                 >
-                  {plan.toUpperCase()}
+                  {PLANS[plan].name}
                 </Badge>
-                {status === "active" && (
+                {plan !== "free" && (status === "active" || status === "trialing") && (
                   <Badge
                     variant="outline"
                     className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 text-[10px]"
@@ -222,7 +250,7 @@ export function BillingInvoiceSection() {
               </div>
               <p className="text-xs text-zinc-400 mt-0.5">
                 {currentPeriodEnd
-                  ? `Predplatné je aktívne do ${new Date(currentPeriodEnd).toLocaleDateString("sk-SK")}`
+                  ? `Koniec fakturačného obdobia: ${new Date(currentPeriodEnd).toLocaleDateString("sk-SK")}`
                   : "Bezplatný plán (1 projekt, 1 mesačný snapshot)"}
               </p>
             </div>
@@ -236,7 +264,7 @@ export function BillingInvoiceSection() {
                 className="gap-1.5 text-xs font-semibold bg-white text-zinc-950 hover:bg-zinc-200"
               >
                 <Sparkles className="size-3.5 text-emerald-600" />
-                Aktivovať balík Pro (39 €)
+                Aktivovať {checkoutPlanLabel("pro")}
               </Button>
             ) : lastInvoiceUrl ? (
               <Button
@@ -247,13 +275,13 @@ export function BillingInvoiceSection() {
               >
                 <a href={lastInvoiceUrl} target="_blank" rel="noopener noreferrer">
                   <Download className="size-3.5" />
-                  Stiahnuť poslednú faktúru (PDF)
+                  Otvoriť poslednú faktúru
                 </a>
               </Button>
             ) : (
               <div className="text-xs text-zinc-400 italic flex items-center gap-1.5">
                 <FileText className="size-3.5" />
-                Faktúra sa vystaví pri najbližšej platbe
+                Faktúra zatiaľ nie je k dispozícii
               </div>
             )}
           </div>
@@ -274,7 +302,7 @@ export function BillingInvoiceSection() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-emerald-400 hover:text-emerald-300 hover:underline font-semibold"
               >
-                Otvoriť PDF na SuperFaktúra.sk <ExternalLink className="size-3" />
+                Otvoriť faktúru <ExternalLink className="size-3" />
               </a>
             )}
           </div>
@@ -285,7 +313,7 @@ export function BillingInvoiceSection() {
       <div className="rounded-xl border border-[#2c2c2c] bg-[#212121] p-5 md:p-6 shadow-xl shadow-black/40">
         <div className="flex items-center gap-2 font-semibold text-sm mb-4 text-white">
           <Building2 className="size-4 text-emerald-400" />
-          <span>Firemné fakturačné údaje (Slovensko a EÚ)</span>
+          <span>Firemné fakturačné údaje</span>
         </div>
 
         <form onSubmit={handleSaveBilling} className="space-y-4">
@@ -364,7 +392,7 @@ export function BillingInvoiceSection() {
             <div className="sm:col-span-2 space-y-1.5">
               <div className="flex items-center justify-between">
                 <Label htmlFor="billingIcDph" className="text-xs font-medium text-zinc-300">
-                  IČ DPH (nepovinné, formát SK + DIČ alebo CZ...)
+                  IČ DPH (nepovinné, slovenský formát SK + DIČ)
                 </Label>
                 {icDph && !icDphError && (
                   <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
@@ -376,7 +404,7 @@ export function BillingInvoiceSection() {
                 id="billingIcDph"
                 value={icDph}
                 onChange={(e) => handleIcDphChange(e.target.value)}
-                placeholder="SK2021234567 (alebo CZ12345678 pre Reverse Charge)"
+                placeholder="SK2021234567"
                 className={`bg-[#1a1a1a] text-[#f4f4f5] placeholder:text-zinc-500 focus-visible:ring-emerald-500/40 focus-visible:border-emerald-500 ${
                   icDphError ? "border-rose-500 focus-visible:ring-rose-500" : "border-[#333333]"
                 }`}
@@ -387,8 +415,8 @@ export function BillingInvoiceSection() {
                 </p>
               ) : (
                 <p className="text-[11px] text-zinc-400">
-                  Zahraničné firmy z EÚ s overeným IČ DPH automaticky uplatňujú prenesenie daňovej
-                  povinnosti (Reverse Charge 0% DPH).
+                  Platný formát nie je potvrdením registrácie vo VIES ani nároku na prenesenie
+                  daňovej povinnosti. Konečnú daň si skontrolujte pri platbe v Stripe.
                 </p>
               )}
             </div>

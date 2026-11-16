@@ -1,12 +1,12 @@
 /**
  * Safe auth redirect helpers (AUD OAuth fix).
- * - appOrigin(): current app origin (Vercel prod/preview/localhost), never the Lovable host.
+ * - appOrigin(): current app origin, with the published Lovable app as the server fallback.
  * - safeRedirect(): only relative same-origin paths — blocks open redirects.
  * - sessionStorage-backed post-login redirect (survives the OAuth broker round-trip).
  * No tokens are ever read from or written to the URL.
  */
 
-const DEFAULT_APP_ORIGIN = "https://metaseopro.vercel.app";
+export const DEFAULT_APP_ORIGIN = "https://seo4web.lovable.app";
 const REDIRECT_STORAGE_KEY = "seo4web:auth-redirect";
 const DEFAULT_REDIRECT = "/dashboard";
 
@@ -74,7 +74,7 @@ export function consumeAuthRedirect(): string {
   return stored ?? DEFAULT_REDIRECT;
 }
 
-/** OAuth/email callback must always be the current app origin, never the Lovable host. */
+/** OAuth/email callbacks use the current app origin, or the published app during SSR. */
 export function authCallbackUrl(): string {
   return `${appOrigin()}/login`;
 }

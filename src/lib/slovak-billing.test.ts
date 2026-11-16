@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   isValidDIC,
   isValidICDPH,
@@ -82,6 +82,9 @@ describe("Slovak & Czech B2B billing validator", () => {
       expect(normalizeDIC(" 2020 273893 ")).toBe("2020273893");
       expect(normalizeICDPH("2020273893")).toBe("SK2020273893");
       expect(normalizeICDPH(" sk 2020273893 ")).toBe("SK2020273893");
+      expect(normalizeICDPH(" cz 12345678 ")).toBe("CZ12345678");
+      expect(normalizeICDPH("DE123456789")).toBe("DE123456789");
+      expect(normalizeICDPH("")).toBe("");
     });
 
     it("validates complete billing form payload", () => {
@@ -107,51 +110,144 @@ describe("Slovak & Czech B2B billing validator", () => {
     });
   });
 
-  describe("verifyViesVat (Live & Fallback)", () => {
-    it("returns valid result when VIES API confirms registered VAT payer", async () => {
-      const mockFetch: typeof fetch = async () =>
-        new Response(
-          JSON.stringify({
-            isValid: true,
-            name: "SLOVNAFT a.s.",
-            address: "Vlčie hrdlo 1, 824 12 Bratislava",
-          }),
-          { status: 200, headers: { "Content-Type": "application/json" } },
-        );
-
-      const result = await verifyViesVat("SK", "SK2020273893", mockFetch);
-      expect(result.valid).toBe(true);
-      expect(result.source).toBe("vies");
-      expect(result.name).toBe("SLOVNAFT a.s.");
-      expect(result.vatNumber).toBe("2020273893");
+  describe("VIES registry status versus syntax", () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => {
+      expect(vi.getTimerCount()).toBe(0);
+      vi.useRealTimers();
+      vi.restoreAllMocks();
     });
 
-    it("returns invalid result when VIES API returns isValid: false", async () => {
-      const mockFetch: typeof fetch = async () =>
-        new Response(JSON.stringify({ isValid: false }), {
-          status: 200,
+    function response(body: unknown, status = 200) {
+      return vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(JSON.stringify(body), {
+          status,
           headers: { "Content-Type": "application/json" },
-        });
+        }),
+      );
+    }
 
-      const result = await verifyViesVat("SK", "2020273893", mockFetch);
-      expect(result.valid).toBe(false);
-      expect(result.source).toBe("vies");
+    it("sets valid only after an explicit registry confirmation", async () => {
+      const request = response({
+        isValid: true,
+        name: "Fixture s.r.o.",
+        address: "Fixture address",
+      });
+      const result = await verifyViesVat("SK", "SK2020273893", request);
+      expect(result).toMatchObject({
+        valid: true,
+        verificationStatus: "verified",
+        syntaxValid: true,
+        source: "vies",
+        name: "Fixture s.r.o.",
+        vatNumber: "2020273893",
+      });
+      expect(request).toHaveBeenCalledTimes(1);
     });
 
-    it("falls back to local syntax validation when VIES service fails or times out", async () => {
-      const failingFetch: typeof fetch = async () => {
-        throw new Error("Network timeout / VIES service unavailable");
-      };
+    it("keeps registry invalidity separate from syntactically valid input", async () => {
+      expect(await verifyViesVat("SK", "2020273893", response({ isValid: false }))).toMatchObject({
+        valid: false,
+        verificationStatus: "invalid",
+        syntaxValid: true,
+        source: "vies",
+      });
+    });
 
-      // Valid SK DIČ format
-      const validFallback = await verifyViesVat("SK", "2020273893", failingFetch);
-      expect(validFallback.valid).toBe(true);
-      expect(validFallback.source).toBe("syntax_fallback");
+    it("reports unavailable after a rejected request and still clears the timeout", async () => {
+      const request = vi.fn<typeof fetch>().mockRejectedValue(new Error("Unavailable"));
+      expect(await verifyViesVat("SK", "2020273893", request)).toMatchObject({
+        valid: false,
+        verificationStatus: "unavailable",
+        syntaxValid: true,
+        source: "syntax_fallback",
+      });
+    });
 
-      // Invalid SK DIČ format
-      const invalidFallback = await verifyViesVat("SK", "123456", failingFetch);
-      expect(invalidFallback.valid).toBe(false);
-      expect(invalidFallback.source).toBe("syntax_fallback");
+    it("does not pretend to implement an EU syntax validator", async () => {
+      const request = vi.fn<typeof fetch>().mockRejectedValue(new Error("Unavailable"));
+      expect(await verifyViesVat("DE", "DE123456789", request)).toMatchObject({
+        valid: false,
+        verificationStatus: "unavailable",
+        syntaxValid: null,
+      });
+      expect(await verifyViesVat("DE", "DE123456789", response({ isValid: true }))).toMatchObject({
+        valid: true,
+        verificationStatus: "verified",
+        syntaxValid: null,
+        source: "vies",
+      });
+    });
+
+    it("rejects locally invalid SK syntax without requesting the registry", async () => {
+      const request = response({ isValid: true });
+      expect(await verifyViesVat("SK", "123456", request)).toMatchObject({
+        valid: false,
+        verificationStatus: "invalid",
+        syntaxValid: false,
+        source: "syntax_fallback",
+      });
+      expect(request).not.toHaveBeenCalled();
+    });
+
+    it("does not truncate an invalid country or send empty input", async () => {
+      const request = response({ isValid: true });
+      for (const [country, vat] of [
+        ["SKextra", "2020273893"],
+        ["", "2020273893"],
+        ["DE", ""],
+      ]) {
+        expect(await verifyViesVat(country, vat, request)).toMatchObject({
+          valid: false,
+          verificationStatus: "invalid",
+          syntaxValid: false,
+        });
+      }
+      expect(request).not.toHaveBeenCalled();
+    });
+
+    it.each([{}, { isValid: "true" }, { isValid: 1 }, null])(
+      "does not treat malformed registry JSON as valid or registry-invalid: %j",
+      async (body) => {
+        expect(await verifyViesVat("SK", "2020273893", response(body))).toMatchObject({
+          valid: false,
+          verificationStatus: "unavailable",
+          syntaxValid: true,
+        });
+      },
+    );
+
+    it("reports HTTP errors and unreadable JSON as unavailable", async () => {
+      const invalidJson = vi.fn<typeof fetch>().mockResolvedValue(new Response("not JSON"));
+      for (const request of [response({ isValid: false }, 503), invalidJson]) {
+        expect(await verifyViesVat("SK", "2020273893", request)).toMatchObject({
+          valid: false,
+          verificationStatus: "unavailable",
+          syntaxValid: true,
+        });
+      }
+    });
+
+    it("aborts a pending fetch on timeout and clears the timer", async () => {
+      let observedSignal: AbortSignal | null | undefined;
+      const request = vi.fn<typeof fetch>().mockImplementation(
+        (_url, init) =>
+          new Promise((_resolve, reject) => {
+            observedSignal = init?.signal;
+            init?.signal?.addEventListener("abort", () => reject(new Error("Aborted")), {
+              once: true,
+            });
+          }),
+      );
+      const result = verifyViesVat("SK", "2020273893", request);
+      await vi.advanceTimersByTimeAsync(4000);
+      expect(observedSignal?.aborted).toBe(true);
+      expect(await result).toMatchObject({
+        valid: false,
+        verificationStatus: "unavailable",
+        syntaxValid: true,
+      });
+      expect(request).toHaveBeenCalledTimes(1);
     });
   });
 });
