@@ -601,8 +601,7 @@ function DashboardPage() {
               Fakturačné údaje a história platieb
             </h2>
             <p className="text-xs text-zinc-400 mt-1">
-              Správa firemných údajov, automatické vystavovanie faktúr cez SuperFaktúru a sťahovanie
-              daňových dokladov (PDF).
+              Správa firemných údajov a prístup k faktúram za predplatné cez Stripe.
             </p>
           </div>
           <BillingInvoiceSection />

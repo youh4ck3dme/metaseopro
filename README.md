@@ -319,7 +319,7 @@ bun run tsc --noEmit
 1. **Access control & authorization:** Všetky používateľské tabuľky (`profiles`, `subscriptions`, `agency_profiles`, `cms_connections`, `generated_outputs`, `content_plan_usage`, `seo_snapshots`, `seo_experiments`) majú zapnuté a vynútené Row Level Security (`FORCE ROW LEVEL SECURITY`) so striktnou väzbou `auth.uid() = user_id`.
 2. **Exposed personal & sensitive data:** Oprávnenia `anon` a `public` boli kompletne odobraté (`REVOKE ALL`), citlivé údaje vidí iba vlastník záznamu cez overený session token.
 3. **Unsafe input & injection:** Zavedená striktná SSRF ochrana v `cms-publisher.server.ts` (blokovanie loopback, RFC1918 a link-local/cloud-metadata adries) a validácia dopytov cez Zod schémy.
-4. **Unauthenticated & abusable endpoints:** Cron endpoint `/api/public/cron-decay-alerts` je chránený tokenom `CRON_SECRET`, verejné webhooky (`stripe-webhook`) majú IP rate limiting a kontrolu veľkosti payloadu.
+4. **Unauthenticated & abusable endpoints:** Cron endpoint `/api/public/cron-decay-alerts` je chránený tokenom `CRON_SECRET`, ktorý sa prijíma iba v hlavičke `Authorization: Bearer <secret>` alebo `x-cron-secret` (secret v query stringu sa odmieta s 401); v repozitári nie je nakonfigurovaný žiadny plánovač, endpoint sa musí volať externe. Verejné webhooky (`stripe-webhook`) majú IP rate limiting a kontrolu veľkosti payloadu.
 
 ---
 

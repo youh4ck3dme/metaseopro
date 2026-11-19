@@ -1,7 +1,7 @@
 // Server-only helpers for the Semrush connector gateway with intelligent caching.
 // .server.ts suffix blocks this file from client bundles.
 import { createClient } from "@supabase/supabase-js";
-import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "./supabase-server-env";
+import { getServerSupabaseUrl } from "./supabase-env.server";
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/semrush";
 
@@ -114,14 +114,9 @@ export function clearSemrushMemoryCache(): void {
 }
 
 function getSupabaseServerClient() {
+  const url = getServerSupabaseUrl();
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!serviceKey) return null;
-  let url: string;
-  try {
-    url = getServerSupabaseUrl();
-  } catch {
-    return null;
-  }
+  if (!url || !serviceKey) return null;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { supabaseAdmin } = require("@/integrations/supabase/client.server");

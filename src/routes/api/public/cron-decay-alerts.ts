@@ -2,23 +2,15 @@ import { createFileRoute } from "@tanstack/react-router";
 import { createClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { checkRateLimit } from "@/lib/rate-limit.server";
-import { formatDomainDisplayName } from "@/lib/agency";
-import {
-  detectDroppedPages,
-  sendDecayAlertEmail,
-  type SiteAlertEvaluation,
-} from "@/lib/decay-alerts.server";
-import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "@/lib/supabase-server-env";
+import { getServerSupabaseUrl } from "@/lib/supabase-env.server";
+import { runDecayAlertSweep } from "@/lib/decay-alerts.server";
+import { secretsMatch } from "@/lib/secret-compare.server";
+import { safeErrorForLog } from "@/lib/log-redact";
 
 function getSupabaseAdmin() {
+  const url = getServerSupabaseUrl();
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!key) return null;
-  let url: string;
-  try {
-    url = getServerSupabaseUrl();
-  } catch {
-    return null;
-  }
+  if (!url || !key) return null;
   return createClient<Database>(url, key, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
@@ -54,18 +46,24 @@ async function handleCron(request: Request): Promise<Response> {
     });
   }
 
-  // Security: Verify CRON_SECRET token
+  // Security: the cron runs ONLY with a valid CRON_SECRET; everything else is 401.
+  // The secret is accepted ONLY in headers (`Authorization: Bearer <secret>` or `x-cron-secret`).
+  // A secret in the URL query string is never read (it would end up in access logs).
+  // Either header may authorize: a wrong/foreign Authorization header (e.g. injected by a proxy)
+  // does not override a correct x-cron-secret. Each candidate is compared in constant time;
+  // an unset or empty CRON_SECRET never authorizes.
   const expectedSecret = process.env.CRON_SECRET;
-  const authHeader = request.headers.get("authorization");
-  const xCronSecret = request.headers.get("x-cron-secret");
-  const url = new URL(request.url);
-  const querySecret = url.searchParams.get("secret");
+  const bearerSecret = request.headers
+    .get("authorization")
+    ?.replace(/^Bearer\s+/i, "")
+    .trim();
+  const headerSecret = request.headers.get("x-cron-secret")?.trim();
 
-  const providedSecret =
-    authHeader?.replace(/^Bearer\s+/i, "").trim() || xCronSecret?.trim() || querySecret?.trim();
+  const authorized = [bearerSecret, headerSecret]
+    .map((candidate) => secretsMatch(expectedSecret, candidate))
+    .some(Boolean);
 
-  // If CRON_SECRET is configured in environment, strictly require it
-  if (!expectedSecret || !providedSecret || providedSecret !== expectedSecret) {
+  if (!authorized) {
     return new Response(JSON.stringify({ error: "Unauthorized: Invalid or missing CRON_SECRET" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
@@ -81,115 +79,13 @@ async function handleCron(request: Request): Promise<Response> {
   }
 
   try {
-    // 1. Fetch latest distinct snapshots per user & site
-    const { data: snapshots, error: snapErr } = await supabase
-      .from("seo_snapshots")
-      .select("id, user_id, site_url, metrics_summary, raw_data, created_at")
-      .order("created_at", { ascending: false })
-      .limit(100);
-
-    if (snapErr) {
-      console.error("Error fetching snapshots:", snapErr);
-      return new Response(JSON.stringify({ error: snapErr.message }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    if (!snapshots || snapshots.length === 0) {
-      return new Response(
-        JSON.stringify({ evaluated: 0, alertsSent: 0, message: "No snapshots to evaluate." }),
-        { headers: { "Content-Type": "application/json" } },
-      );
-    }
-
-    // Keep only the latest snapshot per user_id + site_url
-    const seen = new Set<string>();
-    const latestPerSite = snapshots.filter((s) => {
-      const key = `${s.user_id}:${s.site_url.toLowerCase()}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
+    const result = await runDecayAlertSweep({ supabase });
+    return new Response(JSON.stringify(result.body), {
+      status: result.status,
+      headers: { "Content-Type": "application/json" },
     });
-
-    const evaluations: SiteAlertEvaluation[] = [];
-
-    // 2. Fetch user profile emails
-    const userIds = Array.from(new Set(latestPerSite.map((s) => s.user_id)));
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("user_id, email")
-      .in("user_id", userIds);
-
-    const emailMap = new Map<string, string>();
-    profiles?.forEach((p) => {
-      if (p.email) emailMap.set(p.user_id, p.email);
-    });
-
-    for (const snap of latestPerSite) {
-      const userEmail = emailMap.get(snap.user_id);
-      const domain = formatDomainDisplayName(snap.site_url);
-
-      if (!userEmail) {
-        evaluations.push({
-          userId: snap.user_id,
-          userEmail: "",
-          siteUrl: snap.site_url,
-          domain,
-          droppedPages: [],
-          alertSent: false,
-          reason: "User email not found in profile",
-        });
-        continue;
-      }
-
-      const dropped = detectDroppedPages(snap.raw_data, 25);
-
-      if (dropped.length === 0) {
-        evaluations.push({
-          userId: snap.user_id,
-          userEmail,
-          siteUrl: snap.site_url,
-          domain,
-          droppedPages: [],
-          alertSent: false,
-          reason: "No pages exceeded 25% drop threshold",
-        });
-        continue;
-      }
-
-      // Send alert email
-      const outcome = await sendDecayAlertEmail({
-        toEmail: userEmail,
-        domain,
-        siteUrl: snap.site_url,
-        droppedPages: dropped,
-      });
-
-      evaluations.push({
-        userId: snap.user_id,
-        userEmail,
-        siteUrl: snap.site_url,
-        domain,
-        droppedPages: dropped,
-        alertSent: outcome.ok,
-        reason: outcome.simulated ? "Simulated (RESEND_API_KEY missing)" : "Sent",
-      });
-    }
-
-    const alertsCount = evaluations.filter((e) => e.alertSent).length;
-
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        evaluated: latestPerSite.length,
-        alertsSent: alertsCount,
-        evaluations,
-      }),
-      { headers: { "Content-Type": "application/json" } },
-    );
   } catch (err) {
-    console.error("Cron decay alerts uncaught error:", err);
+    console.error("Cron decay alerts uncaught error:", safeErrorForLog(err));
     return new Response(JSON.stringify({ error: "Internal processing error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },

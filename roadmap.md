@@ -1,5 +1,10 @@
 # SEO4WEB — Technická a produktová roadmapa
 
+## Aktuálne: verejné spustenie a ikony
+- [ ] Pripraviť značkový obrázok zdieľania a ikony Android/iPhone.
+- [ ] Overiť stránky a regresné testy pred publikovaním.
+- [ ] Publikovať aplikáciu a nastaviť verejný prístup pri zachovaní prihlásenia do chránených nástrojov.
+
 ## 1. Technická integrita & Bezpečnosť (Hotovo ✅)
 
 - [x] Odstránený hardkódovaný reťazec Bratislava z Opportunity Engine; dynamická podpora 79 okresných a krajských miest SR.

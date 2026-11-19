@@ -36,7 +36,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { PaywallModal } from "@/components/PaywallModal";
-import type { PlanId } from "@/lib/slovak-billing";
+import { PLANS, type PlanId } from "@/lib/slovak-billing";
+import { getEffectivePlan } from "@/lib/billing-policy";
 import { isLocale, readLocaleCookie, writeLocaleCookie, type Locale } from "@/lib/i18n";
 
 const SEO_TOOLS = [
@@ -108,7 +109,14 @@ const AGENCY_TOOLS = [
   },
 ] as const;
 
-function PlanBadge({ plan }: { plan: PlanId }) {
+function PlanBadge({ plan }: { plan: PlanId | null }) {
+  if (!plan) {
+    return (
+      <Badge variant="outline" className="text-muted-foreground text-[11px] px-2 py-0.5">
+        Balík neoverený
+      </Badge>
+    );
+  }
   if (plan === "agency") {
     return (
       <Badge
@@ -116,7 +124,7 @@ function PlanBadge({ plan }: { plan: PlanId }) {
         className="gap-1 border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-semibold text-[11px] px-2 py-0.5"
       >
         <Crown className="size-3 text-amber-500" />
-        Agency
+        {PLANS.agency.name}
       </Badge>
     );
   }
@@ -127,7 +135,7 @@ function PlanBadge({ plan }: { plan: PlanId }) {
         className="gap-1 border-primary/40 bg-primary/10 text-primary font-semibold text-[11px] px-2 py-0.5"
       >
         <Sparkles className="size-3 text-primary" />
-        Pro
+        {PLANS.pro.name}
       </Badge>
     );
   }
@@ -136,7 +144,7 @@ function PlanBadge({ plan }: { plan: PlanId }) {
       variant="outline"
       className="border-border bg-muted/60 text-muted-foreground font-medium text-[11px] px-2 py-0.5"
     >
-      Free
+      {PLANS.free.name}
     </Badge>
   );
 }
@@ -147,7 +155,8 @@ export function AppHeader() {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [paywallOpen, setPaywallOpen] = useState(false);
-  const [userPlan, setUserPlan] = useState<PlanId>("free");
+  const [planState, setPlanState] = useState<{ userId: string; plan: PlanId } | null>(null);
+  const userPlan = planState?.userId === user?.id ? (planState?.plan ?? null) : null;
   const [locale, setLocale] = useState<Locale>(() => readLocaleCookie() ?? "sk");
 
   const switchLocale = (next: Locale) => {
@@ -161,27 +170,28 @@ export function AppHeader() {
   // Load user subscription tier
   useEffect(() => {
     if (!user) {
-      setUserPlan("free");
+      setPlanState(null);
       return;
     }
     const userId = user.id;
     let active = true;
+    setPlanState(null);
 
     async function loadPlan() {
       try {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("subscriptions")
-          .select("plan, status")
+          .select("plan, status, current_period_end")
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (active && data?.plan) {
-          if (data.plan === "agency" || data.plan === "pro" || data.plan === "free") {
-            setUserPlan(data.plan);
-          }
+        if (error) throw error;
+        if (active) {
+          setPlanState({ userId, plan: data ? getEffectivePlan(data) : "free" });
         }
       } catch {
-        // Fallback to free on network or schema error
+        // A failed lookup is unknown, not proof that the account has a Free plan.
+        if (active) setPlanState(null);
       }
     }
 
@@ -408,7 +418,9 @@ export function AppHeader() {
 
         {/* ================= RIGHT CORNER: LOCALE + USER STATUS & PLAN PILL ================= */}
         <div className="flex items-center gap-1.5 lg:gap-2.5">
-          <div className="hidden lg:block"><LocaleSwitch locale={locale} onSwitch={switchLocale} /></div>
+          <div className="hidden lg:block">
+            <LocaleSwitch locale={locale} onSwitch={switchLocale} />
+          </div>
           {user ? (
             <div className="flex items-center gap-2">
               {/* Plan Badge */}
@@ -456,7 +468,7 @@ export function AppHeader() {
                   <div className="px-2 py-1.5 border-b border-border/60 mb-1">
                     <p className="text-xs font-semibold text-foreground truncate">{user.email}</p>
                     <div className="flex items-center justify-between gap-1 mt-1">
-                      <span className="text-[11px] text-muted-foreground">Aktívny balík:</span>
+                      <span className="text-[11px] text-muted-foreground">Balík:</span>
                       <PlanBadge plan={userPlan} />
                     </div>
                   </div>
@@ -658,7 +670,10 @@ export function AppHeader() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => { setMobileOpen(false); setPaywallOpen(true); }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      setPaywallOpen(true);
+                    }}
                     className="h-9 gap-1.5 text-xs font-semibold"
                   >
                     <Sparkles className="size-3.5 text-primary" /> Cenník / Upgrade

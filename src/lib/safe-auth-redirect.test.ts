@@ -4,6 +4,7 @@ import {
   authCallbackUrl,
   clearAuthRedirect,
   consumeAuthRedirect,
+  DEFAULT_APP_ORIGIN,
   hasAuthErrorInUrl,
   peekAuthRedirect,
   safeRedirect,
@@ -59,19 +60,26 @@ describe("safeRedirect — open-redirect cases are rejected to /dashboard", () =
 });
 
 describe("appOrigin", () => {
-  it("uses window.location.origin when present", () => {
-    stubBrowser("https://metaseopro.vercel.app");
-    expect(appOrigin()).toBe("https://metaseopro.vercel.app");
-    expect(authCallbackUrl()).toBe("https://metaseopro.vercel.app/login");
+  it.each([
+    "https://seo4web.lovable.app",
+    "https://seo.vorkei.com",
+    "https://metaseopro.vercel.app",
+    "https://metaseopro-preview.vercel.app",
+  ])("uses the current app origin %s when present", (origin) => {
+    stubBrowser(origin);
+    expect(appOrigin()).toBe(origin);
+    expect(authCallbackUrl()).toBe(`${origin}/login`);
   });
 
-  it("falls back to the Vercel production origin when window/origin is missing or 'null'", () => {
+  it("falls back to the published Lovable origin when window/origin is missing or 'null'", () => {
+    expect(DEFAULT_APP_ORIGIN).toBe("https://seo4web.lovable.app");
     vi.stubGlobal("window", undefined);
-    expect(appOrigin()).toBe("https://metaseopro.vercel.app");
+    expect(appOrigin()).toBe(DEFAULT_APP_ORIGIN);
+    expect(authCallbackUrl()).toBe(`${DEFAULT_APP_ORIGIN}/login`);
     stubBrowser("null");
-    expect(appOrigin()).toBe("https://metaseopro.vercel.app");
+    expect(appOrigin()).toBe(DEFAULT_APP_ORIGIN);
     stubBrowser(undefined);
-    expect(appOrigin()).toBe("https://metaseopro.vercel.app");
+    expect(appOrigin()).toBe(DEFAULT_APP_ORIGIN);
   });
 
   it("uses localhost origin during local development", () => {

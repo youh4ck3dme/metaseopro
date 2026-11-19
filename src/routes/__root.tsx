@@ -11,7 +11,7 @@ import {
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
-import { OG_IMAGE, SITE, pageUrl } from "@/lib/i18n";
+import { SITE, pageUrl } from "@/lib/i18n";
 import { PwaLaunchExperience } from "@/components/PwaLaunchExperience";
 import { IosInstallPrompt } from "@/components/IosInstallPrompt";
 
@@ -107,20 +107,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: SITE },
-      { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "seo.vorkei — AI SEO Command Center" },
       {
         name: "twitter:description",
         content:
           "Audit, brief, 30-day plan and SEO article. One workflow for agencies and freelancers. SK / EN / DE.",
       },
-      { name: "twitter:image", content: OG_IMAGE },
     ],
     links: [
       { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon-180.png" },
-      { rel: "apple-touch-startup-image", href: "/icons/icon-512.png" },
       { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
       { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/icon-32.png" },
       { rel: "icon", type: "image/png", sizes: "16x16", href: "/icons/icon-16.png" },

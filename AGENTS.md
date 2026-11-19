@@ -3,6 +3,7 @@
 Scope: entire repository `youh4ck3dme/metaseopro`. Follow more specific nested AGENTS.md files if present. Treat source code and current tests as authoritative when documentation disagrees.
 
 ## Architecture invariants
+- Keep home-screen support manifest-only, with dedicated padded maskable icons; homepage share images belong in its leaf head so they cannot override other pages.
 - TanStack Start v1, React 19, Vite 8, TanStack Router, Tailwind CSS v4, Bun, Cloudflare Workers and Lovable Cloud/Supabase. Verify installed versions against package.json and bun.lock before changing dependencies.
 - Use `@tanstack/react-router` only; never introduce `react-router-dom`. Do not hand-edit generated `src/routeTree.gen.ts`.
 - Use the installed TanStack Start server-function `.validator(...)` API, not `.inputValidator(...)`.

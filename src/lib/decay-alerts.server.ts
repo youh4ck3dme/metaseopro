@@ -3,8 +3,10 @@
  * Inspects snapshots for severe traffic drops (>25% click loss)
  * and dispatches responsive HTML alerts to users via Resend / SMTP.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 import { formatDomainDisplayName } from "./agency";
+import { maskEmail, redactEmails, safeErrorForLog } from "./log-redact";
 
 export interface DroppedUrlAlert {
   url: string;
@@ -16,7 +18,8 @@ export interface DroppedUrlAlert {
 
 export interface SiteAlertEvaluation {
   userId: string;
-  userEmail: string;
+  /** Masked (j***@e***) - the raw address is never put into evaluations, logs or HTTP responses. */
+  userEmailMasked: string;
   siteUrl: string;
   domain: string;
   droppedPages: DroppedUrlAlert[];
@@ -156,7 +159,7 @@ export async function sendDecayAlertEmail(params: {
 
   if (!resendApiKey) {
     console.warn(
-      `[Decay Alert Mock] RESEND_API_KEY missing. Simulating alert email to ${toEmail} for ${domain}`,
+      `[Decay Alert Mock] RESEND_API_KEY missing. Simulating alert email to ${maskEmail(toEmail)} for ${domain}`,
     );
     return { ok: true, simulated: true };
   }
@@ -178,14 +181,123 @@ export async function sendDecayAlertEmail(params: {
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error("[Decay Alert Resend Error]:", res.status, errText);
+      console.error("[Decay Alert Resend Error]:", res.status, redactEmails(errText));
       return { ok: false, simulated: false };
     }
 
     const data = (await res.json()) as { id?: string };
     return { ok: true, messageId: data.id, simulated: false };
   } catch (err) {
-    console.error("[Decay Alert Send Exception]:", err);
+    console.error("[Decay Alert Send Exception]:", safeErrorForLog(err));
     return { ok: false, simulated: false };
   }
+}
+
+export interface DecayAlertSweepResult {
+  status: number;
+  body: Record<string, unknown>;
+}
+
+/**
+ * Evaluates the latest snapshot per user+site and sends decay alerts for all users.
+ * Only callable from the CRON_SECRET-protected cron route.
+ * E-mail addresses are looked up for sending only; they are never logged or returned.
+ */
+export async function runDecayAlertSweep(opts: {
+  supabase: SupabaseClient<Database>;
+  sendEmail?: typeof sendDecayAlertEmail;
+}): Promise<DecayAlertSweepResult> {
+  const { supabase, sendEmail = sendDecayAlertEmail } = opts;
+
+  const { data: snapshots, error: snapErr } = await supabase
+    .from("seo_snapshots")
+    .select("id, user_id, site_url, metrics_summary, raw_data, created_at")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  if (snapErr) {
+    console.error("Error fetching snapshots:", snapErr.code ?? "unknown");
+    return { status: 500, body: { error: "Internal processing error" } };
+  }
+  if (!snapshots || snapshots.length === 0) {
+    return {
+      status: 200,
+      body: { evaluated: 0, alertsSent: 0, message: "No snapshots to evaluate." },
+    };
+  }
+
+  // Keep only the latest snapshot per user_id + site_url
+  const seen = new Set<string>();
+  const latestPerSite = snapshots.filter((s) => {
+    const key = `${s.user_id}:${s.site_url.toLowerCase()}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  const userIds = Array.from(new Set(latestPerSite.map((s) => s.user_id)));
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("user_id, email")
+    .in("user_id", userIds);
+  const emailMap = new Map<string, string>();
+  profiles?.forEach((p) => {
+    if (p.email) emailMap.set(p.user_id, p.email);
+  });
+
+  const evaluations: SiteAlertEvaluation[] = [];
+  for (const snap of latestPerSite) {
+    const userEmail = emailMap.get(snap.user_id);
+    const domain = formatDomainDisplayName(snap.site_url);
+    const base = {
+      userId: snap.user_id,
+      userEmailMasked: userEmail ? maskEmail(userEmail) : "",
+      siteUrl: snap.site_url,
+      domain,
+    };
+
+    if (!userEmail) {
+      evaluations.push({
+        ...base,
+        droppedPages: [],
+        alertSent: false,
+        reason: "User email not found in profile",
+      });
+      continue;
+    }
+
+    const dropped = detectDroppedPages(snap.raw_data, 25);
+    if (dropped.length === 0) {
+      evaluations.push({
+        ...base,
+        droppedPages: [],
+        alertSent: false,
+        reason: "No pages exceeded 25% drop threshold",
+      });
+      continue;
+    }
+
+    const outcome = await sendEmail({
+      toEmail: userEmail,
+      domain,
+      siteUrl: snap.site_url,
+      droppedPages: dropped,
+    });
+    evaluations.push({
+      ...base,
+      droppedPages: dropped,
+      alertSent: outcome.ok,
+      reason: outcome.simulated ? "Simulated (RESEND_API_KEY missing)" : "Sent",
+    });
+  }
+
+  return {
+    status: 200,
+    body: {
+      ok: true,
+      evaluated: latestPerSite.length,
+      alertsSent: evaluations.filter((e) => e.alertSent).length,
+      evaluations,
+    },
+  };
 }

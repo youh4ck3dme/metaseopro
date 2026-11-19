@@ -1,6 +1,6 @@
 // Server-only helper for verifying Supabase JWTs in raw HTTP route handlers.
 import { createClient } from "@supabase/supabase-js";
-import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "./supabase-server-env";
+import { getServerSupabasePublishableKey, getServerSupabaseUrl } from "./supabase-env.server";
 
 export type AuthResult =
   | {
@@ -20,12 +20,9 @@ function unauthorized(message = "Vyžaduje sa prihlásenie."): Response {
 }
 
 export async function requireUser(request: Request): Promise<AuthResult> {
-  let url: string;
-  let key: string;
-  try {
-    url = getServerSupabaseUrl();
-    key = getServerSupabasePublishableKey();
-  } catch {
+  const url = getServerSupabaseUrl();
+  const key = getServerSupabasePublishableKey();
+  if (!url || !key) {
     return {
       ok: false,
       response: new Response(JSON.stringify({ error: "Server nie je správne nakonfigurovaný." }), {

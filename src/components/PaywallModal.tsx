@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import { Check, Sparkles, ShieldCheck, Zap, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { createCheckoutSession } from "@/lib/billing.functions";
 import { isValidDIC, isValidICDPH, isValidICO } from "@/lib/slovak-billing";
+import { checkoutPlanLabel } from "@/lib/billing-ui";
 
 interface PaywallModalProps {
   open: boolean;
@@ -38,8 +39,15 @@ export function PaywallModal({
   const [ico, setIco] = useState("");
   const [dic, setDic] = useState("");
   const [icDph, setIcDph] = useState("");
+  const checkoutRequestId = useRef<string | null>(null);
+
+  // A retry after a lost response reuses the same checkout intent. Editing or reopening starts another.
+  useEffect(() => {
+    checkoutRequestId.current = null;
+  }, [open, plan, companyName, ico, dic, icDph]);
 
   const isAgency = plan === "agency";
+  const planLabel = checkoutPlanLabel(plan);
   const startCheckout = useServerFn(createCheckoutSession);
 
   const handleUpgrade = async () => {
@@ -61,8 +69,10 @@ export function PaywallModal({
 
     setLoading(true);
     try {
+      checkoutRequestId.current ??= crypto.randomUUID();
       const res = await startCheckout({
         data: {
+          requestId: checkoutRequestId.current,
           plan,
           companyName: companyName.trim() || undefined,
           ico: ico.trim() || undefined,
@@ -89,9 +99,7 @@ export function PaywallModal({
         <DialogHeader>
           <div className="flex items-center gap-2 text-primary font-semibold text-sm mb-1">
             <Sparkles className="size-4" />
-            <span>
-              {isAgency ? "SEO4WEB Agency (89 € / mesiac)" : "SEO4WEB Pro (39 € / mesiac)"}
-            </span>
+            <span>{planLabel}</span>
           </div>
           <DialogTitle className="text-xl font-bold tracking-tight">{title}</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground pt-1">
@@ -227,7 +235,7 @@ export function PaywallModal({
             ) : (
               <>
                 <Zap className="size-4" />
-                <span>Aktivovať SEO4WEB Pro (39 € / mesiac)</span>
+                <span>Aktivovať {planLabel}</span>
               </>
             )}
           </Button>
@@ -235,6 +243,9 @@ export function PaywallModal({
             <Lock className="size-3" />
             <span>Zabezpečená platba kartou cez Stripe. Možnosť kedykoľvek zrušiť na 1 klik.</span>
           </div>
+          <p className="text-center text-[11px] text-muted-foreground">
+            Konečnú sumu a prípadnú daň si skontrolujete v Stripe pred zaplatením.
+          </p>
         </div>
       </DialogContent>
     </Dialog>

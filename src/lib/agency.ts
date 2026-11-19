@@ -1,5 +1,6 @@
 // Whitelabel Agency Engine: types, calculations, and data extraction for executive PDF reports.
 import type { DecayDataset, ScoredDecayRow, QueryRow } from "./decay-schema";
+import { DEFAULT_APP_ORIGIN } from "./safe-auth-redirect";
 
 export interface AgencyProfile {
   user_id: string;
@@ -458,7 +459,7 @@ export function generateShareableReportLink(params: {
 
   const base =
     params.origin?.replace(/\/$/, "") ||
-    (typeof window !== "undefined" ? window.location.origin : "https://metaseopro.vercel.app");
+    (typeof window !== "undefined" ? window.location.origin : DEFAULT_APP_ORIGIN);
 
   return `${base}/dashboard?client=${encodeURIComponent(domain)}&view=report&token=${token}`;
 }
