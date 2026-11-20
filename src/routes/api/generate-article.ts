@@ -1,8 +1,9 @@
+import { AI_CHAT_URL, AI_DEFAULT_MODEL } from "@/lib/ai-provider";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { ARTICLE_SYSTEM_PROMPT } from "@/lib/article-prompt";
 import { requireUser } from "@/lib/api-auth.server";
-import { checkRateLimit } from "@/lib/rate-limit.server";
+import { checkViewerRateLimit } from "@/lib/viewer-role.server";
 
 const MAX_BODY_BYTES = 16 * 1024;
 
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/api/generate-article")({
           const contentLength = Number(request.headers.get("content-length") ?? "0");
           if (contentLength > MAX_BODY_BYTES) return err(413, "Vstup je príliš veľký.");
 
-          const rl = checkRateLimit(`article:${auth.userId}`, {
+          const rl = checkViewerRateLimit({ id: auth.userId }, `article:${auth.userId}`, {
             limit: 8,
             windowMs: 60_000,
           });
@@ -69,8 +70,8 @@ export const Route = createFileRoute("/api/generate-article")({
           }
           const { topic, primaryKeyword, audience, tone, targetLength } = parsed.data;
 
-          const apiKey = process.env.LOVABLE_API_KEY;
-          if (!apiKey) return err(500, "LOVABLE_API_KEY nie je nakonfigurovaný.");
+          const apiKey = process.env.MISTRAL_API_KEY;
+          if (!apiKey) return err(500, "MISTRAL_API_KEY nie je nakonfigurovaný.");
 
           const userPrompt = [
             `Téma a kontext:\n${topic}`,
@@ -82,27 +83,25 @@ export const Route = createFileRoute("/api/generate-article")({
             .filter(Boolean)
             .join("\n\n");
 
-          const upstream = await fetch(
-            "https://ai.gateway.lovable.dev/v1/chat/completions",
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${apiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                model: "google/gemini-3-flash-preview",
-                stream: true,
-                messages: [
-                  { role: "system", content: ARTICLE_SYSTEM_PROMPT },
-                  { role: "user", content: userPrompt },
-                ],
-              }),
+          const upstream = await fetch(AI_CHAT_URL, {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
             },
-          );
+            body: JSON.stringify({
+              model: AI_DEFAULT_MODEL,
+              stream: true,
+              messages: [
+                { role: "system", content: ARTICLE_SYSTEM_PROMPT },
+                { role: "user", content: userPrompt },
+              ],
+            }),
+          });
 
           if (!upstream.ok || !upstream.body) {
-            if (upstream.status === 429) return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
+            if (upstream.status === 429)
+              return err(429, "Príliš veľa požiadaviek. Skús to o chvíľu.");
             if (upstream.status === 402) return err(402, "Vyčerpané AI kredity.");
             const text = await upstream.text();
             console.error("AI gateway error:", upstream.status, text);

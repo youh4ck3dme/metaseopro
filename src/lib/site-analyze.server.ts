@@ -1,14 +1,11 @@
 // Server-only helpers: fetch + parse a web page, compare own vs competitor.
 // .server.ts suffix blocks this from client bundles.
-import type {
-  PageAnalysis,
-  ComparisonResult,
-  RaketaAnalysis,
-} from "@/lib/raketa-schema";
+import type { PageAnalysis, ComparisonResult, RaketaAnalysis } from "@/lib/raketa-schema";
 import { normalizeUrl } from "@/lib/raketa-schema";
+import { isSafePublicUrl, safeFetch, SsrfBlockedError, TooManyRedirectsError } from "@/lib/ssrf";
 
 const FETCH_TIMEOUT_MS = 12_000;
-const MAX_BYTES = 1_500_000; // ~1.5MB cap on downloaded HTML
+const MAX_BYTES = 5_000_000; // 5MB cap on downloaded HTML
 
 function decodeEntities(s: string): string {
   return s
@@ -118,47 +115,47 @@ function bodyText(html: string): string {
   return stripTags(bodyMatch ? bodyMatch[1] : noScript);
 }
 
-function mockAnalysis(url: string, note: string): PageAnalysis {
-  return {
-    url,
-    ok: false,
-    estimated: true,
-    title: "",
-    metaDescription: "",
-    h1: [],
-    h2: [],
-    h3: [],
-    ctas: [],
-    wordCount: 0,
-    textSummary: "",
-    note,
-  };
+export type AnalyzeErrorCode =
+  "INVALID_URL" | "SSRF_BLOCKED" | "FETCH_FAILED" | "HTTP_ERROR" | "NOT_HTML";
+
+/**
+ * Fail-closed: every analysis error is a typed error. The caller must never
+ * receive mocked/fabricated data — only a real parse or this error.
+ */
+export class AnalyzeError extends Error {
+  code: AnalyzeErrorCode;
+  constructor(code: AnalyzeErrorCode, message: string) {
+    super(message);
+    this.name = "AnalyzeError";
+    this.code = code;
+  }
 }
 
 export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
   const url = normalizeUrl(rawUrl);
-  if (!url) return mockAnalysis(rawUrl, "Neplatná URL.");
+  if (!url) throw new AnalyzeError("INVALID_URL", "Neplatná URL adresa.");
+
+  if (!isSafePublicUrl(url)) {
+    throw new AnalyzeError("SSRF_BLOCKED", "URL nie je povolená (SSRF ochrana).");
+  }
 
   let html = "";
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-    const res = await fetch(url, {
+    const res = await safeFetch(url, {
       signal: controller.signal,
-      redirect: "follow",
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (compatible; PismoSEOBot/1.0; +https://pismo.sk)",
+        "User-Agent": "Mozilla/5.0 (compatible; SEO4WEBBot/1.0)",
         Accept: "text/html,application/xhtml+xml",
       },
     });
-    clearTimeout(timer);
     if (!res.ok) {
-      return mockAnalysis(url, `Stránka vrátila stav ${res.status}.`);
+      throw new AnalyzeError("HTTP_ERROR", `Stránka vrátila stav ${res.status}.`);
     }
     const ct = res.headers.get("content-type") ?? "";
     if (ct && !ct.includes("html")) {
-      return mockAnalysis(url, "Obsah nie je HTML stránka.");
+      throw new AnalyzeError("NOT_HTML", "Obsah nie je HTML stránka.");
     }
     const reader = res.body?.getReader();
     if (!reader) {
@@ -177,14 +174,22 @@ export async function analyzePage(rawUrl: string): Promise<PageAnalysis> {
         }
       }
     }
-  } catch {
-    return mockAnalysis(url, "Web sa nepodarilo načítať (timeout alebo blokovanie).");
+  } catch (e) {
+    if (e instanceof AnalyzeError) throw e;
+    if (e instanceof SsrfBlockedError || e instanceof TooManyRedirectsError) {
+      throw new AnalyzeError("SSRF_BLOCKED", "URL nie je povolená (SSRF ochrana).");
+    }
+    throw new AnalyzeError(
+      "FETCH_FAILED",
+      "Web sa nepodarilo načítať (timeout alebo sieťová chyba).",
+    );
+  } finally {
+    clearTimeout(timer);
   }
 
   const titleMatch = /<title\b[^>]*>([\s\S]*?)<\/title>/i.exec(html);
   const title = titleMatch ? decodeEntities(stripTags(titleMatch[1])) : "";
-  const metaDescription =
-    extractMeta(html, "description") || extractMeta(html, "og:description");
+  const metaDescription = extractMeta(html, "description") || extractMeta(html, "og:description");
   const h1 = matchAll(html, /<h1\b[^>]*>([\s\S]*?)<\/h1>/gi).slice(0, 5);
   const h2 = matchAll(html, /<h2\b[^>]*>([\s\S]*?)<\/h2>/gi).slice(0, 15);
   const h3 = matchAll(html, /<h3\b[^>]*>([\s\S]*?)<\/h3>/gi).slice(0, 20);
@@ -246,15 +251,13 @@ function compare(
   // Headings
   if (own.h1.length === 0) weakHeadings.push("Chýba H1 nadpis.");
   else if (own.h1.length > 1) weakHeadings.push("Viac ako jeden H1 nadpis.");
-  if (own.h2.length < 3)
-    weakHeadings.push("Málo H2 nadpisov — slabá štruktúra obsahu.");
+  if (own.h2.length < 3) weakHeadings.push("Málo H2 nadpisov — slabá štruktúra obsahu.");
   if (kw && ![...own.h1, ...own.h2].some((h) => h.toLowerCase().includes(kw))) {
     weakHeadings.push("Cieľový keyword sa nenachádza v nadpisoch.");
   }
 
   // CTA
-  if (own.ctas.length === 0)
-    ctaIssues.push("Nenašli sa jasné call-to-action prvky.");
+  if (own.ctas.length === 0) ctaIssues.push("Nenašli sa jasné call-to-action prvky.");
 
   // Keyword in content
   if (kw && own.textSummary && !own.textSummary.toLowerCase().includes(kw)) {

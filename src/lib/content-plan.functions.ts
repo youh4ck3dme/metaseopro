@@ -1,7 +1,10 @@
+import { AI_CHAT_URL, AI_DEFAULT_MODEL } from "@/lib/ai-provider";
 import { createServerFn } from "@tanstack/react-start";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { supabaseAdmin } from "@/integrations/supabase/client.server";
+import type { Database } from "@/integrations/supabase/types";
+import { hasViewerPaidAccess, isUnlimited } from "@/lib/viewer-role.server";
 
 const InputSchema = z.object({
   niche: z.string().min(2).max(500),
@@ -11,88 +14,117 @@ const InputSchema = z.object({
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 
+function isWithinFirstDay(firstUsedAt: string, now: number): boolean {
+  const elapsed = now - Date.parse(firstUsedAt);
+  return Number.isFinite(elapsed) && elapsed >= 0 && elapsed < MS_PER_DAY;
+}
+
+async function loadPaidAccess(supabase: SupabaseClient<Database>, userId: string, now: number) {
+  // Superadmin (ADMIN_USER_IDS) bypasses the paywall through the single shared gate.
+  if (isUnlimited({ id: userId })) return true;
+  try {
+    const { data, error } = await supabase
+      .from("subscriptions")
+      .select("plan, status, current_period_end")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw error;
+    return hasViewerPaidAccess({ id: userId }, data, now);
+  } catch {
+    throw new Error("Nepodarilo sa overiť predplatné. Skúste to znova.");
+  }
+}
+
 /**
  * Check whether the current user is still inside their free first-day window
- * or has already paid. Returns { allowed, reason, usage }.
+ * or has a current paid entitlement. The response shape is shared with PlanPage.
  */
 export const checkContentPlanAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { userId } = context;
-    const { data, error } = await supabaseAdmin
-      .from("content_plan_usage")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { userId, supabase } = context;
+    const now = Date.now();
+    const paidAccess = await loadPaidAccess(supabase, userId, now);
+    let usage;
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("content_plan_usage")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      usage = data;
+    } catch {
+      throw new Error("Nepodarilo sa overiť používanie plánovača. Skúste to znova.");
+    }
 
-    if (!data) {
+    if (!usage) {
       return { allowed: true, isFirstDay: true, generationsCount: 0, firstUsedAt: null };
     }
-    const first = new Date(data.first_used_at).getTime();
-    const elapsedMs = Date.now() - first;
-    const isFirstDay = elapsedMs < MS_PER_DAY;
+    const isFirstDay = isWithinFirstDay(usage.first_used_at, now);
     return {
-      allowed: isFirstDay,
+      allowed: isFirstDay || paidAccess,
       isFirstDay,
-      generationsCount: data.generations_count,
-      firstUsedAt: data.first_used_at,
+      generationsCount: usage.generations_count,
+      firstUsedAt: usage.first_used_at,
     };
   });
 
 /**
- * Generate the 30-day plan. Enforces the "first day free" gate, then increments usage.
+ * Generate the 30-day plan with a current paid entitlement or within the free first day.
  * Returns the full markdown plan (non-streaming for simplicity & gating reliability).
  */
 export const generateContentPlan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { userId, supabase } = context;
+    const now = Date.now();
+    const paidAccess = await loadPaidAccess(supabase, userId, now);
 
-    // Atomic gate: try to claim the free window by inserting the usage row.
-    // The UNIQUE(user_id) constraint serializes concurrent first-time inserts;
-    // only one wins, the rest fall through to the read-and-check branch.
-    const nowIso = new Date().toISOString();
-    const { data: inserted, error: insertErr } = await supabaseAdmin
-      .from("content_plan_usage")
-      .insert({
-        user_id: userId,
-        first_used_at: nowIso,
-        last_used_at: nowIso,
-        generations_count: 0,
-      })
-      .select()
-      .maybeSingle();
-
+    // UNIQUE(user_id) establishes one first-use timestamp. The later read/update
+    // usage increment is not atomic and can lose increments under concurrency.
+    const nowIso = new Date(now).toISOString();
     let firstUsedAt: string;
-    if (inserted) {
-      firstUsedAt = inserted.first_used_at;
-    } else {
-      // Either the insert conflicted on UNIQUE(user_id) or returned no row;
-      // re-read and enforce the 24h free window before spending AI credits.
-      if (insertErr && insertErr.code !== "23505") {
-        throw new Error(insertErr.message);
-      }
-      const { data: existing, error: readErr } = await supabaseAdmin
+    try {
+      const { data: inserted, error: insertErr } = await supabaseAdmin
         .from("content_plan_usage")
-        .select("first_used_at")
-        .eq("user_id", userId)
+        .insert({
+          user_id: userId,
+          first_used_at: nowIso,
+          last_used_at: nowIso,
+          generations_count: 0,
+        })
+        .select()
         .maybeSingle();
-      if (readErr || !existing) {
-        throw new Error(readErr?.message ?? "Nepodarilo sa overiť usage.");
+
+      if (insertErr && insertErr.code !== "23505") throw insertErr;
+      if (inserted) {
+        firstUsedAt = inserted.first_used_at;
+      } else {
+        // Existing users keep the first-use timestamp; no trial window is restarted.
+        const { data: existing, error: readErr } = await supabaseAdmin
+          .from("content_plan_usage")
+          .select("first_used_at")
+          .eq("user_id", userId)
+          .maybeSingle();
+        if (readErr || !existing) throw readErr ?? new Error("Usage row missing");
+        firstUsedAt = existing.first_used_at;
       }
-      firstUsedAt = existing.first_used_at;
-      const elapsedMs = Date.now() - new Date(firstUsedAt).getTime();
-      if (elapsedMs >= MS_PER_DAY) {
-        throw new Error(
-          "PAYMENT_REQUIRED: Tvoj prvý deň zdarma sa skončil. Pre ďalšie generovanie aktivuj predplatné.",
-        );
-      }
+    } catch {
+      throw new Error("Nepodarilo sa overiť používanie plánovača. Skúste to znova.");
     }
 
-    const apiKey = process.env.LOVABLE_API_KEY;
-    if (!apiKey) throw new Error("LOVABLE_API_KEY nie je nakonfigurovaný.");
+    if (!paidAccess && !isWithinFirstDay(firstUsedAt, now)) {
+      throw new Error(
+        "PAYMENT_REQUIRED: Tvoj prvý deň zdarma sa skončil. Pre ďalšie generovanie aktivuj predplatné.",
+      );
+    }
+
+    const apiKey = process.env.MISTRAL_API_KEY;
+    if (!apiKey) throw new Error("MISTRAL_API_KEY nie je nakonfigurovaný.");
 
     const { CONTENT_PLAN_SYSTEM_PROMPT } = await import("./content-plan-prompt");
 
@@ -104,34 +136,42 @@ export const generateContentPlan = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join("\n");
 
-    const upstream = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: CONTENT_PLAN_SYSTEM_PROMPT },
-          { role: "user", content: userPrompt },
-        ],
-      }),
-    });
+    let upstream: Response;
+    try {
+      upstream = await fetch(AI_CHAT_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: AI_DEFAULT_MODEL,
+          messages: [
+            { role: "system", content: CONTENT_PLAN_SYSTEM_PROMPT },
+            { role: "user", content: userPrompt },
+          ],
+        }),
+      });
+    } catch {
+      throw new Error("AI poskytovateľ momentálne neodpovedá. Skúste to znova.");
+    }
 
     if (!upstream.ok) {
       if (upstream.status === 429) throw new Error("Príliš veľa požiadaviek. Skús to o chvíľu.");
       if (upstream.status === 402) throw new Error("Vyčerpané AI kredity v workspace.");
-      const text = await upstream.text();
-      console.error("AI gateway error:", upstream.status, text);
+      console.error("Content plan AI request failed", { status: upstream.status });
       throw new Error("Chyba AI gateway.");
     }
 
-    const json = (await upstream.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
+    let json: { choices?: Array<{ message?: { content?: string } }> };
+    try {
+      json = await upstream.json();
+    } catch {
+      throw new Error("AI poskytovateľ vrátil neplatnú odpoveď.");
+    }
     const content = json.choices?.[0]?.message?.content ?? "";
-    if (!content) throw new Error("AI nevrátila žiadny obsah.");
+    if (typeof content !== "string" || !content.trim())
+      throw new Error("AI nevrátila žiadny obsah.");
 
     // Increment usage counter after successful generation.
 
@@ -150,4 +190,3 @@ export const generateContentPlan = createServerFn({ method: "POST" })
 
     return { plan: content };
   });
-

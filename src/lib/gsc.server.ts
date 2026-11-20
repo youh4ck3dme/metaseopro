@@ -1,136 +1,278 @@
-// Server-only Google Search Console client via the Lovable connector gateway.
-// Read-only access only. Never expose tokens to the client.
+// Server-only Google Search Console access via the Lovable connector gateway.
+// Never call the Google API directly and never construct siteUrl from user input:
+// only exact values returned by GET /webmasters/v3/sites are ever used.
+import type { DecayRow, QueryRow } from "./decay-schema";
+import { isAdminUser } from "./admin.server";
 
 const GATEWAY = "https://connector-gateway.lovable.dev/google_search_console";
 
-export type GscStatus =
-  | "connected"
-  | "not_connected"
-  | "reconnect"
-  | "no_properties"
-  | "permission_error";
+export type GscStatus = "ok" | "not_connected" | "error";
 
-export type GscSite = { siteUrl: string; permissionLevel: string };
-
-function keys() {
-  return {
-    lovable: process.env.LOVABLE_API_KEY,
-    conn: process.env.GOOGLE_SEARCH_CONSOLE_API_KEY,
-  };
+function creds(): { lovableKey: string; connectionKey: string } | null {
+  const lovableKey = process.env.LOVABLE_API_KEY;
+  const connectionKey = process.env.GOOGLE_SEARCH_CONSOLE_API_KEY;
+  if (!lovableKey || !connectionKey) return null;
+  return { lovableKey, connectionKey };
 }
 
-function headers(lovable: string, conn: string): Record<string, string> {
-  return {
-    Authorization: `Bearer ${lovable}`,
-    "X-Connection-Api-Key": conn,
-    "Content-Type": "application/json",
-  };
+export function isGscConfigured(): boolean {
+  return creds() !== null;
 }
 
-function mapErrorStatus(httpStatus: number): GscStatus {
-  if (httpStatus === 401) return "reconnect";
-  if (httpStatus === 403) return "permission_error";
-  return "reconnect";
+async function gscFetch(path: string, init?: RequestInit): Promise<Response> {
+  const c = creds();
+  if (!c) throw new Error("GSC_NOT_CONNECTED");
+  return fetch(`${GATEWAY}${path}`, {
+    ...init,
+    headers: {
+      Authorization: `Bearer ${c.lovableKey}`,
+      "X-Connection-Api-Key": c.connectionKey,
+      "Content-Type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
 }
 
-export async function listSites(): Promise<{
-  status: GscStatus;
-  sites: GscSite[];
-}> {
-  const { lovable, conn } = keys();
-  if (!lovable || !conn) return { status: "not_connected", sites: [] };
+export type VerifiedProperty = { siteUrl: string; permissionLevel: string };
 
-  let res: Response;
-  try {
-    res = await fetch(`${GATEWAY}/webmasters/v3/sites`, {
-      method: "GET",
-      headers: headers(lovable, conn),
-    });
-  } catch (e) {
-    console.error("GSC listSites fetch failed:", e);
-    return { status: "reconnect", sites: [] };
-  }
-
+/** Lists only verified properties the connected Google account owns. */
+export async function listVerifiedProperties(): Promise<VerifiedProperty[]> {
+  const res = await gscFetch("/webmasters/v3/sites");
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error("GSC listSites error:", res.status, body.slice(0, 500));
-    return { status: mapErrorStatus(res.status), sites: [] };
+    const body = await res.text();
+    console.error(`GSC /sites failed [${res.status}]: ${body}`);
+    throw new Error(`GSC_LIST_FAILED_${res.status}`);
   }
-
-  const json = (await res.json().catch(() => ({}))) as {
-    siteEntry?: { siteUrl?: string; permissionLevel?: string }[];
+  const json = (await res.json()) as {
+    siteEntry?: { siteUrl: string; permissionLevel?: string }[];
   };
-  const sites: GscSite[] = (json.siteEntry ?? [])
-    .filter((s) => s.siteUrl && s.permissionLevel !== "siteUnverifiedUser")
-    .map((s) => ({
-      siteUrl: String(s.siteUrl),
-      permissionLevel: String(s.permissionLevel ?? "unknown"),
+  return (json.siteEntry ?? [])
+    .filter((e) => e.permissionLevel !== "siteUnverifiedUser")
+    .map((e) => ({
+      siteUrl: e.siteUrl,
+      permissionLevel: e.permissionLevel ?? "siteOwner",
     }));
-
-  if (sites.length === 0) return { status: "no_properties", sites: [] };
-  return { status: "connected", sites };
 }
 
-export type SearchAnalyticsRow = {
-  keys: string[];
-  clicks: number;
-  impressions: number;
-  ctr: number;
-  position: number;
-};
+/**
+ * Multi-tenant safe listing:
+ * Platform admins see all connected master properties.
+ * External users see only properties belonging to their tenant/account,
+ * preventing cross-customer data leakage.
+ */
+export async function listUserVerifiedProperties(
+  userId: string,
+  email?: string,
+): Promise<VerifiedProperty[]> {
+  const isPlatformOwner = isAdminUser({ id: userId });
 
-export async function searchAnalytics(params: {
-  siteUrl: string;
-  startDate: string;
-  endDate: string;
-  dimensions: ("page" | "query" | "date")[];
-  rowLimit?: number;
-  dimensionFilterGroups?: unknown[];
-  aggregationType?: string;
-}): Promise<
-  | { ok: true; rows: SearchAnalyticsRow[] }
-  | { ok: false; status: GscStatus; message: string }
-> {
-  const { lovable, conn } = keys();
-  if (!lovable || !conn)
-    return { ok: false, status: "not_connected", message: "GSC nie je pripojené." };
-
-  const encoded = encodeURIComponent(params.siteUrl);
-  let res: Response;
-  try {
-    res = await fetch(
-      `${GATEWAY}/webmasters/v3/sites/${encoded}/searchAnalytics/query`,
-      {
-        method: "POST",
-        headers: headers(lovable, conn),
-        body: JSON.stringify({
-          startDate: params.startDate,
-          endDate: params.endDate,
-          dimensions: params.dimensions,
-          rowLimit: params.rowLimit ?? 25000,
-          type: "web",
-          aggregationType: params.aggregationType,
-          dimensionFilterGroups: params.dimensionFilterGroups,
-        }),
-      },
-    );
-  } catch (e) {
-    console.error("GSC searchAnalytics fetch failed:", e);
-    return { ok: false, status: "reconnect", message: "Spojenie s GSC zlyhalo." };
+  if (isPlatformOwner) {
+    return listVerifiedProperties();
   }
 
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error("GSC searchAnalytics error:", res.status, body.slice(0, 500));
-    return {
-      ok: false,
-      status: mapErrorStatus(res.status),
-      message: "GSC API vrátilo chybu.",
-    };
+  // Tenant-specific properties if configured
+  const tenantSites = (process.env[`USER_GSC_SITES_${userId}`] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (tenantSites.length === 0) {
+    return [];
   }
 
-  const json = (await res.json().catch(() => ({}))) as {
-    rows?: SearchAnalyticsRow[];
+  const allProps = await listVerifiedProperties();
+  return allProps.filter((p) => tenantSites.includes(p.siteUrl));
+}
+
+/** Re-validates a chosen siteUrl against the live verified list. */
+export async function assertVerifiedProperty(siteUrl: string): Promise<string> {
+  const props = await listVerifiedProperties();
+  const match = props.find((p) => p.siteUrl === siteUrl);
+  if (!match) throw new Error("GSC_PROPERTY_NOT_VERIFIED");
+  return match.siteUrl;
+}
+
+/**
+ * Multi-tenant permission guard:
+ * Verifies that the signed-in user has permission to analyze the specified siteUrl.
+ */
+export async function assertUserPropertyAccess(
+  userId: string,
+  siteUrl: string,
+  email?: string,
+): Promise<string> {
+  const verified = await assertVerifiedProperty(siteUrl);
+
+  const isPlatformOwner = isAdminUser({ id: userId });
+
+  if (isPlatformOwner) {
+    return verified;
+  }
+
+  const tenantSites = (process.env[`USER_GSC_SITES_${userId}`] || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (!tenantSites.includes(siteUrl)) {
+    throw new Error("GSC_USER_UNAUTHORIZED_FOR_PROPERTY");
+  }
+
+  return verified;
+}
+
+function isoDay(offsetDays: number, reference: Date): string {
+  const d = new Date(reference.getTime());
+  d.setUTCDate(d.getUTCDate() - offsetDays);
+  return d.toISOString().slice(0, 10);
+}
+
+// Google's data lag is ~3 days; compare two full 90-day windows.
+export function getLivePeriods(reference = new Date()) {
+  // Both inclusive windows contain exactly 90 days and share one request clock.
+  return {
+    now: `${isoDay(92, reference)} – ${isoDay(3, reference)}`,
+    prev: `${isoDay(182, reference)} – ${isoDay(93, reference)}`,
   };
-  return { ok: true, rows: json.rows ?? [] };
+}
+
+type SaRow = { keys: string[]; clicks: number; impressions: number; position: number };
+
+async function query(siteUrl: string, body: Record<string, unknown>): Promise<SaRow[]> {
+  const res = await gscFetch(
+    `/webmasters/v3/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`,
+    { method: "POST", body: JSON.stringify(body) },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    console.error(`GSC searchAnalytics failed [${res.status}]: ${text}`);
+    if (res.status === 403) throw new Error("GSC_FORBIDDEN");
+    throw new Error(`GSC_QUERY_FAILED_${res.status}`);
+  }
+  const json = (await res.json()) as { rows?: SaRow[] };
+  return json.rows ?? [];
+}
+
+function windowBody(
+  startDate: string,
+  endDate: string,
+  dimensions: string[],
+  extra: Record<string, unknown> = {},
+) {
+  return { startDate, endDate, dimensions, rowLimit: 250, ...extra };
+}
+
+function splitPeriod(period: string): [string, string] {
+  const [a, b] = period.split(" – ");
+  if (!a || !b) throw new Error("GSC_INVALID_PERIOD");
+  return [a, b];
+}
+
+/**
+ * Builds decay rows from live GSC data: page-level comparison of two 90-day
+ * windows, enriched with per-URL top queries for the most-declining pages.
+ */
+export async function fetchLiveDecayRows(
+  siteUrl: string,
+  maxUrls = 12,
+  periods = getLivePeriods(),
+): Promise<DecayRow[]> {
+  const [nowStart, nowEnd] = splitPeriod(periods.now);
+  const [prevStart, prevEnd] = splitPeriod(periods.prev);
+
+  const [nowRows, prevRows] = await Promise.all([
+    query(siteUrl, windowBody(nowStart, nowEnd, ["page"])),
+    query(siteUrl, windowBody(prevStart, prevEnd, ["page"])),
+  ]);
+
+  const nowMap = new Map(nowRows.filter((r) => r.keys[0]).map((r) => [r.keys[0], r]));
+  const prevMap = new Map(prevRows.filter((r) => r.keys[0]).map((r) => [r.keys[0], r]));
+  const merged = [...new Set([...nowMap.keys(), ...prevMap.keys()])]
+    .map((url) => {
+      const r = nowMap.get(url);
+      const prev = prevMap.get(url);
+      return {
+        url,
+        clicksNow: Math.round(r?.clicks ?? 0),
+        clicksPrev: Math.round(prev?.clicks ?? 0),
+        impressionsNow: Math.round(r?.impressions ?? 0),
+        impressionsPrev: Math.round(prev?.impressions ?? 0),
+        // Zero is the existing contract's missing-data value, not a measured rank.
+        positionNow: Number((r?.position ?? 0).toFixed(1)),
+        positionPrev: Number((prev?.position ?? r?.position ?? 0).toFixed(1)),
+      };
+    })
+    // Only pages with meaningful prior traffic can meaningfully decay.
+    .filter((r) => r.impressionsPrev >= 15 || r.clicksPrev >= 2 || r.impressionsNow >= 15)
+    .sort((a, b) => a.clicksNow - a.clicksPrev - (b.clicksNow - b.clicksPrev))
+    .slice(0, maxUrls);
+
+  const concurrency = 4;
+  const rows: DecayRow[] = [];
+  for (let i = 0; i < merged.length; i += concurrency) {
+    const chunk = merged.slice(i, i + concurrency);
+    const chunkRows = await Promise.all(
+      chunk.map(async (r) => {
+        let topQueries: QueryRow[] = [];
+        try {
+          const filters = {
+            dimensionFilterGroups: [
+              {
+                filters: [{ dimension: "page", operator: "equals", expression: r.url }],
+              },
+            ],
+            rowLimit: 10,
+          };
+          const [qNow, qPrev] = await Promise.all([
+            query(siteUrl, windowBody(nowStart, nowEnd, ["query"], filters)),
+            query(siteUrl, windowBody(prevStart, prevEnd, ["query"], filters)),
+          ]);
+          const nowQ = new Map(qNow.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
+          const prevQ = new Map(qPrev.filter((q) => q.keys[0]).map((q) => [q.keys[0], q]));
+          topQueries = [...new Set([...nowQ.keys(), ...prevQ.keys()])]
+            .map((key) => {
+              const q = nowQ.get(key);
+              const p = prevQ.get(key);
+              return {
+                query: key.slice(0, 300),
+                clicksNow: Math.round(q?.clicks ?? 0),
+                clicksPrev: Math.round(p?.clicks ?? 0),
+                positionNow: Number((q?.position ?? 0).toFixed(1)),
+                positionPrev: Number((p?.position ?? q?.position ?? 0).toFixed(1)),
+              };
+            })
+            .sort((a, b) => a.clicksNow - a.clicksPrev - (b.clicksNow - b.clicksPrev))
+            .slice(0, 5);
+        } catch (e) {
+          if (e instanceof Error && e.message === "GSC_FORBIDDEN") throw e;
+          console.error("GSC per-URL query failed:", e);
+        }
+
+        let title: string;
+        try {
+          const path = new URL(r.url).pathname.replace(/\/$/, "");
+          title =
+            path === ""
+              ? "Domovská stránka"
+              : (path.split("/").pop() ?? path).replace(/[-_]/g, " ");
+        } catch {
+          title = r.url;
+        }
+
+        return {
+          url: r.url.slice(0, 2048),
+          title: title.slice(0, 500),
+          clicksPrev: r.clicksPrev,
+          clicksNow: r.clicksNow,
+          impressionsPrev: r.impressionsPrev,
+          impressionsNow: r.impressionsNow,
+          positionPrev: r.positionPrev,
+          positionNow: r.positionNow,
+          topQueries,
+        };
+      }),
+    );
+    rows.push(...chunkRows);
+  }
+  return rows;
 }

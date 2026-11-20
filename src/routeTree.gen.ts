@@ -9,51 +9,32 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RaketaRouteImport } from './routes/raketa'
-import { Route as PlanRouteImport } from './routes/plan'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as HistoryRouteImport } from './routes/history'
-import { Route as DecayRouteImport } from './routes/decay'
-import { Route as BriefRouteImport } from './routes/brief'
-import { Route as AuditRouteImport } from './routes/audit'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
-import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
-import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
-import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as AuditRouteImport } from './routes/audit'
+import { Route as BriefRouteImport } from './routes/brief'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DecayRouteImport } from './routes/decay'
+import { Route as HistoryRouteImport } from './routes/history'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as PlanRouteImport } from './routes/plan'
+import { Route as RaketaRouteImport } from './routes/raketa'
 import { Route as ApiAuditDomainsRouteImport } from './routes/api/audit-domains'
-import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay.gsc-properties'
-import { Route as ApiDecayGenerateRefreshPlanRouteImport } from './routes/api/decay.generate-refresh-plan'
-import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay.analyze'
+import { Route as ApiCtrBoostRouteImport } from './routes/api/ctr-boost'
+import { Route as ApiDecayAnalyzeRouteImport } from './routes/api/decay-analyze'
+import { Route as ApiDecayGeneratePlanRouteImport } from './routes/api/decay-generate-plan'
+import { Route as ApiDecayGscPropertiesRouteImport } from './routes/api/decay-gsc-properties'
+import { Route as ApiGenerateArticleRouteImport } from './routes/api/generate-article'
+import { Route as ApiGenerateBriefRouteImport } from './routes/api/generate-brief'
+import { Route as ApiRaketaAnalyzeRouteImport } from './routes/api/raketa-analyze'
+import { Route as ApiRaketaGenerateRouteImport } from './routes/api/raketa-generate'
+import { Route as SettingsAgencyRouteImport } from './routes/settings.agency'
+import { Route as ApiPublicCronDecayAlertsRouteImport } from './routes/api/public/cron-decay-alerts'
+import { Route as ApiPublicSitemapRouteImport } from './routes/api/public/sitemap'
+import { Route as ApiPublicStripeWebhookRouteImport } from './routes/api/public/stripe-webhook'
 
-const RaketaRoute = RaketaRouteImport.update({
-  id: '/raketa',
-  path: '/raketa',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PlanRoute = PlanRouteImport.update({
-  id: '/plan',
-  path: '/plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HistoryRoute = HistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DecayRoute = DecayRouteImport.update({
-  id: '/decay',
-  path: '/decay',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BriefRoute = BriefRouteImport.update({
-  id: '/brief',
-  path: '/brief',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuditRoute = AuditRouteImport.update({
@@ -61,29 +42,39 @@ const AuditRoute = AuditRouteImport.update({
   path: '/audit',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const BriefRoute = BriefRouteImport.update({
+  id: '/brief',
+  path: '/brief',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
-  id: '/api/raketa-generate',
-  path: '/api/raketa-generate',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
-  id: '/api/raketa-analyze',
-  path: '/api/raketa-analyze',
+const DecayRoute = DecayRouteImport.update({
+  id: '/decay',
+  path: '/decay',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
-  id: '/api/generate-brief',
-  path: '/api/generate-brief',
+const HistoryRoute = HistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
-  id: '/api/generate-article',
-  path: '/api/generate-article',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RaketaRoute = RaketaRouteImport.update({
+  id: '/raketa',
+  path: '/raketa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
@@ -91,20 +82,65 @@ const ApiAuditDomainsRoute = ApiAuditDomainsRouteImport.update({
   path: '/api/audit-domains',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
-  id: '/api/decay/gsc-properties',
-  path: '/api/decay/gsc-properties',
+const ApiCtrBoostRoute = ApiCtrBoostRouteImport.update({
+  id: '/api/ctr-boost',
+  path: '/api/ctr-boost',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiDecayGenerateRefreshPlanRoute =
-  ApiDecayGenerateRefreshPlanRouteImport.update({
-    id: '/api/decay/generate-refresh-plan',
-    path: '/api/decay/generate-refresh-plan',
+const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
+  id: '/api/decay-analyze',
+  path: '/api/decay-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayGeneratePlanRoute = ApiDecayGeneratePlanRouteImport.update({
+  id: '/api/decay-generate-plan',
+  path: '/api/decay-generate-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDecayGscPropertiesRoute = ApiDecayGscPropertiesRouteImport.update({
+  id: '/api/decay-gsc-properties',
+  path: '/api/decay-gsc-properties',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateArticleRoute = ApiGenerateArticleRouteImport.update({
+  id: '/api/generate-article',
+  path: '/api/generate-article',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiGenerateBriefRoute = ApiGenerateBriefRouteImport.update({
+  id: '/api/generate-brief',
+  path: '/api/generate-brief',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRaketaAnalyzeRoute = ApiRaketaAnalyzeRouteImport.update({
+  id: '/api/raketa-analyze',
+  path: '/api/raketa-analyze',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiRaketaGenerateRoute = ApiRaketaGenerateRouteImport.update({
+  id: '/api/raketa-generate',
+  path: '/api/raketa-generate',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SettingsAgencyRoute = SettingsAgencyRouteImport.update({
+  id: '/settings/agency',
+  path: '/settings/agency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicCronDecayAlertsRoute =
+  ApiPublicCronDecayAlertsRouteImport.update({
+    id: '/api/public/cron-decay-alerts',
+    path: '/api/public/cron-decay-alerts',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiDecayAnalyzeRoute = ApiDecayAnalyzeRouteImport.update({
-  id: '/api/decay/analyze',
-  path: '/api/decay/analyze',
+const ApiPublicSitemapRoute = ApiPublicSitemapRouteImport.update({
+  id: '/api/public/sitemap',
+  path: '/api/public/sitemap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicStripeWebhookRoute = ApiPublicStripeWebhookRouteImport.update({
+  id: '/api/public/stripe-webhook',
+  path: '/api/public/stripe-webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -112,56 +148,74 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
-  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
-  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
-  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
+  '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
-  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
-  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
-  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
+  '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/audit': typeof AuditRoute
   '/brief': typeof BriefRoute
+  '/dashboard': typeof DashboardRoute
   '/decay': typeof DecayRoute
   '/history': typeof HistoryRoute
   '/login': typeof LoginRoute
   '/plan': typeof PlanRoute
   '/raketa': typeof RaketaRoute
   '/api/audit-domains': typeof ApiAuditDomainsRoute
+  '/api/ctr-boost': typeof ApiCtrBoostRoute
+  '/api/decay-analyze': typeof ApiDecayAnalyzeRoute
+  '/api/decay-generate-plan': typeof ApiDecayGeneratePlanRoute
+  '/api/decay-gsc-properties': typeof ApiDecayGscPropertiesRoute
   '/api/generate-article': typeof ApiGenerateArticleRoute
   '/api/generate-brief': typeof ApiGenerateBriefRoute
   '/api/raketa-analyze': typeof ApiRaketaAnalyzeRoute
   '/api/raketa-generate': typeof ApiRaketaGenerateRoute
-  '/api/decay/analyze': typeof ApiDecayAnalyzeRoute
-  '/api/decay/generate-refresh-plan': typeof ApiDecayGenerateRefreshPlanRoute
-  '/api/decay/gsc-properties': typeof ApiDecayGscPropertiesRoute
+  '/settings/agency': typeof SettingsAgencyRoute
+  '/api/public/cron-decay-alerts': typeof ApiPublicCronDecayAlertsRoute
+  '/api/public/sitemap': typeof ApiPublicSitemapRoute
+  '/api/public/stripe-webhook': typeof ApiPublicStripeWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -169,118 +223,107 @@ export interface FileRouteTypes {
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
+    | '/api/decay-analyze'
+    | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
-    | '/api/decay/analyze'
-    | '/api/decay/generate-refresh-plan'
-    | '/api/decay/gsc-properties'
+    | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
+    | '/api/public/stripe-webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
+    | '/api/decay-analyze'
+    | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
-    | '/api/decay/analyze'
-    | '/api/decay/generate-refresh-plan'
-    | '/api/decay/gsc-properties'
+    | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
+    | '/api/public/stripe-webhook'
   id:
     | '__root__'
     | '/'
     | '/audit'
     | '/brief'
+    | '/dashboard'
     | '/decay'
     | '/history'
     | '/login'
     | '/plan'
     | '/raketa'
     | '/api/audit-domains'
+    | '/api/ctr-boost'
+    | '/api/decay-analyze'
+    | '/api/decay-generate-plan'
+    | '/api/decay-gsc-properties'
     | '/api/generate-article'
     | '/api/generate-brief'
     | '/api/raketa-analyze'
     | '/api/raketa-generate'
-    | '/api/decay/analyze'
-    | '/api/decay/generate-refresh-plan'
-    | '/api/decay/gsc-properties'
+    | '/settings/agency'
+    | '/api/public/cron-decay-alerts'
+    | '/api/public/sitemap'
+    | '/api/public/stripe-webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuditRoute: typeof AuditRoute
   BriefRoute: typeof BriefRoute
+  DashboardRoute: typeof DashboardRoute
   DecayRoute: typeof DecayRoute
   HistoryRoute: typeof HistoryRoute
   LoginRoute: typeof LoginRoute
   PlanRoute: typeof PlanRoute
   RaketaRoute: typeof RaketaRoute
   ApiAuditDomainsRoute: typeof ApiAuditDomainsRoute
+  ApiCtrBoostRoute: typeof ApiCtrBoostRoute
+  ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
+  ApiDecayGeneratePlanRoute: typeof ApiDecayGeneratePlanRoute
+  ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
   ApiGenerateArticleRoute: typeof ApiGenerateArticleRoute
   ApiGenerateBriefRoute: typeof ApiGenerateBriefRoute
   ApiRaketaAnalyzeRoute: typeof ApiRaketaAnalyzeRoute
   ApiRaketaGenerateRoute: typeof ApiRaketaGenerateRoute
-  ApiDecayAnalyzeRoute: typeof ApiDecayAnalyzeRoute
-  ApiDecayGenerateRefreshPlanRoute: typeof ApiDecayGenerateRefreshPlanRoute
-  ApiDecayGscPropertiesRoute: typeof ApiDecayGscPropertiesRoute
+  SettingsAgencyRoute: typeof SettingsAgencyRoute
+  ApiPublicCronDecayAlertsRoute: typeof ApiPublicCronDecayAlertsRoute
+  ApiPublicSitemapRoute: typeof ApiPublicSitemapRoute
+  ApiPublicStripeWebhookRoute: typeof ApiPublicStripeWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/raketa': {
-      id: '/raketa'
-      path: '/raketa'
-      fullPath: '/raketa'
-      preLoaderRoute: typeof RaketaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/plan': {
-      id: '/plan'
-      path: '/plan'
-      fullPath: '/plan'
-      preLoaderRoute: typeof PlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/history': {
-      id: '/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof HistoryRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/decay': {
-      id: '/decay'
-      path: '/decay'
-      fullPath: '/decay'
-      preLoaderRoute: typeof DecayRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/brief': {
-      id: '/brief'
-      path: '/brief'
-      fullPath: '/brief'
-      preLoaderRoute: typeof BriefRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/audit': {
@@ -290,39 +333,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuditRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/brief': {
+      id: '/brief'
+      path: '/brief'
+      fullPath: '/brief'
+      preLoaderRoute: typeof BriefRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/raketa-generate': {
-      id: '/api/raketa-generate'
-      path: '/api/raketa-generate'
-      fullPath: '/api/raketa-generate'
-      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/raketa-analyze': {
-      id: '/api/raketa-analyze'
-      path: '/api/raketa-analyze'
-      fullPath: '/api/raketa-analyze'
-      preLoaderRoute: typeof ApiRaketaAnalyzeRouteImport
+    '/decay': {
+      id: '/decay'
+      path: '/decay'
+      fullPath: '/decay'
+      preLoaderRoute: typeof DecayRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/generate-brief': {
-      id: '/api/generate-brief'
-      path: '/api/generate-brief'
-      fullPath: '/api/generate-brief'
-      preLoaderRoute: typeof ApiGenerateBriefRouteImport
+    '/history': {
+      id: '/history'
+      path: '/history'
+      fullPath: '/history'
+      preLoaderRoute: typeof HistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/generate-article': {
-      id: '/api/generate-article'
-      path: '/api/generate-article'
-      fullPath: '/api/generate-article'
-      preLoaderRoute: typeof ApiGenerateArticleRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/raketa': {
+      id: '/raketa'
+      path: '/raketa'
+      fullPath: '/raketa'
+      preLoaderRoute: typeof RaketaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/audit-domains': {
@@ -332,25 +389,88 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuditDomainsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay/gsc-properties': {
-      id: '/api/decay/gsc-properties'
-      path: '/api/decay/gsc-properties'
-      fullPath: '/api/decay/gsc-properties'
+    '/api/ctr-boost': {
+      id: '/api/ctr-boost'
+      path: '/api/ctr-boost'
+      fullPath: '/api/ctr-boost'
+      preLoaderRoute: typeof ApiCtrBoostRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-analyze': {
+      id: '/api/decay-analyze'
+      path: '/api/decay-analyze'
+      fullPath: '/api/decay-analyze'
+      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-generate-plan': {
+      id: '/api/decay-generate-plan'
+      path: '/api/decay-generate-plan'
+      fullPath: '/api/decay-generate-plan'
+      preLoaderRoute: typeof ApiDecayGeneratePlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/decay-gsc-properties': {
+      id: '/api/decay-gsc-properties'
+      path: '/api/decay-gsc-properties'
+      fullPath: '/api/decay-gsc-properties'
       preLoaderRoute: typeof ApiDecayGscPropertiesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay/generate-refresh-plan': {
-      id: '/api/decay/generate-refresh-plan'
-      path: '/api/decay/generate-refresh-plan'
-      fullPath: '/api/decay/generate-refresh-plan'
-      preLoaderRoute: typeof ApiDecayGenerateRefreshPlanRouteImport
+    '/api/generate-article': {
+      id: '/api/generate-article'
+      path: '/api/generate-article'
+      fullPath: '/api/generate-article'
+      preLoaderRoute: typeof ApiGenerateArticleRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/decay/analyze': {
-      id: '/api/decay/analyze'
-      path: '/api/decay/analyze'
-      fullPath: '/api/decay/analyze'
-      preLoaderRoute: typeof ApiDecayAnalyzeRouteImport
+    '/api/generate-brief': {
+      id: '/api/generate-brief'
+      path: '/api/generate-brief'
+      fullPath: '/api/generate-brief'
+      preLoaderRoute: typeof ApiGenerateBriefRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/raketa-analyze': {
+      id: '/api/raketa-analyze'
+      path: '/api/raketa-analyze'
+      fullPath: '/api/raketa-analyze'
+      preLoaderRoute: typeof ApiRaketaAnalyzeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/raketa-generate': {
+      id: '/api/raketa-generate'
+      path: '/api/raketa-generate'
+      fullPath: '/api/raketa-generate'
+      preLoaderRoute: typeof ApiRaketaGenerateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/settings/agency': {
+      id: '/settings/agency'
+      path: '/settings/agency'
+      fullPath: '/settings/agency'
+      preLoaderRoute: typeof SettingsAgencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/cron-decay-alerts': {
+      id: '/api/public/cron-decay-alerts'
+      path: '/api/public/cron-decay-alerts'
+      fullPath: '/api/public/cron-decay-alerts'
+      preLoaderRoute: typeof ApiPublicCronDecayAlertsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sitemap': {
+      id: '/api/public/sitemap'
+      path: '/api/public/sitemap'
+      fullPath: '/api/public/sitemap'
+      preLoaderRoute: typeof ApiPublicSitemapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/stripe-webhook': {
+      id: '/api/public/stripe-webhook'
+      path: '/api/public/stripe-webhook'
+      fullPath: '/api/public/stripe-webhook'
+      preLoaderRoute: typeof ApiPublicStripeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -360,20 +480,36 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuditRoute: AuditRoute,
   BriefRoute: BriefRoute,
+  DashboardRoute: DashboardRoute,
   DecayRoute: DecayRoute,
   HistoryRoute: HistoryRoute,
   LoginRoute: LoginRoute,
   PlanRoute: PlanRoute,
   RaketaRoute: RaketaRoute,
   ApiAuditDomainsRoute: ApiAuditDomainsRoute,
+  ApiCtrBoostRoute: ApiCtrBoostRoute,
+  ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
+  ApiDecayGeneratePlanRoute: ApiDecayGeneratePlanRoute,
+  ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,
   ApiGenerateArticleRoute: ApiGenerateArticleRoute,
   ApiGenerateBriefRoute: ApiGenerateBriefRoute,
   ApiRaketaAnalyzeRoute: ApiRaketaAnalyzeRoute,
   ApiRaketaGenerateRoute: ApiRaketaGenerateRoute,
-  ApiDecayAnalyzeRoute: ApiDecayAnalyzeRoute,
-  ApiDecayGenerateRefreshPlanRoute: ApiDecayGenerateRefreshPlanRoute,
-  ApiDecayGscPropertiesRoute: ApiDecayGscPropertiesRoute,
+  SettingsAgencyRoute: SettingsAgencyRoute,
+  ApiPublicCronDecayAlertsRoute: ApiPublicCronDecayAlertsRoute,
+  ApiPublicSitemapRoute: ApiPublicSitemapRoute,
+  ApiPublicStripeWebhookRoute: ApiPublicStripeWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

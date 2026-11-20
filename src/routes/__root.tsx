@@ -1,3 +1,4 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -10,6 +11,10 @@ import {
 
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
+import { ViewerRoleProvider } from "@/hooks/use-viewer-role";
+import { SITE, pageUrl } from "@/lib/i18n";
+import { PwaLaunchExperience } from "@/components/PwaLaunchExperience";
+import { IosInstallPrompt } from "@/components/IosInstallPrompt";
 
 function NotFoundComponent() {
   return (
@@ -33,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
 
@@ -72,21 +77,65 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Generates long-form, SEO-optimized blog" },
-      { name: "description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Generates long-form, SEO-optimized blog" },
-      { property: "og:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
+      {
+        name: "viewport",
+        content:
+          "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover",
+      },
+      { name: "theme-color", content: "#171717" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "SEO4WEB" },
+      { name: "format-detection", content: "telephone=no" },
+      { name: "robots", content: "index, follow" },
+      { title: "SEO4WEB — All-in-One SEO Command Center pre slovenský a český trh" },
+      {
+        name: "description",
+        content:
+          "SEO4WEB: Inteligentný SEO audit, detekcia prepadov návštevnosti (Content Decay), CTR booster a 1-klikové nasadzovanie optimalizácií do WordPressu.",
+      },
+      {
+        name: "keywords",
+        content:
+          "SEO audit, SEO nástroj, Search Console, Content Decay Radar, WordPress SEO, Yoast SEO, Rank Math, CTR optimalizácia, SEO Slovensko",
+      },
+      { property: "og:site_name", content: "SEO4WEB" },
+      {
+        property: "og:title",
+        content: "SEO4WEB — All-in-One SEO Command Center",
+      },
+      {
+        property: "og:description",
+        content:
+          "Automatizovaný SEO audit, Search Console integrácia, Content Decay Radar a 1-klikové nasadzovanie meta tagov do WordPressu.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Generates long-form, SEO-optimized blog" },
-      { name: "twitter:description", content: "Generates long-form, SEO-optimized blog content from user prompts." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/M7V4lfDuJ1W8OdqMYEGbPDlxk2w2/social-images/social-1779498005025-IMG_0389.webp" },
+      { property: "og:url", content: SITE },
+      { name: "twitter:card", content: "summary_large_image" },
+      {
+        name: "twitter:description",
+        content:
+          "Audit, brief, 30-day plan and SEO article. One workflow for agencies and freelancers. SK / EN / DE.",
+      },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", sizes: "180x180", href: "/icons/apple-touch-icon-180.png" },
+      { rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+      { rel: "icon", type: "image/png", sizes: "32x32", href: "/icons/icon-32.png" },
+      { rel: "icon", type: "image/png", sizes: "16x16", href: "/icons/icon-16.png" },
+      { rel: "canonical", href: SITE },
+      { rel: "alternate", hrefLang: "sk", href: pageUrl("sk", "/") },
+      { rel: "alternate", hrefLang: "en", href: pageUrl("en", "/") },
+      { rel: "alternate", hrefLang: "de", href: pageUrl("de", "/") },
+      { rel: "alternate", hrefLang: "x-default", href: pageUrl("sk", "/") },
+      { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&display=swap",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -113,14 +162,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Outlet />
+        <ViewerRoleProvider>
+          <PwaLaunchExperience />
+          <IosInstallPrompt />
+          <Outlet />
+        </ViewerRoleProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

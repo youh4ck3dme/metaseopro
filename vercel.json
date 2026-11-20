@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/~oauth/:path*",
+      "destination": "https://seo4web.lovable.app/~oauth/:path*"
+    }
+  ]
+}

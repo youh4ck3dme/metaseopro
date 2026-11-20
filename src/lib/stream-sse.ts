@@ -19,7 +19,9 @@ export async function streamSSE({
 }) {
   let resp: Response;
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     const headers: Record<string, string> = { "Content-Type": "application/json" };
     if (session?.access_token) {
       headers["Authorization"] = `Bearer ${session.access_token}`;
@@ -71,9 +73,7 @@ export async function streamSSE({
         }
         try {
           const parsed = JSON.parse(json);
-          const content = parsed.choices?.[0]?.delta?.content as
-            | string
-            | undefined;
+          const content = parsed.choices?.[0]?.delta?.content as string | undefined;
           if (content) onDelta(content);
         } catch {
           buffer = line + "\n" + buffer;

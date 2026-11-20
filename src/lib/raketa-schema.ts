@@ -45,6 +45,20 @@ export function normalizeUrl(raw: string): string | null {
   if (url.protocol !== "http:" && url.protocol !== "https:") return null;
   // host must contain a dot (a real domain) and no spaces
   if (!url.hostname.includes(".") || /\s/.test(url.hostname)) return null;
+  // Block internal/localhost/link-local hostnames
+  const h = url.hostname.toLowerCase();
+  if (
+    h === "localhost" ||
+    h.endsWith(".localhost") ||
+    h.endsWith(".local") ||
+    h.endsWith(".internal") ||
+    h.endsWith(".lan") ||
+    h === "127.0.0.1" ||
+    h === "0.0.0.0" ||
+    h === "169.254.169.254"
+  ) {
+    return null;
+  }
   return url.toString();
 }
 
@@ -72,11 +86,7 @@ export const RaketaFormSchema = z.object({
     .max(2048)
     .refine(isValidUrl, "Neplatná URL. Použi formát napr. https://priklad.sk"),
   competitorUrl: optionalUrl,
-  keyword: z
-    .string()
-    .trim()
-    .min(2, "Zadaj cieľový keyword alebo tému.")
-    .max(200),
+  keyword: z.string().trim().min(2, "Zadaj cieľový keyword alebo tému.").max(200),
   language: z.enum(RAKETA_LANGUAGES),
   output: z.enum(RAKETA_OUTPUTS),
 });
@@ -93,7 +103,7 @@ export const AnalyzeBodySchema = z.object({
 export type PageAnalysis = {
   url: string;
   ok: boolean;
-  estimated: boolean; // true => mock/fallback data
+  estimated: boolean; // true => real but thin/JS-heavy page (never mocked data)
   title: string;
   metaDescription: string;
   h1: string[];
