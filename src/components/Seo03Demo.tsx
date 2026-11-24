@@ -99,6 +99,12 @@ export function Seo03Demo() {
   const [lastSlot, setLastSlot] = useState<Slot>("a");
   const inputA = useRef<HTMLInputElement>(null);
   const inputB = useRef<HTMLInputElement>(null);
+  // Async guards. `session` changes on reset, on sample load and when a joined
+  // or combined result commits; `slotGen` changes on every new upload to a slot.
+  // A read/parse that finishes after either changed is stale and is dropped
+  // without touching `slotStore`, errors or the view (no late reset/overwrite).
+  const session = useRef(0);
+  const slotGen = useRef<Record<Slot, number>>({ a: 0, b: 0 });
 
   const sample =
     view.phase === "no-loss" || view.phase === "result" || view.phase === "report"
@@ -112,6 +118,7 @@ export function Seo03Demo() {
       summary: computeLosses(parsed),
       host: dominantHost(parsed.rows),
     };
+    session.current++;
     slotStore.clear();
     setSlots({});
     setView(
@@ -145,6 +152,9 @@ export function Seo03Demo() {
 
   const handleFile = async (slot: Slot, file: File | undefined) => {
     if (!file) return;
+    const mySession = session.current;
+    const myGen = ++slotGen.current[slot];
+    const stale = () => session.current !== mySession || slotGen.current[slot] !== myGen;
     setLastSlot(slot);
     try {
       // Size is checked before anything is read.
@@ -156,12 +166,14 @@ export function Seo03Demo() {
     const started = Date.now();
     setView({ phase: "processing", fileName: file.name, rows: null, progress: 0 });
     try {
-      const text = await readFileWithProgress(file, (progress) =>
-        setView((v) => (v.phase === "processing" ? { ...v, progress } : v)),
-      );
+      const text = await readFileWithProgress(file, (progress) => {
+        if (!stale()) setView((v) => (v.phase === "processing" ? { ...v, progress } : v));
+      });
+      if (stale()) return;
       setView({ phase: "processing", fileName: file.name, rows: countLines(text), progress: 100 });
       const parsedFile = parseExportFile(text);
       await wait(Math.max(0, MIN_PROCESSING_MS - (Date.now() - started)));
+      if (stale()) return;
       if (parsedFile.kind === "compare") {
         if (parsedFile.data.rows.length === 0) {
           throw new Seo03Error(
@@ -180,11 +192,13 @@ export function Seo03Demo() {
         setView({ phase: "empty" });
       }
     } catch (error) {
+      if (stale()) return;
       fail(error, file.name);
     }
   };
 
   const loadSample = async () => {
+    const mySession = ++session.current;
     slotStore.clear();
     setSlots({});
     const started = Date.now();
@@ -197,11 +211,13 @@ export function Seo03Demo() {
     const a = parseExportFile(SAMPLE_PERIOD_A_CSV);
     const b = parseExportFile(SAMPLE_PERIOD_B_CSV);
     await wait(Math.max(0, MIN_PROCESSING_MS - (Date.now() - started)));
+    if (session.current !== mySession) return;
     if (a.kind === "single" && b.kind === "single") finish(joinPeriods(a.data, b.data), true);
   };
 
   const reset = () => {
-    // Drop every reference to the uploaded data.
+    // Drop every reference to the uploaded data and invalidate pending reads.
+    session.current++;
     slotStore.clear();
     setSlots({});
     setView({ phase: "empty" });

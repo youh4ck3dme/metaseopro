@@ -372,6 +372,81 @@ describe("seo03 report export (formula injection, spec §6.4)", () => {
     expect(pages).toContain("'\u202E+cmd");
   });
 
+  it.each([
+    ["U+2060 word joiner", '\u2060=HYPERLINK("http://evil.example")'],
+    ["U+00AD soft hyphen", "\u00AD=1+1"],
+    ["U+061C Arabic letter mark", "\u061C=1+1"],
+    ["U+2061 function application", "\u2061=1+1"],
+    ["U+2062 invisible times", "\u2062+cmd"],
+    ["U+180E Mongolian vowel separator", "\u180E-2+3"],
+    ["U+034F combining grapheme joiner", "\u034F@SUM(A1)"],
+    ["Hangul fillers", "\u115F\u1160\u3164\uFFA0=1"],
+    ["control character", "\u0007=1"],
+    ["spaces + U+2060 + fullwidth =", "   \u2060\uFF1D1+1"],
+    ["NBSP + ideographic space", "\u00A0\u3000=1"],
+    ["U+2060 + spaces + fullwidth =", "\u2060 \u00A0\uFF1D2+2"],
+    ["leading newline", "\nx"],
+  ])("neutralizes a formula behind a leading %s", (_, v) => {
+    expect(sanitizeCell(v)).toBe(`'${v}`);
+  });
+
+  it.each([
+    ["small plus U+FE62", "\uFE62cmd"],
+    ["small hyphen-minus U+FE63", "\uFE632+3"],
+    ["small equals U+FE66", "\uFE66SUM(A1)"],
+    ["small commercial at U+FE6B", "\uFE6BSUM(A1)"],
+    ["superscript equals U+207C", "\u207C1+1"],
+    ["fullwidth behind U+2060", "\u2060\uFF20SUM(A1)"],
+  ])("neutralizes NFKC formula start: %s", (_, v) => {
+    expect(sanitizeCell(v)).toBe(`'${v}`);
+  });
+
+  it.each([
+    "https://eshop-priklad.sk/kategória/čučoriedky-žltá-ľan",
+    "\u2060https://eshop-priklad.sk/ok",
+    "  Ťažké ľadové údolie",
+    "\u00ADa=b",
+    "",
+    "\u2060",
+  ])("leaves benign text %j unchanged", (v) => {
+    expect(sanitizeCell(v)).toBe(v);
+  });
+
+  it("escapes every hidden formula from injection-invisible.csv and keeps numbers numeric", () => {
+    const csv = buildReportCsv(
+      computeLosses(parseCompareExport(fixture("injection-invisible.csv")), 20),
+    );
+    const lines = csv.slice(1).trim().split("\r\n");
+    expect(lines).toHaveLength(12);
+    const rows = lines.slice(1).map((line) => parseCsv(line, { delimiter: ";" })[0]);
+    const pages = rows.map((cells) => cells[1]);
+    const benign = "https://eshop-priklad.sk/kategória/čučoriedky-žltá-ľan";
+    expect(pages).toContain(benign);
+    const hostile = pages.filter((p) => p !== benign);
+    expect(hostile).toHaveLength(10);
+    for (const page of hostile) expect(page.startsWith("'")).toBe(true);
+    expect(pages).toEqual(
+      expect.arrayContaining([
+        '\'\u2060=HYPERLINK("http://evil.example")',
+        "'\u00AD=1+1",
+        "'\u061C=1+1",
+        "'\u2061=1+1",
+        // Parsing trims plain leading spaces; U+2060 and the fullwidth = stay and are escaped.
+        "'\u2060\uFF1D1+1",
+        "'\u2060 \u00A0\uFF1D2+2",
+        "'\u034F\u3164\uFE62cmd",
+        "'\uFE632+3",
+        "'\uFE66SUM(A1)",
+        "'\uFE6BSUM(A1)",
+      ]),
+    );
+    for (const cells of rows) {
+      expect(cells[2]).toMatch(/^\d+$/);
+      expect(cells[4]).toMatch(/^-\d+$/);
+      expect(cells[5]).toBe("-100,0");
+    }
+  });
+
   it("escapes hostile page cells but keeps negative numbers numeric", () => {
     const csv = buildReportCsv(computeLosses(parseCompareExport(fixture("injection.csv")), 5));
     expect(csv.startsWith("\uFEFF")).toBe(true);
