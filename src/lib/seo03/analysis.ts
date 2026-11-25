@@ -167,22 +167,43 @@ export function computeLosses(data: Pick<ParsedExport, "rows">, limit = 3): Loss
 }
 
 /**
- * Invisible characters a spreadsheet may skip before reading a formula:
- * zero-width (U+200B–U+200F), bidi embeddings/overrides (U+202A–U+202E),
- * bidi isolates (U+2066–U+2069) and the BOM / zero-width no-break space.
+ * Characters a spreadsheet may skip or render invisibly before reading a
+ * formula: every Unicode format character (\p{Cf}: zero-width, bidi marks,
+ * embeddings/overrides/isolates, U+2060 WORD JOINER, U+2061 FUNCTION
+ * APPLICATION, U+00AD SOFT HYPHEN, U+061C ARABIC LETTER MARK, BOM …), control
+ * characters (\p{Cc}), all whitespace and separators (\s, \p{Z}), plus the
+ * default-ignorable letters that are not Cf: U+034F combining grapheme joiner,
+ * Hangul fillers U+115F, U+1160, U+3164, U+FFA0 and U+180E.
  */
-const LEADING_INVISIBLE = /^[\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]+/;
+const LEADING_IGNORABLE = /^[\p{Cf}\p{Cc}\p{Z}\s\u034F\u115F\u1160\u180E\u3164\uFFA0]+/u;
 
-/** = + - @ TAB CR, plus their fullwidth forms ＝ ＋ － ＠ (U+FF1D, FF0B, FF0D, FF20). */
-const FORMULA_START = /^[=+\-@\t\r\uFF1D\uFF0B\uFF0D\uFF20]/;
+/** Raw control characters that start a formula-like cell in some spreadsheets. */
+const RAW_CONTROL_START = /^[\t\r\n]/;
+
+/**
+ * = + - @ after NFKC normalization, so fullwidth ＝ ＋ － ＠ (U+FF1D, FF0B,
+ * FF0D, FF20) and small-form ﹦ ﹢ ﹣ ﹫ (U+FE66, FE62, FE63, FE6B) count too.
+ */
+const FORMULA_START = /^[=+\-@]/;
+
+function startsLikeFormula(value: string): boolean {
+  if (RAW_CONTROL_START.test(value)) return true;
+  const visible = value.replace(LEADING_IGNORABLE, "");
+  const first = visible.codePointAt(0);
+  if (first === undefined) return false;
+  return FORMULA_START.test(String.fromCodePoint(first).normalize("NFKC"));
+}
 
 /**
  * Neutralizes spreadsheet formula injection (OWASP CSV injection) in TEXT
- * cells: anything that starts with a formula character, after skipping leading
- * invisible characters, gets a leading apostrophe. The value is kept as is.
+ * cells: a raw leading TAB/CR/LF, or a first visible character that is a
+ * formula character after NFKC (ignoring leading invisible, format, control
+ * and whitespace characters), gets a leading apostrophe. The value is kept
+ * as is. Numeric cells never pass through here (see `renderCell`), so
+ * negative numbers like -860 or -46,7 stay numbers (spec §6.4).
  */
 export function sanitizeCell(value: string): string {
-  return FORMULA_START.test(value.replace(LEADING_INVISIBLE, "")) ? `'${value}` : value;
+  return startsLikeFormula(value) ? `'${value}` : value;
 }
 
 type ReportCell = { text: string } | { num: number | null; digits?: number };
