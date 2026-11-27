@@ -19,7 +19,9 @@ export function generateReportHtml(
   criticalDrops: ScoredDecayRow[] = [],
 ): string {
   const { agency, client, executiveSummary, opportunities, recommendations } = data;
-  const primaryColor = agency.primaryColor || "#10b981";
+  const primaryColor = sanitizeHexColor(agency.primaryColor, "#10b981");
+  const healthColor = sanitizeHexColor(executiveSummary.healthColor, "#10b981");
+  const safeLogoUrl = sanitizeLogoUrl(agency.logoUrl);
 
   // Top 5 decay drops
   const topDrops = criticalDrops
@@ -265,7 +267,7 @@ export function generateReportHtml(
     <!-- Header -->
     <div class="header">
       <div class="agency-brand">
-        ${agency.logoUrl ? `<img class="agency-logo" src="${escapeHtml(agency.logoUrl)}" alt="${escapeHtml(agency.name)}">` : ""}
+        ${safeLogoUrl ? `<img class="agency-logo" src="${escapeHtml(safeLogoUrl)}" alt="${escapeHtml(agency.name)}">` : ""}
         <div class="agency-name">${escapeHtml(agency.name)}</div>
       </div>
       <div class="client-meta">
@@ -284,7 +286,7 @@ export function generateReportHtml(
     <div class="kpi-grid">
       <div class="kpi-card">
         <div class="kpi-label">SEO Health Index</div>
-        <div class="kpi-value" style="color: ${executiveSummary.healthColor}">${executiveSummary.healthIndex}%</div>
+        <div class="kpi-value" style="color: ${healthColor}">${executiveSummary.healthIndex}%</div>
         <div class="kpi-delta">${escapeHtml(executiveSummary.healthStatus)} stav</div>
       </div>
       <div class="kpi-card">
@@ -422,6 +424,30 @@ export function exportClientReportPdf(
       printWindow.print();
     };
   }
+}
+
+function sanitizeHexColor(value: string | null | undefined, fallback: string): string {
+  const trimmed = value?.trim() ?? "";
+  return /^#(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(trimmed)
+    ? trimmed
+    : fallback;
+}
+
+function sanitizeLogoUrl(value: string | null | undefined): string {
+  const trimmed = value?.trim() ?? "";
+  if (!trimmed) return "";
+  if (/^data:image\/(?:png|jpe?g|webp|gif);base64,[a-z0-9+/=]+$/i.test(trimmed)) {
+    return trimmed;
+  }
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol === "https:" || parsed.protocol === "http:") {
+      return parsed.href;
+    }
+  } catch {
+    return "";
+  }
+  return "";
 }
 
 function escapeHtml(str: string): string {

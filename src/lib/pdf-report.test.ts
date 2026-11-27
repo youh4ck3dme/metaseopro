@@ -127,4 +127,37 @@ describe("Whitelabel Client PDF Report Generator", () => {
     expect(html).not.toContain("<img src=x");
     expect(html).toContain("&lt;img src=x");
   });
+
+  it("rejects CSS/HTML injection in primaryColor, healthColor, and unsafe logoUrl schemes", () => {
+    const maliciousData: ExecutiveReportData = {
+      ...sampleData,
+      agency: {
+        ...sampleData.agency,
+        primaryColor: "#10b981; } </style><script>alert(1)</script><style>",
+        logoUrl: "javascript:alert(1)",
+      },
+      executiveSummary: {
+        ...sampleData.executiveSummary,
+        healthColor: 'red" onclick="alert(1)',
+      },
+    };
+
+    const html = generateReportHtml(maliciousData, []);
+    expect(html).not.toContain("<script>alert(1)</script>");
+    expect(html).not.toContain("javascript:alert(1)");
+    expect(html).not.toContain('onclick="alert(1)');
+    expect(html).toContain("border-bottom: 3px solid #10b981;");
+
+    const svgLogoHtml = generateReportHtml(
+      {
+        ...sampleData,
+        agency: {
+          ...sampleData.agency,
+          logoUrl: "data:image/svg+xml;base64,PHN2Zy8+",
+        },
+      },
+      [],
+    );
+    expect(svgLogoHtml).not.toContain("data:image/svg+xml");
+  });
 });
